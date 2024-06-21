@@ -3,11 +3,14 @@
 {% block body %}
   
     <h2>User: 
-        <a href="{% url 'admin:organization_user_change' user.id %}">{{user}}</a></b> 
+        <a href="{% url 'admin:organization_user_change' user.id %}">{{user}}</a>
         {{user.first_name}} {{user.last_name}} 
+        {% if not request.user == user %}        
+            / <a href="{% url 'switch_user' user.id %}">SWITCH TO</a> 
+        {% endif %}
         {% if user.client %}
-        / Client: <a href="{% url 'admin:organization_client_change' user.client.id %}">{{user.client}}</a></li>
-        <a href="{% url 'client' user.client.key %}">DETAILS</a>
+            / Client: <a href="{% url 'admin:organization_client_change' user.client.id %}">{{user.client}}</a></li>
+            <a href="{% url 'client' user.client.key %}">DETAILS</a>
         {% endif %}
     </h2>
 

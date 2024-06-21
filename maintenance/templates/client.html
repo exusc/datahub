@@ -12,14 +12,14 @@
 
 <h3>Applications</h3>
 <ul>{% for application in client.application_set.all %}
-<li>Application: <b><a href="{% url 'admin:organization_application_change' application.id %}">{{application}}</a></b>
+<li>Application: <b><a href="{% url 'admin:organization_application_change' application.id %}">{{application}}</a> {{application.desc}}</b>
 
     <ul><li>Areas:</li>
         <ul>{% for area in application.area_set.all %}
         <li> Area: <b><a href="{% url 'admin:organization_area_change' area.id %}">{{area}}</a></b> ({{area.desc}})
             with Database: <b><a href="{% url 'admin:organization_container_change' area.database.id %}">{{area.database}}</a></b> ({{area.database.desc}});
-            Schema for user acces: <b>{{area.database.key.lower}}.{{area.key.lower}}</b>; 
-            Schema for tables: <b>{{area.database.key.lower}}.{{area.key.lower}}_base</b>
+            Schema for user acces: <b>{{area.application.key.lower}}_{{area.key.lower}}</b>; 
+            Schema for tables: <b>{{area.application.key.lower}}_{{area.key.lower}}_base</b>
             <br>
             with Filestorage: <b><a href="{% url 'admin:organization_container_change' area.filestorage.id %}">{{area.filestorage}}</a></b> ({{area.filestorage.desc}});
         </li>
@@ -28,7 +28,7 @@
 
     <li>Scopes = MinIo Buckets:</li>
     <ul>{% for scope in application.scope_set.all %}
-        <li><b><a href="{% url 'admin:organization_scope_change' scope.id %}">{{scope}}</a></b>
+        <li><b><a href="{% url 'admin:organization_scope_change' scope.id %}">{{scope}}</a> {{scope.desc}} </b>
             org: {{scope.org_scope.key}}
             app: {{scope.app_scope.key}}
         </li>
@@ -41,15 +41,16 @@
 
 <h3>User</hr>
 <ul>{% for user in client.user_set.all %}
-    <li><b><a href="{% url 'switch_user' user.id %}">==></a> 
+    <li><b>
         <a href="{% url 'admin:organization_user_change' user.id %}">{{user}}</a></b> {{user.first_name}} {{user.last_name}}
         ({% for grp in user.groups.all %}
-            <a href="{% url 'admin:organization_group_change' user.id %}">{{grp}}</a>,
+            <a href="{% url 'admin:organization_group_change' grp.id %}">{{grp}}</a>,
         {% endfor %})
-        with acces to scopes:
+        with access to scopes:
         ({% for scope in user.scopes.all %}
             {{scope}},  
         {% endfor %})
+        / <a href="{% url 'user' user.id %}">DETAILS</a> 
     </li>
 {% endfor user %}
 </ul>

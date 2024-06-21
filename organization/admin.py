@@ -102,6 +102,7 @@ class ApplicationAdmin(DatahubModelAdmin):
     search_fields = ['key', 'desc', ]
     list_display = ['key', 'desc', 'client',
                     'business_unit_1', 'business_unit_2']
+    list_filter = ['client']
     fieldsets = [
         (None, {'fields': ['key', 'desc', 'text', ], }),
         ('Ownership', {'fields': ['client', ], }),
@@ -125,6 +126,7 @@ class ApplicationAdmin(DatahubModelAdmin):
 class ScopeAdmin(DatahubModelAdmin):
     search_fields = ['key', 'application__key', 'desc']
     ordering = ['application__key', 'key',]
+    list_filter = ['application']
     list_display = ['key', 'application', 'desc', 'org_scope', 'app_scope']
     fieldsets = [
         ('Combination', {'fields': ['application', 'business_unit_1', 'business_unit_2',
@@ -166,6 +168,17 @@ class ScopeAdmin(DatahubModelAdmin):
 
 
 class AreaAdmin(DatahubModelAdmin):
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        """ Reduce list of selectable container to according type """
+        if db_field.name == "database":
+            kwargs["queryset"] = Container.objects.filter(
+                containertype__type='DB')
+        if db_field.name == "filestorage":
+            kwargs["queryset"] = Container.objects.filter(
+                containertype__type='FS')
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
     list_display = ['application', 'key', 'desc', 'database', 'filestorage']
     ordering = ['application__key', 'key',]
     list_filter = ['application']
@@ -202,7 +215,8 @@ class ContainerAdmin(DatahubModelAdmin):
 
 class ContainerTypeAdmin(DatahubModelAdmin):
     ordering = ['key',]
-    list_display = ['key', 'desc', ]
+    list_display = ['key', 'desc', 'type']
+    list_filter = ['type']
     fieldsets = [
         (None, {'fields': [('key', 'desc'), 'type'], }),
         ('Scripts', {'fields': [('area_add', 'user_add'), ], }),

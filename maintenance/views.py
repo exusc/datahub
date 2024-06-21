@@ -1,4 +1,5 @@
-from django.shortcuts import render, redirect, reverse
+from django.shortcuts import render, redirect
+from django.urls import reverse
 from organization.models import Client, User
 from django.contrib.auth import authenticate, login
 from django.contrib.admin.models import LogEntry
@@ -31,3 +32,4 @@ def switch_user(request, userid):
     if user:
         login(request, user)
     return redirect(reverse("index"))
+

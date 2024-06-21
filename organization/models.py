@@ -123,6 +123,10 @@ class Container(AbstractDatahubModel):
     class Meta:
         verbose_name = _("Container")
         verbose_name_plural = _("Containers")
+        permissions = [
+            ("upload_templates", "Is allowed to upload report templates"),
+            ("download_templates", "Is allowed to download report templates"),
+        ]
 
     key = models.CharField(_('key'), max_length=20, unique=True,)
     client = models.ForeignKey(
