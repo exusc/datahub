@@ -2,21 +2,27 @@
 
 {% block body %}
   
-<h2 >Client: <a href="{% url 'admin:organization_client_change' client.id %}">{{client}}</a></h2>
+<h2 >Client: <a href="{% url 'admin:organization_client_change' client.id %}">{{client}}</a> - {{client.desc}}</h2>
 
 <h3>Container</h3>
 <ul>{% for container in client.container_set.all %}
-    <li>Container: <b><a href="{% url 'admin:organization_container_change' container.id %}">{{container}}</a></b> ({{container.containertype}})</li>
+    <li><b><a href="{% url 'admin:organization_container_change' container.id %}">{{container}}</a></b> ({{container.containertype}})</li>
     {% endfor %}
 </ul>
 
 <h3>Applications</h3>
 <ul>{% for application in client.application_set.all %}
-<li>Application: <b><a href="{% url 'admin:organization_application_change' application.id %}">{{application}}</a> {{application.desc}}</b>
+<li><b><a href="{% url 'admin:organization_application_change' application.id %}">{{application}}</a></b> {{application.desc}}
+    / BUs: 
+    {{application.business_unit_1}} 
+    {% if application.business_unit_2 %} , {{application.business_unit_2}} {% endif %}
+    {% if application.business_unit_3 %} , {{application.business_unit_3}} {% endif %}
+    {% if application.business_unit_4 %} , {{application.business_unit_4}} {% endif %}
+    {% if application.business_unit_5 %} , {{application.business_unit_5}} {% endif %}
 
     <ul><li>Areas:</li>
         <ul>{% for area in application.area_set.all %}
-        <li> Area: <b><a href="{% url 'admin:organization_area_change' area.id %}">{{area}}</a></b> ({{area.desc}})
+        <li><b><a href="{% url 'admin:organization_area_change' area.id %}">{{area}}</a></b> ({{area.desc}})
             with Database: <b><a href="{% url 'admin:organization_container_change' area.database.id %}">{{area.database}}</a></b> ({{area.database.desc}});
             Schema for user acces: <b>{{area.application.key.lower}}_{{area.key.lower}}</b>; 
             Schema for tables: <b>{{area.application.key.lower}}_{{area.key.lower}}_base</b>
@@ -26,11 +32,11 @@
         {% endfor area %}
     </ul>
 
-    <li>Scopes = MinIo Buckets:</li>
+    <li>Scopes = MinIo Buckets or Folder in Filesystem and RLS in DBs:</li>
     <ul>{% for scope in application.scope_set.all %}
         <li><b><a href="{% url 'admin:organization_scope_change' scope.id %}">{{scope}}</a> {{scope.desc}} </b>
-            org: {{scope.org_scope.key}}
-            app: {{scope.app_scope.key}}
+            org: <b><a href="{% url 'admin:organization_scope_change' scope.org_scope_id %}">{{scope.org_scope}}</a></b> {{scope.org_scope.desc}}
+            app: <b><a href="{% url 'admin:organization_scope_change' scope.app_scope_id %}">{{scope.app_scope}}</a></b> {{scope.app_scope.desc}}
         </li>
         {% endfor scope %}
     </ul>
@@ -48,7 +54,7 @@
         {% endfor %})
         with access to scopes:
         ({% for scope in user.scopes.all %}
-            {{scope}},  
+            <a href="{% url 'admin:organization_scope_change' scope.id %}">{{scope}}</a>,  
         {% endfor %})
         / <a href="{% url 'user' user.id %}">DETAILS</a> 
     </li>
