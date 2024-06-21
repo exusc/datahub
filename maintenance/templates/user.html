@@ -5,9 +5,9 @@
     <h2>User: 
         <a href="{% url 'admin:organization_user_change' user.id %}">{{user}}</a>
         {{user.first_name}} {{user.last_name}} 
-        {% if user.client %}
-        / Client: <a href="{% url 'admin:organization_client_change' user.client.id %}">{{user.client}}</a></li>
-        <a href="{% url 'client' user.client.key %}">DETAILS</a>
+        {% if user.owner %}
+        / Owner: <a href="{% url 'admin:organization_owner_change' user.owner.id %}">{{user.owner}}</a></li>
+        <a href="{% url 'owner' user.owner.key %}">DETAILS</a>
         {% endif %}
         {% if not request.user == user %}        
             / <a href="{% url 'switch_user' user.id %}">SWITCH TO</a> 

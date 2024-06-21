@@ -2,12 +2,12 @@
 
 {% block body %}
 
-    <h2>List of Clients</h2>
+    <h2>List of Owner</h2>
     <ul>
-    {% for client in clients %}
+    {% for owner in owners %}
         <li>
-            <a href="{% url 'admin:organization_client_change' client.id %}">{{client}}</a>
-            / <a href="{% url 'client' client.key %}">DETAILS</a>
+            <a href="{% url 'admin:organization_owner_change' owner.id %}">{{owner}}</a>
+            / <a href="{% url 'owner' owner.key %}">DETAILS</a>
         </li>
     {% endfor %}
     </ul>

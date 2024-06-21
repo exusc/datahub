@@ -26,10 +26,14 @@ class AbstractDatahubModel(models.Model):
 
 
 class User(AbstractUser):
-    """ If a user is assigned to a client, that person is just allowed to work with client related objects """
-    client = models.ForeignKey(
-        'Client', on_delete=models.PROTECT, null=True, blank=True,
-        help_text="If specified, the user may only maintain client-related objects"
+    """ If a user is assigned to an owner, that person is just allowed to work with owner related objects """
+    class Meta:
+        verbose_name = _("User")
+        verbose_name_plural = _("Users")
+
+    owner = models.ForeignKey(
+        'Owner', on_delete=models.PROTECT, null=True, blank=True,
+        help_text="If specified, the user may only maintain owner-related objects"
         )
     scopes = models.ManyToManyField('Scope', blank=True)
 
@@ -40,17 +44,17 @@ class Group(Group):
         verbose_name_plural = _("Groups")
 
 
-class Client(AbstractDatahubModel):
+class Owner(AbstractDatahubModel):
     """ Used to assign ownership to applications and container.
-        A client might belong to an other organization
+        A owner might be owned by an other organization
     """
     class Meta:
-        verbose_name = _("Client")
-        verbose_name_plural = _("Clients")
+        verbose_name = _("Owner")
+        verbose_name_plural = _("Owners")
 
     key = models.CharField(_('key'), max_length=20, unique=True,)
     organization = models.ForeignKey(
-        'Client', on_delete=models.PROTECT, null=True, blank=True,
+        'Owner', on_delete=models.PROTECT, null=True, blank=True,
         help_text="To support hirarchical structures like IGS and SVAs")
 
 
@@ -61,8 +65,8 @@ class Application(AbstractDatahubModel):
         verbose_name_plural = _("Applications")
 
     key = models.CharField(_('key'), max_length=20, unique=True,)
-    client = models.ForeignKey(
-        'Client', on_delete=models.PROTECT, null=True, blank=True,)
+    owner = models.ForeignKey(
+        'Owner', on_delete=models.PROTECT, null=True, blank=True,)
     business_unit_1 = models.CharField(
         _('business_unit_1'), max_length=80, null=True, blank=True)
     business_unit_2 = models.CharField(
@@ -129,8 +133,8 @@ class Container(AbstractDatahubModel):
         ]
 
     key = models.CharField(_('key'), max_length=20, unique=True,)
-    client = models.ForeignKey(
-        'Client', on_delete=models.PROTECT, null=True, blank=True,
+    owner = models.ForeignKey(
+        'Owner', on_delete=models.PROTECT, null=True, blank=True,
         help_text=_("Defines ownership of container"))
     containertype = models.ForeignKey('ContainerType',on_delete=models.PROTECT)
     connection = models.TextField(_('Connection'), max_length=200, null=True,

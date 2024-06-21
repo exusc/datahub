@@ -10,10 +10,10 @@ class DatahubAdminSite (admin.AdminSite):
     site_header = f'DATA-Hub'
     site_title = site_header
 
-    def get_app_list(self, request):
+    def get_app_list(self, request, app_label=None):
         """ Sorts the list of Object within the admin menu        """
         ordering = {
-            "Client": 1,
+            "Owner": 1,
             "Group": 2,
             "User": 3,
             "Container": 4,
@@ -23,7 +23,7 @@ class DatahubAdminSite (admin.AdminSite):
             "Scope": 8,
             "LogEntry": 9,
         }
-        app_dict = self._build_app_dict(request)
+        app_dict = self._build_app_dict(request, app_label)
         app_list = sorted(app_dict.values(), key=lambda x: x['name'].lower())
 
         # Sort the models alphabetically within each app.
@@ -50,13 +50,13 @@ class DatahubModelAdmin (admin.ModelAdmin):
 
 
 class DataHubUserAdmin(UserAdmin):
-    list_filter = ['client', 'groups']
+    list_filter = ['owner', 'groups']
     list_display = ['username', 'first_name', 'last_name',
-                    'client', 'is_active', 'is_staff', 'is_superuser']
+                    'owner', 'is_active', 'is_staff', 'is_superuser']
     readonly_fields = ["last_login",]
     fieldsets = [
         (None, {'fields': ['username',
-         ('first_name', 'last_name'), 'email', 'client'], }),
+         ('first_name', 'last_name'), 'email', 'owner'], }),
         ('Permissions', {'fields': [
          'is_active', 'is_staff', 'is_superuser', 'scopes', 'groups'], }),
         ('Info', {'fields': ['last_login', ], }),
@@ -71,11 +71,11 @@ class DataHubUserAdmin(UserAdmin):
         queryset = super().get_queryset(request)
         if request.user.is_superuser:
             return queryset
-        queryset = queryset.filter(client=request.user.client)
+        queryset = queryset.filter(owner=request.user.owner)
         return queryset
 
 
-class ClientAdmin(DatahubModelAdmin):
+class OwnerAdmin(DatahubModelAdmin):
     search_fields = ['key', 'desc']
     ordering = ['key',]
     list_display = ['key', 'desc', 'organization', ]
@@ -94,18 +94,18 @@ class ClientAdmin(DatahubModelAdmin):
         queryset = super().get_queryset(request)
         if request.user.is_superuser:
             return queryset
-        queryset = queryset.filter(id=request.user.client.id)
+        queryset = queryset.filter(id=request.user.owner.id)
         return queryset
 
 
 class ApplicationAdmin(DatahubModelAdmin):
     search_fields = ['key', 'desc', ]
-    list_display = ['key', 'desc', 'client',
+    list_display = ['key', 'desc', 'owner',
                     'business_unit_1', 'business_unit_2']
-    list_filter = ['client']
+    list_filter = ['owner']
     fieldsets = [
         (None, {'fields': ['key', 'desc', 'text', ], }),
-        ('Ownership', {'fields': ['client', ], }),
+        ('Ownership', {'fields': ['owner', ], }),
         ('Business Units', {'fields': ['business_unit_1', 'business_unit_2',
          'business_unit_3', 'business_unit_4', 'business_unit_5',], }),
         ('History', {'fields': [('ctime', 'cuser'), ('utime', 'uuser')], },),
@@ -119,11 +119,39 @@ class ApplicationAdmin(DatahubModelAdmin):
         queryset = super().get_queryset(request)
         if request.user.is_superuser:
             return queryset
-        queryset = queryset.filter(client=request.user.client)
+        queryset = queryset.filter(owner=request.user.owner)
         return queryset
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "owner":
+            if request.user.is_superuser:
+                kwargs["queryset"] = Owner.objects.all()
+            else:
+                kwargs["queryset"] = Owner.objects.filter(key=request.user.owner)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
 class ScopeAdmin(DatahubModelAdmin):
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        """ Reduce list of selectable container to according type """
+        if db_field.name == "application":
+            if request.user.is_superuser:
+                kwargs["queryset"] = Application.objects.all()
+            else:
+                kwargs["queryset"] = Application.objects.filter(owner=request.user.owner)
+        if db_field.name == "org_scope":
+            if request.user.is_superuser:
+                kwargs["queryset"] = Scope.objects.all()
+            else:
+                kwargs["queryset"] = Scope.objects.filter(application__owner=request.user.owner)
+        if db_field.name == "app_scope":
+            if request.user.is_superuser:
+                kwargs["queryset"] = Scope.objects.all()
+            else:
+                kwargs["queryset"] = Scope.objects.filter(application__owner=request.user.owner)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
     search_fields = ['key', 'application__key', 'desc']
     ordering = ['application__key', 'key',]
     list_filter = ['application']
@@ -163,7 +191,7 @@ class ScopeAdmin(DatahubModelAdmin):
         queryset = super().get_queryset(request)
         if request.user.is_superuser:
             return queryset
-        queryset = queryset.filter(application__client=request.user.client)
+        queryset = queryset.filter(application__owner=request.user.owner)
         return queryset
 
 
@@ -171,12 +199,21 @@ class AreaAdmin(DatahubModelAdmin):
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         """ Reduce list of selectable container to according type """
+        if db_field.name == "application":
+            if request.user.is_superuser:
+                kwargs["queryset"] = Application.objects.all()
+            else:
+                kwargs["queryset"] = Application.objects.filter(owner=request.user.owner)
         if db_field.name == "database":
-            kwargs["queryset"] = Container.objects.filter(
-                containertype__type='DB')
+            container = Container.objects.filter(containertype__type='DB')
+            if not request.user.is_superuser:
+                container = container.filter(owner=request.user.owner)
+            kwargs["queryset"] = container
         if db_field.name == "filestorage":
-            kwargs["queryset"] = Container.objects.filter(
-                containertype__type='FS')
+            container = Container.objects.filter(containertype__type='FS')
+            if not request.user.is_superuser:
+                container = container.filter(owner=request.user.owner)
+            kwargs["queryset"] = container
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     list_display = ['application', 'key', 'desc', 'database', 'filestorage']
@@ -196,19 +233,19 @@ class AreaAdmin(DatahubModelAdmin):
         queryset = super().get_queryset(request)
         if request.user.is_superuser:
             return queryset
-        queryset = queryset.filter(application__client=request.user.client)
+        queryset = queryset.filter(application__owner=request.user.owner)
         return queryset
 
 
 class ContainerAdmin(DatahubModelAdmin):
     search_fields = ['key', 'desc', ]
     ordering = ['key',]
-    list_display = ['key', 'desc', 'containertype', 'connection', 'client', ]
-    list_filter = ['client', 'containertype']
+    list_display = ['key', 'desc', 'containertype', 'connection', 'owner', ]
+    list_filter = ['owner', 'containertype']
     fieldsets = [
         (None, {'fields': [('key', 'desc'),
          'containertype', 'connection', ], }),
-        ('Client', {'fields': ['client', ], }),
+        ('Owner', {'fields': ['owner', ], }),
         ('History', {'fields': [('ctime', 'cuser'), ('utime', 'uuser')], },),
     ]
 
@@ -235,7 +272,7 @@ class LogEntryAdmin(admin.ModelAdmin):
 datahub_admin_site = DatahubAdminSite(name="datahub_admin")
 datahub_admin_site.register(User, DataHubUserAdmin)
 datahub_admin_site.register(Group, GroupAdmin)
-datahub_admin_site.register(Client, ClientAdmin)
+datahub_admin_site.register(Owner, OwnerAdmin)
 datahub_admin_site.register(Application, ApplicationAdmin)
 datahub_admin_site.register(Area, AreaAdmin)
 datahub_admin_site.register(Container, ContainerAdmin)

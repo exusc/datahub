@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.urls import reverse
-from organization.models import Client, User
+from organization.models import Owner, User
 from django.contrib.auth import authenticate, login
 from django.contrib.admin.models import LogEntry
 from django.views.decorators.csrf import csrf_protect
@@ -9,7 +9,7 @@ from django.views import View
 
 def index(request):
     context = {}
-    context['clients']  = Client.objects.all()
+    context['owners']  = Owner.objects.all()
     context['users'] = User.objects.all()
     return render(request, 'index.html', context)
 
@@ -21,9 +21,9 @@ class UserView(View):
         return render(request, 'user.html', context)
 
 
-def client(request, key):
-    context = {'client': Client.objects.get(key=key)}
-    return render(request, 'client.html', context)
+def owner(request, key):
+    context = {'owner': Owner.objects.get(key=key)}
+    return render(request, 'owner.html', context)
 
 
 def switch_user(request, userid):
