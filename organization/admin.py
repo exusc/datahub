@@ -141,23 +141,23 @@ class ScopeAdmin(DatahubModelAdmin):
             else:
                 kwargs["queryset"] = Application.objects.filter(owner=request.user.owner)
         if db_field.name == "org_scope":
-            if request.user.is_superuser:
-                kwargs["queryset"] = Scope.objects.all()
-            else:
-                kwargs["queryset"] = Scope.objects.filter(application__owner=request.user.owner)
+            scopes = Scope.objects.filter(type='O')
+            if not request.user.is_superuser:
+                scopes = scopes.filter(application__owner=request.user.owner)
+            kwargs["queryset"] = scopes
         if db_field.name == "app_scope":
-            if request.user.is_superuser:
-                kwargs["queryset"] = Scope.objects.all()
-            else:
-                kwargs["queryset"] = Scope.objects.filter(application__owner=request.user.owner)
+            scopes = Scope.objects.filter(type='A')
+            if not request.user.is_superuser:
+                scopes = scopes.filter(application__owner=request.user.owner)
+            kwargs["queryset"] = scopes
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     search_fields = ['key', 'application__key', 'desc']
     ordering = ['application__key', 'key',]
-    list_filter = ['application']
-    list_display = ['key', 'application', 'desc', 'org_scope', 'app_scope']
+    list_filter = ['application', 'type']
+    list_display = ['key', 'application', 'type', 'desc', 'org_scope', 'app_scope']
     fieldsets = [
-        ('Combination', {'fields': ['application', 'business_unit_1', 'business_unit_2',
+        ('Combination', {'fields': [('application', 'type',),  'business_unit_1', 'business_unit_2',
          'business_unit_3', 'business_unit_4', 'business_unit_5', 'team'], }),
         ('Documentation', {'fields': ['desc'], }),
         ('Central Scopes', {'fields': ['org_scope', 'app_scope'], }),

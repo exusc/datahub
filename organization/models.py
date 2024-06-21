@@ -55,7 +55,7 @@ class Owner(AbstractDatahubModel):
     key = models.CharField(_('key'), max_length=20, unique=True,)
     organization = models.ForeignKey(
         'Owner', on_delete=models.PROTECT, null=True, blank=True,
-        help_text="To support hirarchical structures like IGS and SVAs")
+        help_text=_("To support hirarchical structures like IGS and SVAs"))
 
 
 class Application(AbstractDatahubModel):
@@ -79,13 +79,36 @@ class Application(AbstractDatahubModel):
         _('business_unit_5'), max_length=80, null=True, blank=True)
 
 
+class Area(AbstractDatahubModel):
+    """ Each area belongs to an application and can have its own database and file storage"""
+    class Meta:
+        verbose_name = _("Area")
+        verbose_name_plural = _("Areas")
+        unique_together = ['application', 'key']
+
+    key = models.CharField(_('key'), max_length=20)
+    application = models.ForeignKey('Application', on_delete=models.PROTECT)
+    database = models.ForeignKey(
+        'Container', on_delete=models.PROTECT, related_name='+', help_text=_("To store structured data"))
+    filestorage = models.ForeignKey(
+        'Container', on_delete=models.PROTECT, related_name='+', help_text=_("To store files"))
+
+
 class Scope(AbstractDatahubModel):
     """ Scopes are linked to application and vused from all areas within these application """
     class Meta:
         verbose_name = _("Scope")
         verbose_name_plural = _("Scopes")
 
+    TYPE = {
+        "S": _("Standard"),
+        "O": _("Org scope"),
+        "A": _("App scope"),
+    }
+
     key = models.CharField(_('key'), max_length=80, unique=True, default="tbd")
+    type = models.CharField( _('type'), max_length=1, choices=TYPE, default='S',
+                            help_text=_("Defines how scope can be used"))
     application = models.ForeignKey(
         'Application', on_delete=models.PROTECT, null=True, blank=True,)
     business_unit_1 = models.CharField(
@@ -100,24 +123,10 @@ class Scope(AbstractDatahubModel):
         _('business_unit_5'), max_length=80, null=True, blank=True)
     team = models.CharField(_('team'), max_length=80, null=True, blank=True)
     org_scope = models.ForeignKey('Scope', on_delete=models.PROTECT, null=True, blank=True, related_name='+',
-                                  help_text="Here are the standard templates created by the client")
+                                  help_text=_("Here are the standard templates created by the client"))
     app_scope = models.ForeignKey('Scope', on_delete=models.PROTECT, null=True, blank=True, related_name='+',
-                                  help_text="Here are the standard templates created by Abraxas or other provider")
+                                  help_text=_("Here are the standard templates created by Abraxas or other provider"))
 
-
-class Area(AbstractDatahubModel):
-    """ Each area belongs to an application and can have its own database and file storage"""
-    class Meta:
-        verbose_name = _("Area")
-        verbose_name_plural = _("Areas")
-        unique_together = ['application', 'key']
-
-    key = models.CharField(_('key'), max_length=20)
-    application = models.ForeignKey('Application', on_delete=models.PROTECT)
-    database = models.ForeignKey(
-        'Container', on_delete=models.PROTECT, related_name='+', help_text="To store structured data")
-    filestorage = models.ForeignKey(
-        'Container', on_delete=models.PROTECT, related_name='+', help_text="To store files")
 
 
 class Container(AbstractDatahubModel):
@@ -138,7 +147,7 @@ class Container(AbstractDatahubModel):
         help_text=_("Defines ownership of container"))
     containertype = models.ForeignKey('ContainerType',on_delete=models.PROTECT)
     connection = models.TextField(_('Connection'), max_length=200, null=True,
-                                  blank=True, help_text="Script to establish connection to container")
+                                  blank=True, help_text=_("Script to establish connection to container"))
 
 
 class ContainerType(AbstractDatahubModel):
@@ -157,16 +166,16 @@ class ContainerType(AbstractDatahubModel):
     key = models.CharField(_('key'), max_length=20, unique=True,)
     type = models.CharField(_('type'), max_length=2, choices=TYPE)
     area_add = models.TextField(_('area_add'), null=True,
-                                     blank=True, help_text="Scipt used to add an area to container")
+                                     blank=True, help_text=_("Scipt used to add an area to container"))
     user_add = models.TextField(_('user_add'), null=True,
-                                     blank=True, help_text="Script used to add a user to container")
+                                     blank=True, help_text=_("Script used to add a user to container"))
     user_del = models.TextField(_('user_del'), null=True,
-                                     blank=True, help_text="Script used to delete a user from container")
+                                     blank=True, help_text=_("Script used to delete a user from container"))
     scope_add = models.TextField(_('scope_add'), null=True,
-                                     blank=True, help_text="Script used to add a scope to container")
+                                     blank=True, help_text=_("Script used to add a scope to container"))
     scope_del = models.TextField(_('scope_del'), null=True,
-                                     blank=True, help_text="Script used to delete a scope from container")
+                                     blank=True, help_text=_("Script used to delete a scope from container"))
     user_to_scope = models.TextField(_('user_to_scope'), null=True,
-                                     blank=True, help_text="Script used to link a user to a container")
+                                     blank=True, help_text=_("Script used to link a user to a container"))
     user_from_scope = models.TextField(_('user_from_scope'), null=True,
-                                     blank=True, help_text="Script used to unlink a user from a container")
+                                     blank=True, help_text=_("Script used to unlink a user from a container"))
