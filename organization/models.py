@@ -41,7 +41,7 @@ class Group(Group):
 
 
 class Client(AbstractDatahubModel):
-    """ Used to assign ownership to applications and databases.
+    """ Used to assign ownership to applications and container.
         A client might belong to an other organization
     """
     class Meta:
@@ -63,8 +63,6 @@ class Application(AbstractDatahubModel):
     key = models.CharField(_('key'), max_length=20, unique=True,)
     client = models.ForeignKey(
         'Client', on_delete=models.PROTECT, null=True, blank=True,)
-    database = models.ForeignKey(_('Database'), on_delete=models.PROTECT,
-                                 null=True, blank=True, help_text="Database can be setted on area level")
     business_unit_1 = models.CharField(
         _('business_unit_1'), max_length=80, null=True, blank=True)
     business_unit_2 = models.CharField(
@@ -104,56 +102,63 @@ class Scope(AbstractDatahubModel):
 
 
 class Area(AbstractDatahubModel):
-    """ Each area belongs to an application and can have its own database """
+    """ Each area belongs to an application and can have its own database and file storage"""
     class Meta:
         verbose_name = _("Area")
         verbose_name_plural = _("Areas")
         unique_together = ['application', 'key']
 
     key = models.CharField(_('key'), max_length=20)
-    application = models.ForeignKey(
-        'Application', on_delete=models.PROTECT, null=True, blank=True,)
+    application = models.ForeignKey('Application', on_delete=models.PROTECT)
     database = models.ForeignKey(
-        'Database', on_delete=models.PROTECT, null=True, blank=True, help_text="If database is not specified, default from application is used")
+        'Container', on_delete=models.PROTECT, related_name='+', help_text="To store structured data")
+    filestorage = models.ForeignKey(
+        'Container', on_delete=models.PROTECT, related_name='+', help_text="To store files")
 
 
-class Database(AbstractDatahubModel):
-    """ Databases can contain data of multiple areas/application
-        But we expect that every client wants to have his own database
+class Container(AbstractDatahubModel):
+    """ Can contain data of multiple areas/application
+        But we expect that every client wants to have his own containers
     """
     class Meta:
-        verbose_name = _("Database")
-        verbose_name_plural = _("Databases")
+        verbose_name = _("Container")
+        verbose_name_plural = _("Containers")
 
     key = models.CharField(_('key'), max_length=20, unique=True,)
     client = models.ForeignKey(
         'Client', on_delete=models.PROTECT, null=True, blank=True,
-        help_text=_("Defines ownership of database"))
-    databasetype = models.ForeignKey('DatabaseType',on_delete=models.PROTECT)
-    connection = models.CharField(_('Connection'), max_length=200, null=True,
-                                  blank=True, help_text="How to establish connection to database")
+        help_text=_("Defines ownership of container"))
+    containertype = models.ForeignKey('ContainerType',on_delete=models.PROTECT)
+    connection = models.TextField(_('Connection'), max_length=200, null=True,
+                                  blank=True, help_text="Script to establish connection to container")
 
 
-class DatabaseType(AbstractDatahubModel):
-    """ DatabasesTypes defines how the hub handels different activities like
+class ContainerType(AbstractDatahubModel):
+    """ ContainerType defines how the hub handels different activities like
         adding an area, adding an user, ...
     """
     class Meta:
-        verbose_name = _("DatabaseType")
-        verbose_name_plural = _("DatabaseTypes")
+        verbose_name = _("ContainerType")
+        verbose_name_plural = _("ContainerTypes")
+
+    TYPE = {
+        "DB": _("DataBase"),
+        "FS": _("FileStorage"),
+    }
 
     key = models.CharField(_('key'), max_length=20, unique=True,)
+    type = models.CharField(_('type'), max_length=2, choices=TYPE)
     area_add = models.TextField(_('area_add'), null=True,
-                                     blank=True, help_text="Scipt used to add an area to database")
+                                     blank=True, help_text="Scipt used to add an area to container")
     user_add = models.TextField(_('user_add'), null=True,
-                                     blank=True, help_text="Script used to add a user to database")
+                                     blank=True, help_text="Script used to add a user to container")
     user_del = models.TextField(_('user_del'), null=True,
-                                     blank=True, help_text="Script used to delete a user from database")
+                                     blank=True, help_text="Script used to delete a user from container")
     scope_add = models.TextField(_('scope_add'), null=True,
-                                     blank=True, help_text="Script used to add a scope to database")
+                                     blank=True, help_text="Script used to add a scope to container")
     scope_del = models.TextField(_('scope_del'), null=True,
-                                     blank=True, help_text="Script used to delete a scope from database")
+                                     blank=True, help_text="Script used to delete a scope from container")
     user_to_scope = models.TextField(_('user_to_scope'), null=True,
-                                     blank=True, help_text="Script used to link a user to a scope")
+                                     blank=True, help_text="Script used to link a user to a container")
     user_from_scope = models.TextField(_('user_from_scope'), null=True,
-                                     blank=True, help_text="Script used to unlink a user from a scope")
+                                     blank=True, help_text="Script used to unlink a user from a container")

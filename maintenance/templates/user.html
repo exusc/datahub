@@ -24,9 +24,11 @@
             {% endfor %}
         </ul>
 
-        <h3>Lasst Activities</h3>
+        <h3>Last 5 Activities of this User</h3>
         <ul>
-            TODO: List of logfile
+            {% for logentry in LogEntrys %}
+            <li>{{logentry}}</li>
+            {% endfor %}
         </ul>
         
 

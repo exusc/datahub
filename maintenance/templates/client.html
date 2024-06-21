@@ -4,23 +4,24 @@
   
 <h2 >Client: <a href="{% url 'admin:organization_client_change' client.id %}">{{client}}</a></h2>
 
-<h3>Databases</h3>
-<ul>{% for database in client.database_set.all %}
-    <li>Database: <b><a href="{% url 'admin:organization_database_change' database.id %}">{{database}}</a></b> ({{database.databasetype}})</li>
+<h3>Container</h3>
+<ul>{% for container in client.container_set.all %}
+    <li>Container: <b><a href="{% url 'admin:organization_container_change' container.id %}">{{container}}</a></b> ({{container.containertype}})</li>
     {% endfor %}
 </ul>
 
 <h3>Applications</h3>
 <ul>{% for application in client.application_set.all %}
 <li>Application: <b><a href="{% url 'admin:organization_application_change' application.id %}">{{application}}</a></b>
-        default database: <a href="{% url 'admin:organization_database_change' application.database.id %}">{{application.database}}</a></li>
 
     <ul><li>Areas:</li>
         <ul>{% for area in application.area_set.all %}
         <li> Area: <b><a href="{% url 'admin:organization_area_change' area.id %}">{{area}}</a></b> ({{area.desc}})
-            with Database: <b><a href="{% url 'admin:organization_database_change' area.database.id %}">{{area.database}}</a></b> ({{area.database.desc}});
+            with Database: <b><a href="{% url 'admin:organization_container_change' area.database.id %}">{{area.database}}</a></b> ({{area.database.desc}});
             Schema for user acces: <b>{{area.database.key.lower}}.{{area.key.lower}}</b>; 
             Schema for tables: <b>{{area.database.key.lower}}.{{area.key.lower}}_base</b>
+            <br>
+            with Filestorage: <b><a href="{% url 'admin:organization_container_change' area.filestorage.id %}">{{area.filestorage}}</a></b> ({{area.filestorage.desc}});
         </li>
         {% endfor area %}
     </ul>

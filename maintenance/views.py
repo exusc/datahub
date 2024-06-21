@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, reverse
 from organization.models import Client, User
 from django.contrib.auth import authenticate, login
+from django.contrib.admin.models import LogEntry
 from django.views.decorators.csrf import csrf_protect
 from django.views import View
 
@@ -15,6 +16,7 @@ def index(request):
 class UserView(View):
     def get(self, request, userid):
         context = {'user' : User.objects.get(id=userid)}
+        context['LogEntrys'] = LogEntry.objects.all().filter(user=userid)[0:5]
         return render(request, 'user.html', context)
 
 
