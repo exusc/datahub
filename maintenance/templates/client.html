@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block body %}
+  
+<h2 >Client: <a href="{% url 'admin:organization_client_change' client.id %}">{{client}}</a></h2>
+
+<h3>Databases</h3>
+<ul>{% for database in client.database_set.all %}
+    <li>Database: <b><a href="{% url 'admin:organization_database_change' database.id %}">{{database}}</a></b> ({{database.databasetype}})</li>
+    {% endfor %}
+</ul>
+
+<h3>Applications</h3>
+<ul>{% for application in client.application_set.all %}
+<li>Application: <b><a href="{% url 'admin:organization_application_change' application.id %}">{{application}}</a></b>
+        default database: <a href="{% url 'admin:organization_database_change' application.database.id %}">{{application.database}}</a></li>
+
+    <ul><li>Areas:</li>
+        <ul>{% for area in application.area_set.all %}
+        <li> Area: <b><a href="{% url 'admin:organization_area_change' area.id %}">{{area}}</a></b> ({{area.desc}})
+            with Database: <b><a href="{% url 'admin:organization_database_change' area.database.id %}">{{area.database}}</a></b> ({{area.database.desc}});
+            Schema for user acces: <b>{{area.database.key.lower}}.{{area.key.lower}}</b>; 
+            Schema for tables: <b>{{area.database.key.lower}}.{{area.key.lower}}_base</b>
+        </li>
+        {% endfor area %}
+    </ul>
+
+    <li>Scopes = MinIo Buckets:</li>
+    <ul>{% for scope in application.scope_set.all %}
+        <li><b><a href="{% url 'admin:organization_scope_change' scope.id %}">{{scope}}</a></b>
+            org: {{scope.org_scope.key}}
+            app: {{scope.app_scope.key}}
+        </li>
+        {% endfor scope %}
+    </ul>
+
+</ul>
+{% endfor application %}
+</ul>
+
+<h3>User</hr>
+<ul>{% for user in client.user_set.all %}
+    <li><b><a href="{% url 'switch_user' user.id %}">==></a> 
+        <a href="{% url 'admin:organization_user_change' user.id %}">{{user}}</a></b> {{user.first_name}} {{user.last_name}}
+        ({% for grp in user.groups.all %}
+            <a href="{% url 'admin:organization_group_change' user.id %}">{{grp}}</a>,
+        {% endfor %})
+        with acces to scopes:
+        ({% for scope in user.scopes.all %}
+            {{scope}},  
+        {% endfor %})
+    </li>
+{% endfor user %}
+</ul>
+
+{% endblock %}

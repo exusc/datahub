@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>DATA-Hub - Index</title>
+</head>
+
+{% load static %}
+<link rel="stylesheet" href="{% static 'base.css' %}">
+
+<body>
+    <h1>Logged in as User: {{user.username}} - {{user.first_name}} {{user.last_name}}</h1>
+    <h2>
+        <a href="{% url 'index' %}">Home</a>
+      / <a href="/admin">Goto Admin Pages</a>
+    </h2>
+    <br>
+    <br>
+
+    {% block body %}
+    {% endblock %}
+
+</body>

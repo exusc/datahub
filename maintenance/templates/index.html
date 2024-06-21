@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block body %}
+
+    <h2>List of Clients</h2>
+    <ul>
+    {% for client in clients %}
+        <li>
+            <a href="{% url 'admin:organization_client_change' client.id %}">{{client}}</a>
+            / <a href="{% url 'client' client.key %}">DETAILS</a>
+        </li>
+    {% endfor %}
+    </ul>
+
+    <h2>List of User</h2>
+    <ul>
+    {% for user in users %}
+        <li>
+            <a href="{% url 'admin:organization_user_change' user.id %}">{{user}}</a>
+            / <a href="{% url 'user' user.id %}">DETAILS</a>
+            / <a href="{% url 'switch_user' user.id %}">SWITCH TO</a> 
+        </li>
+    {% endfor %}
+    </ul>
+
+    <h2>To be discussed</h2>
+    <li>Scopes are defined on application level - if we want to reduce user access to specific areas, we have to define that</li>
+    <li>Are the schemas ...-base still needed if we use privileges instead of barrier views?</li>
+
+
+{% endblock %}

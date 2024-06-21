@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block body %}
+  
+    <h2>User: 
+        <a href="{% url 'admin:organization_user_change' user.id %}">{{user}}</a></b> 
+        {{user.first_name}} {{user.last_name}} 
+        {% if user.client %}
+        / Client: <a href="{% url 'admin:organization_client_change' user.client.id %}">{{user.client}}</a></li>
+        <a href="{% url 'client' user.client.key %}">DETAILS</a>
+        {% endif %}
+    </h2>
+
+        <h3>Groups</h3>
+        <ul>
+            {% for group in user.groups.all %}
+            <li><a href="{% url 'admin:organization_group_change' user.id %}">{{group}}</a></li>
+            {% endfor %}
+        </ul>
+        <h3>Scopes</h3>
+        <ul>
+            {% for scope in user.scopes.all %}
+            <li><a href="{% url 'admin:organization_scope_change' scope.id %}">{{scope}}</a></li>
+            {% endfor %}
+        </ul>
+
+        <h3>Lasst Activities</h3>
+        <ul>
+            TODO: List of logfile
+        </ul>
+        
+
+{% endblock %}
