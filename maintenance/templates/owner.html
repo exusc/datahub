@@ -5,13 +5,13 @@
 <h2 >Owner: <a href="{% url 'admin:organization_owner_change' owner.id %}">{{owner}}</a> - {{owner.desc}}</h2>
 
 <h3>Container</h3>
-<ul>{% for container in owner.container_set.all %}
+<ul>{% for container in containers %}
     <li><b><a href="{% url 'admin:organization_container_change' container.id %}">{{container}}</a></b> ({{container.containertype}})</li>
     {% endfor %}
 </ul>
 
 <h3>Applications</h3>
-<ul>{% for application in owner.application_set.all %}
+<ul>{% for application in applications %}
 <li><b><a href="{% url 'admin:organization_application_change' application.id %}">{{application}}</a></b> {{application.desc}}
     / BUs: 
     {{application.business_unit_1}} 

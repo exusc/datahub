@@ -48,17 +48,28 @@ class DatahubModelAdmin (admin.ModelAdmin):
         obj.utime = timezone.now()
         super().save_model(request, obj, form, change)
 
+    def get_queryset(self, request):
+        """ 
+        Superusers are allowed to see every object
+        Normal users are restricted to their own client
+        """
+        queryset = super().get_queryset(request)
+        if request.user.is_superuser:
+            return queryset
+        queryset = queryset.filter(owner=request.user.owner)
+        return queryset
+
 
 class DataHubUserAdmin(UserAdmin):
     list_filter = ['owner', 'groups']
     list_display = ['username', 'first_name', 'last_name',
-                    'owner', 'is_active', 'is_staff', 'is_superuser']
+                    'is_active', 'is_staff', 'is_superuser', 'owner', ]
     readonly_fields = ["last_login",]
     fieldsets = [
-        (None, {'fields': ['username',
-         ('first_name', 'last_name'), 'email', 'owner'], }),
+        (None, {'fields': [('username', 'owner'),
+                           ('first_name', 'last_name'), 'email',], }),
         ('Permissions', {'fields': [
-         'is_active', 'is_staff', 'is_superuser', 'scopes', 'groups'], }),
+         'is_active', 'is_staff', 'is_superuser', 'scopes', 'groups', ], }),
         ('Info', {'fields': ['last_login', ], }),
     ]
     filter_horizontal = ['scopes', 'groups']
@@ -74,53 +85,45 @@ class DataHubUserAdmin(UserAdmin):
         queryset = queryset.filter(owner=request.user.owner)
         return queryset
 
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        """ Reduce list of selectable container to according type """
+        if db_field.name == "owner":
+            if request.user.is_superuser:
+                kwargs["queryset"] = Owner.objects.all()
+            else:
+                kwargs["queryset"] = Owner.objects.filter(
+                    owner=request.user.owner)
+        if db_field.name == "scopes":
+            if request.user.is_superuser:
+                kwargs["queryset"] = Scope.objects.all()
+            else:
+                kwargs["queryset"] = Scope.objects.filter(
+                    owner=request.user.owner)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
 
 class OwnerAdmin(DatahubModelAdmin):
     search_fields = ['key', 'desc']
     ordering = ['key',]
-    list_display = ['key', 'desc', 'organization', ]
-    list_filter = ['organization']
+    list_display = ['key', 'desc', 'owner', ]
+    list_filter = ['owner']
     fieldsets = [
-        (None, {'fields': ['key', 'desc', 'text', ], }),
-        ('Organization', {'fields': ['organization', ], }),
+        (None, {'fields': [('key', 'owner',), 'desc', 'text', ], }),
         ('History', {'fields': [('ctime', 'cuser'), ('utime', 'uuser')], },),
     ]
-
-    def get_queryset(self, request):
-        """ 
-        Superusers are allowed to see every object
-        Normal users are restricted to their own client
-        """
-        queryset = super().get_queryset(request)
-        if request.user.is_superuser:
-            return queryset
-        queryset = queryset.filter(id=request.user.owner.id)
-        return queryset
 
 
 class ApplicationAdmin(DatahubModelAdmin):
     search_fields = ['key', 'desc', ]
-    list_display = ['key', 'desc', 'owner',
-                    'business_unit_1', 'business_unit_2', 'business_unit_3']
+    list_display = ['key', 'desc',
+                    'business_unit_1', 'business_unit_2', 'business_unit_3', 'owner',]
     list_filter = ['owner']
     fieldsets = [
-        (None, {'fields': ['key', 'desc', 'text', ], }),
-        ('Ownership', {'fields': ['owner', ], }),
+        (None, {'fields': [('key', 'owner'), 'desc', 'text', ], }),
         ('Business Units', {'fields': ['business_unit_1', 'business_unit_2',
          'business_unit_3', 'business_unit_4', 'business_unit_5',], }),
         ('History', {'fields': [('ctime', 'cuser'), ('utime', 'uuser')], },),
     ]
-
-    def get_queryset(self, request):
-        """ 
-        Superusers are allowed to see every object
-        Normal users are restricted to their own client
-        """
-        queryset = super().get_queryset(request)
-        if request.user.is_superuser:
-            return queryset
-        queryset = queryset.filter(owner=request.user.owner)
-        return queryset
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "owner":
@@ -136,6 +139,12 @@ class ScopeAdmin(DatahubModelAdmin):
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         """ Reduce list of selectable container to according type """
+        if db_field.name == "owner":
+            if request.user.is_superuser:
+                kwargs["queryset"] = Owner.objects.all()
+            else:
+                kwargs["queryset"] = Owner.objects.filter(
+                    owner=request.user.owner)
         if db_field.name == "application":
             if request.user.is_superuser:
                 kwargs["queryset"] = Application.objects.all()
@@ -156,39 +165,34 @@ class ScopeAdmin(DatahubModelAdmin):
 
     search_fields = ['key', 'application__key', 'desc']
     ordering = ['application__key', 'key',]
-    list_filter = ['application', 'type']
+    list_filter = ['owner', 'application', 'type']
     list_display = ['key', 'application',
-                    'type', 'desc', 'org_scope', 'app_scope']
+                    'type', 'desc', 'org_scope', 'app_scope', 'owner']
     fieldsets = [
-        ('Combination', {'fields': [('application', 'type',),  'business_unit_1', 'business_unit_2',
+        ('Combination', {'fields': [('application', 'type', 'owner'),  'business_unit_1', 'business_unit_2',
          'business_unit_3', 'business_unit_4', 'business_unit_5', 'team'], }),
         ('Documentation', {'fields': ['desc'], }),
         ('Central Scopes', {'fields': ['org_scope', 'app_scope'], }),
         ('History', {'fields': [('ctime', 'cuser'), ('utime', 'uuser')], },),
     ]
 
-    def get_queryset(self, request):
-        """ 
-        Superusers are allowed to see every object
-        Normal users are restricted to their own client
-        """
-        queryset = super().get_queryset(request)
-        if request.user.is_superuser:
-            return queryset
-        queryset = queryset.filter(application__owner=request.user.owner)
-        return queryset
-
 
 class AreaAdmin(DatahubModelAdmin):
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        """ Reduce list of selectable container to according type """
+        if db_field.name == "owner":
+            if request.user.is_superuser:
+                kwargs["queryset"] = Owner.objects.all()
+            else:
+                kwargs["queryset"] = Owner.objects.filter(
+                    owner=request.user.owner)
         if db_field.name == "application":
             if request.user.is_superuser:
                 kwargs["queryset"] = Application.objects.all()
             else:
                 kwargs["queryset"] = Application.objects.filter(
                     owner=request.user.owner)
+        """ Reduce list of selectable container to according type """
         if db_field.name == "database":
             container = Container.objects.filter(containertype__type='DB')
             if not request.user.is_superuser:
@@ -201,25 +205,17 @@ class AreaAdmin(DatahubModelAdmin):
             kwargs["queryset"] = container
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
-    list_display = ['application', 'key', 'desc', 'database', 'filestorage']
+    search_fields = ['key', 'application__key', 'desc']
+    list_display = ['application', 'key', 'desc',
+                    'database', 'filestorage', 'owner']
     ordering = ['application__key', 'key',]
-    list_filter = ['application']
+    list_filter = ['owner', 'application']
     fieldsets = [
-        (None, {'fields': ['application', 'key', 'desc', 'text', ], }),
+        (None, {'fields': ['application',
+         ('key', 'owner'), 'desc', 'text', ], }),
         ('Container', {'fields': ['database', 'filestorage'], }),
         ('History', {'fields': [('ctime', 'cuser'), ('utime', 'uuser')], },),
     ]
-
-    def get_queryset(self, request):
-        """ 
-        Superusers are allowed to see every object
-        Normal users are restricted to their own client
-        """
-        queryset = super().get_queryset(request)
-        if request.user.is_superuser:
-            return queryset
-        queryset = queryset.filter(application__owner=request.user.owner)
-        return queryset
 
 
 class ContainerAdmin(DatahubModelAdmin):
@@ -228,19 +224,18 @@ class ContainerAdmin(DatahubModelAdmin):
     list_display = ['key', 'desc', 'containertype', 'connection', 'owner', ]
     list_filter = ['owner', 'containertype']
     fieldsets = [
-        (None, {'fields': [('key', 'desc'),
+        (None, {'fields': [('key', 'owner',), 'desc',
          'containertype', 'connection', ], }),
-        ('Owner', {'fields': ['owner', ], }),
         ('History', {'fields': [('ctime', 'cuser'), ('utime', 'uuser')], },),
     ]
 
 
 class ContainerTypeAdmin(DatahubModelAdmin):
     ordering = ['key',]
-    list_display = ['key', 'desc', 'type']
-    list_filter = ['type']
+    list_display = ['key', 'desc', 'type', 'owner']
+    list_filter = ['owner', 'type']
     fieldsets = [
-        (None, {'fields': [('key', 'desc'), 'type'], }),
+        (None, {'fields': [('key', 'owner',), 'desc', 'type'], }),
         ('Scripts', {'fields': [('area_add', 'user_add'), ], }),
         ('History', {'fields': [('ctime', 'cuser'), ('utime', 'uuser')], },),
     ]

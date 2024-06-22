@@ -5,8 +5,14 @@ import uuid
 
 
 class AbstractDatahubModel(models.Model):
+    """ Default definition of all DATA-Hub objects
+    """
+
     class Meta:
         abstract = True
+
+    owner = models.ForeignKey(
+        'Owner', on_delete=models.PROTECT, null=True, blank=True, related_name='+',)
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     desc = models.CharField(_('desc'), max_length=80, null=True, blank=True)
@@ -32,9 +38,7 @@ class User(AbstractUser):
         verbose_name_plural = _("Users")
 
     owner = models.ForeignKey(
-        'Owner', on_delete=models.PROTECT, null=True, blank=True,
-        help_text="If specified, the user may only maintain owner-related objects"
-        )
+        'Owner', on_delete=models.PROTECT, null=True, blank=True,)
     scopes = models.ManyToManyField('Scope', blank=True)
 
 
@@ -42,6 +46,9 @@ class Group(Group):
     class Meta:
         verbose_name = _("Group")
         verbose_name_plural = _("Groups")
+
+    owner = models.ForeignKey(
+        'Owner', on_delete=models.PROTECT, null=True, blank=True,)
 
 
 class Owner(AbstractDatahubModel):
@@ -53,9 +60,6 @@ class Owner(AbstractDatahubModel):
         verbose_name_plural = _("Owners")
 
     key = models.CharField(_('key'), max_length=20, unique=True,)
-    organization = models.ForeignKey(
-        'Owner', on_delete=models.PROTECT, null=True, blank=True,
-        help_text=_("To support hirarchical structures like IGS and SVAs"))
 
 
 class Application(AbstractDatahubModel):
@@ -65,8 +69,6 @@ class Application(AbstractDatahubModel):
         verbose_name_plural = _("Applications")
 
     key = models.CharField(_('key'), max_length=20, unique=True,)
-    owner = models.ForeignKey(
-        'Owner', on_delete=models.PROTECT, null=True, blank=True,)
     business_unit_1 = models.CharField(
         _('business_unit_1'), max_length=80, null=True, blank=True)
     business_unit_2 = models.CharField(
@@ -107,7 +109,7 @@ class Scope(AbstractDatahubModel):
     }
 
     key = models.CharField(_('key'), max_length=80, unique=True, default="tbd")
-    type = models.CharField( _('type'), max_length=1, choices=TYPE, default='S',
+    type = models.CharField(_('type'), max_length=1, choices=TYPE, default='S',
                             help_text=_("Defines how scope can be used"))
     application = models.ForeignKey(
         'Application', on_delete=models.PROTECT, null=True, blank=True,)
@@ -148,6 +150,7 @@ class Scope(AbstractDatahubModel):
 
         super().save(force_insert, force_update, using, update_fields)
 
+
 class Container(AbstractDatahubModel):
     """ Can contain data of multiple areas/application
         But we expect that every client wants to have his own containers
@@ -162,15 +165,15 @@ class Container(AbstractDatahubModel):
         ]
 
     key = models.CharField(_('key'), max_length=20, unique=True,)
-    owner = models.ForeignKey(
-        'Owner', on_delete=models.PROTECT, null=True, blank=True,
-        help_text=_("Defines ownership of container"))
-    containertype = models.ForeignKey('ContainerType',on_delete=models.PROTECT)
+    containertype = models.ForeignKey(
+        'ContainerType', on_delete=models.PROTECT)
     connection = models.TextField(_('Connection'), max_length=200, null=True,
                                   blank=True, help_text=_("Script to establish connection to container"))
 
     def add_scope(self, scope):
-        print(f'TODO: Implement action to create scope {scope.key} in container {self}')
+        print(
+            f'TODO: Implement action to create scope {scope.key} in container {self}')
+
 
 class ContainerType(AbstractDatahubModel):
     """ ContainerType defines how the hub handels different activities like
@@ -188,16 +191,16 @@ class ContainerType(AbstractDatahubModel):
     key = models.CharField(_('key'), max_length=20, unique=True,)
     type = models.CharField(_('type'), max_length=2, choices=TYPE)
     area_add = models.TextField(_('area_add'), null=True,
-                                     blank=True, help_text=_("Scipt used to add an area to container"))
+                                blank=True, help_text=_("Scipt used to add an area to container"))
     user_add = models.TextField(_('user_add'), null=True,
-                                     blank=True, help_text=_("Script used to add a user to container"))
+                                blank=True, help_text=_("Script used to add a user to container"))
     user_del = models.TextField(_('user_del'), null=True,
-                                     blank=True, help_text=_("Script used to delete a user from container"))
+                                blank=True, help_text=_("Script used to delete a user from container"))
     scope_add = models.TextField(_('scope_add'), null=True,
-                                     blank=True, help_text=_("Script used to add a scope to container"))
+                                 blank=True, help_text=_("Script used to add a scope to container"))
     scope_del = models.TextField(_('scope_del'), null=True,
-                                     blank=True, help_text=_("Script used to delete a scope from container"))
+                                 blank=True, help_text=_("Script used to delete a scope from container"))
     user_to_scope = models.TextField(_('user_to_scope'), null=True,
                                      blank=True, help_text=_("Script used to link a user to a container"))
     user_from_scope = models.TextField(_('user_from_scope'), null=True,
-                                     blank=True, help_text=_("Script used to unlink a user from a container"))
+                                       blank=True, help_text=_("Script used to unlink a user from a container"))
