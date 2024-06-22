@@ -139,12 +139,6 @@ class ScopeAdmin(DatahubModelAdmin):
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         """ Reduce list of selectable container to according type """
-        if db_field.name == "owner":
-            if request.user.is_superuser:
-                kwargs["queryset"] = Owner.objects.all()
-            else:
-                kwargs["queryset"] = Owner.objects.filter(
-                    owner=request.user.owner)
         if db_field.name == "application":
             if request.user.is_superuser:
                 kwargs["queryset"] = Application.objects.all()
@@ -169,7 +163,7 @@ class ScopeAdmin(DatahubModelAdmin):
     list_display = ['key', 'application',
                     'type', 'desc', 'org_scope', 'app_scope', 'owner']
     fieldsets = [
-        ('Combination', {'fields': [('application', 'type', 'owner'),  'business_unit_1', 'business_unit_2',
+        ('Combination', {'fields': [('application', 'type', ),  'business_unit_1', 'business_unit_2',
          'business_unit_3', 'business_unit_4', 'business_unit_5', 'team'], }),
         ('Documentation', {'fields': ['desc'], }),
         ('Central Scopes', {'fields': ['org_scope', 'app_scope'], }),
@@ -211,8 +205,7 @@ class AreaAdmin(DatahubModelAdmin):
     ordering = ['application__key', 'key',]
     list_filter = ['owner', 'application']
     fieldsets = [
-        (None, {'fields': ['application',
-         ('key', 'owner'), 'desc', 'text', ], }),
+        (None, {'fields': ['application', 'key', 'desc', 'text', ], }),
         ('Container', {'fields': ['database', 'filestorage'], }),
         ('History', {'fields': [('ctime', 'cuser'), ('utime', 'uuser')], },),
     ]

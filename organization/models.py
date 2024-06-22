@@ -95,6 +95,10 @@ class Area(AbstractDatahubModel):
     filestorage = models.ForeignKey(
         'Container', on_delete=models.PROTECT, related_name='+', help_text=_("To store files"))
 
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        self.owner = self.application.owner
+        super().save(force_insert, force_update, using, update_fields)
+
 
 class Scope(AbstractDatahubModel):
     """ Scopes are linked to application and vused from all areas within these application """
@@ -130,6 +134,8 @@ class Scope(AbstractDatahubModel):
                                   help_text=_("Here are the standard templates created by Abraxas or other provider"))
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        
+        self.owner = self.application.owner
         """ Creates the key based on the BUs
         """
         self.key = f'{self.application.key.upper()}_{self.business_unit_1.upper()}'
