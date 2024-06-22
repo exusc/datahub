@@ -127,11 +127,31 @@ class Scope(AbstractDatahubModel):
     app_scope = models.ForeignKey('Scope', on_delete=models.PROTECT, null=True, blank=True, related_name='+',
                                   help_text=_("Here are the standard templates created by Abraxas or other provider"))
 
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        """ Creates the key based on the BUs
+        """
+        self.key = f'{self.application.key.upper()}_{self.business_unit_1.upper()}'
+        if self.business_unit_2:
+            self.key += f'_{self.business_unit_2.upper()}'
+        if self.business_unit_3:
+            self.key += f'_{self.business_unit_3.upper()}'
+        if self.business_unit_4:
+            self.key += f'_{self.business_unit_4.upper()}'
+        if self.business_unit_5:
+            self.key += f'_{self.business_unit_5.upper()}'
+        if self.team:
+            self.key += f'/{self.team.upper()}'
 
+        for area in self.application.area_set.all():
+            area.database.add_scope(self)
+            area.filestorage.add_scope(self)
+
+        super().save(force_insert, force_update, using, update_fields)
 
 class Container(AbstractDatahubModel):
     """ Can contain data of multiple areas/application
         But we expect that every client wants to have his own containers
+        TODO: implement methods add_scope, delete_scope using scripts from ContainerType
     """
     class Meta:
         verbose_name = _("Container")
@@ -149,6 +169,8 @@ class Container(AbstractDatahubModel):
     connection = models.TextField(_('Connection'), max_length=200, null=True,
                                   blank=True, help_text=_("Script to establish connection to container"))
 
+    def add_scope(self, scope):
+        print(f'TODO: Implement action to create scope {scope.key} in container {self}')
 
 class ContainerType(AbstractDatahubModel):
     """ ContainerType defines how the hub handels different activities like

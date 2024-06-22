@@ -1,8 +1,8 @@
 from django.contrib.auth.admin import UserAdmin, GroupAdmin
-from django.contrib import admin
 from django.contrib.admin.models import LogEntry
+from django.contrib import admin
+from django.utils import timezone
 from .models import *
-from datetime import datetime
 
 
 class DatahubAdminSite (admin.AdminSite):
@@ -43,9 +43,9 @@ class DatahubModelAdmin (admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         if not change:
             obj.cuser = request.user.username
-            obj.ctime = datetime.now()
+            obj.ctime = timezone.now()
         obj.uuser = request.user.username
-        obj.utime = datetime.now()
+        obj.utime = timezone.now()
         super().save_model(request, obj, form, change)
 
 
@@ -101,7 +101,7 @@ class OwnerAdmin(DatahubModelAdmin):
 class ApplicationAdmin(DatahubModelAdmin):
     search_fields = ['key', 'desc', ]
     list_display = ['key', 'desc', 'owner',
-                    'business_unit_1', 'business_unit_2']
+                    'business_unit_1', 'business_unit_2', 'business_unit_3']
     list_filter = ['owner']
     fieldsets = [
         (None, {'fields': ['key', 'desc', 'text', ], }),
@@ -127,7 +127,8 @@ class ApplicationAdmin(DatahubModelAdmin):
             if request.user.is_superuser:
                 kwargs["queryset"] = Owner.objects.all()
             else:
-                kwargs["queryset"] = Owner.objects.filter(key=request.user.owner)
+                kwargs["queryset"] = Owner.objects.filter(
+                    key=request.user.owner)
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
@@ -139,7 +140,8 @@ class ScopeAdmin(DatahubModelAdmin):
             if request.user.is_superuser:
                 kwargs["queryset"] = Application.objects.all()
             else:
-                kwargs["queryset"] = Application.objects.filter(owner=request.user.owner)
+                kwargs["queryset"] = Application.objects.filter(
+                    owner=request.user.owner)
         if db_field.name == "org_scope":
             scopes = Scope.objects.filter(type='O')
             if not request.user.is_superuser:
@@ -155,7 +157,8 @@ class ScopeAdmin(DatahubModelAdmin):
     search_fields = ['key', 'application__key', 'desc']
     ordering = ['application__key', 'key',]
     list_filter = ['application', 'type']
-    list_display = ['key', 'application', 'type', 'desc', 'org_scope', 'app_scope']
+    list_display = ['key', 'application',
+                    'type', 'desc', 'org_scope', 'app_scope']
     fieldsets = [
         ('Combination', {'fields': [('application', 'type',),  'business_unit_1', 'business_unit_2',
          'business_unit_3', 'business_unit_4', 'business_unit_5', 'team'], }),
@@ -163,25 +166,6 @@ class ScopeAdmin(DatahubModelAdmin):
         ('Central Scopes', {'fields': ['org_scope', 'app_scope'], }),
         ('History', {'fields': [('ctime', 'cuser'), ('utime', 'uuser')], },),
     ]
-
-    def save_model(self, request, obj, form, change):
-        if not change:
-            obj.cuser = request.user.username
-            obj.ctime = datetime.now()
-        obj.uuser = request.user.username
-        obj.utime = datetime.now()
-        obj.key = f'{obj.application.key.upper()}_{obj.business_unit_1.upper()}'
-        if obj.business_unit_2:
-            obj.key += f'_{obj.business_unit_2.upper()}'
-        if obj.business_unit_3:
-            obj.key += f'_{obj.business_unit_3.upper()}'
-        if obj.business_unit_4:
-            obj.key += f'_{obj.business_unit_4.upper()}'
-        if obj.business_unit_5:
-            obj.key += f'_{obj.business_unit_5.upper()}'
-        if obj.team:
-            obj.key += f'/{obj.team.upper()}'
-        super().save_model(request, obj, form, change)
 
     def get_queryset(self, request):
         """ 
@@ -203,7 +187,8 @@ class AreaAdmin(DatahubModelAdmin):
             if request.user.is_superuser:
                 kwargs["queryset"] = Application.objects.all()
             else:
-                kwargs["queryset"] = Application.objects.filter(owner=request.user.owner)
+                kwargs["queryset"] = Application.objects.filter(
+                    owner=request.user.owner)
         if db_field.name == "database":
             container = Container.objects.filter(containertype__type='DB')
             if not request.user.is_superuser:
