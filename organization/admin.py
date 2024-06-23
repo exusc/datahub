@@ -62,12 +62,12 @@ class DatahubModelAdmin (admin.ModelAdmin):
 
 class DataHubUserAdmin(UserAdmin):
     list_filter = ['owner', 'groups']
-    list_display = ['username', 'first_name', 'last_name',
+    list_display = ['username', 'first_name', 'last_name', 'language',
                     'is_active', 'is_staff', 'is_superuser', 'owner', ]
     readonly_fields = ["last_login",]
     fieldsets = [
         (None, {'fields': [('username', 'owner'),
-                           ('first_name', 'last_name'), 'email',], }),
+                           ('first_name', 'last_name'), 'email', 'language'], }),
         ('Permissions', {'fields': [
          'is_active', 'is_staff', 'is_superuser', 'scopes', 'groups', ], }),
         ('Info', {'fields': ['last_login', ], }),

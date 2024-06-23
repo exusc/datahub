@@ -5,6 +5,8 @@ from django.contrib.auth import authenticate, login
 from django.contrib.admin.models import LogEntry
 from django.views.decorators.csrf import csrf_protect
 from django.views import View
+from datahub.settings import LANGUAGE_COOKIE_NAME
+from django.utils import translation
 
 
 def index(request):
@@ -40,7 +42,12 @@ class UserView(View):
 def switch_user(request, userid):
     # username = User.objects.get(id=userid).username
     # user = authenticate(request, username=username, password='99999999')
+    response = redirect(reverse("index"))
     user = User.objects.get(id=userid)
     if user:
         login(request, user)
-    return redirect(reverse("index"))
+        translation.activate(user.language)
+        # TODO : Messages en are not used
+        print('Language:', user.language)
+        response.set_cookie(LANGUAGE_COOKIE_NAME, user.language)
+    return response

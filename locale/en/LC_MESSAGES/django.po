@@ -1,0 +1,268 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-06-23 11:47+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+#: .\datahub\settings.py:125
+msgid "German"
+msgstr ""
+
+#: .\datahub\settings.py:126
+msgid "Italien"
+msgstr ""
+
+#: .\datahub\settings.py:127
+msgid "French"
+msgstr ""
+
+#: .\datahub\settings.py:128
+msgid "English"
+msgstr ""
+
+#: .\organization\models.py:19
+msgid "desc"
+msgstr ""
+
+#: .\organization\models.py:20
+msgid "text"
+msgstr ""
+
+#: .\organization\models.py:22
+msgid "ctime"
+msgstr ""
+
+#: .\organization\models.py:23
+msgid "cuser"
+msgstr ""
+
+#: .\organization\models.py:24
+msgid "utime"
+msgstr ""
+
+#: .\organization\models.py:25
+msgid "uuser"
+msgstr ""
+
+#: .\organization\models.py:38
+msgid "User"
+msgstr ""
+
+#: .\organization\models.py:39
+msgid "Users"
+msgstr ""
+
+#: .\organization\models.py:44
+msgid "language"
+msgstr "Language"
+
+#: .\organization\models.py:45
+msgid "Language used for DATA-Hub UI"
+msgstr "Is used in the Hub UI"
+
+#: .\organization\models.py:50
+msgid "Group"
+msgstr "Group"
+
+#: .\organization\models.py:51
+msgid "Groups"
+msgstr "Groups"
+
+#: .\organization\models.py:62
+msgid "Owner"
+msgstr ""
+
+#: .\organization\models.py:63
+msgid "Owners"
+msgstr ""
+
+#: .\organization\models.py:65 .\organization\models.py:74
+#: .\organization\models.py:94 .\organization\models.py:118
+#: .\organization\models.py:176 .\organization\models.py:200
+msgid "key"
+msgstr ""
+
+#: .\organization\models.py:71
+msgid "Application"
+msgstr ""
+
+#: .\organization\models.py:72
+msgid "Applications"
+msgstr ""
+
+#: .\organization\models.py:76 .\organization\models.py:124
+msgid "business_unit_1"
+msgstr ""
+
+#: .\organization\models.py:78 .\organization\models.py:126
+msgid "business_unit_2"
+msgstr ""
+
+#: .\organization\models.py:80 .\organization\models.py:128
+msgid "business_unit_3"
+msgstr ""
+
+#: .\organization\models.py:82 .\organization\models.py:130
+msgid "business_unit_4"
+msgstr ""
+
+#: .\organization\models.py:84 .\organization\models.py:132
+msgid "business_unit_5"
+msgstr ""
+
+#: .\organization\models.py:90
+msgid "Area"
+msgstr ""
+
+#: .\organization\models.py:91
+msgid "Areas"
+msgstr ""
+
+#: .\organization\models.py:97
+msgid "To store structured data"
+msgstr ""
+
+#: .\organization\models.py:99
+msgid "To store files"
+msgstr ""
+
+#: .\organization\models.py:109
+msgid "Scope"
+msgstr ""
+
+#: .\organization\models.py:110
+msgid "Scopes"
+msgstr ""
+
+#: .\organization\models.py:113
+msgid "Standard"
+msgstr ""
+
+#: .\organization\models.py:114
+msgid "Org scope"
+msgstr ""
+
+#: .\organization\models.py:115
+msgid "App scope"
+msgstr ""
+
+#: .\organization\models.py:119 .\organization\models.py:201
+msgid "type"
+msgstr ""
+
+#: .\organization\models.py:120
+msgid "Defines how scope can be used"
+msgstr ""
+
+#: .\organization\models.py:133
+msgid "team"
+msgstr ""
+
+#: .\organization\models.py:135
+msgid "Here are the standard templates created by the client"
+msgstr ""
+
+#: .\organization\models.py:137
+msgid "Here are the standard templates created by Abraxas or other provider"
+msgstr ""
+
+#: .\organization\models.py:169
+msgid "Container"
+msgstr ""
+
+#: .\organization\models.py:170
+msgid "Containers"
+msgstr ""
+
+#: .\organization\models.py:179
+msgid "Connection"
+msgstr ""
+
+#: .\organization\models.py:180
+msgid "Script to establish connection to container"
+msgstr ""
+
+#: .\organization\models.py:192
+msgid "ContainerType"
+msgstr ""
+
+#: .\organization\models.py:193
+msgid "ContainerTypes"
+msgstr ""
+
+#: .\organization\models.py:196
+msgid "DataBase"
+msgstr ""
+
+#: .\organization\models.py:197
+msgid "FileStorage"
+msgstr ""
+
+#: .\organization\models.py:202
+msgid "area_add"
+msgstr ""
+
+#: .\organization\models.py:203
+msgid "Script used to add an area to container"
+msgstr ""
+
+#: .\organization\models.py:204
+msgid "user_add"
+msgstr ""
+
+#: .\organization\models.py:205
+msgid "Script used to add a user to container"
+msgstr ""
+
+#: .\organization\models.py:206
+msgid "user_del"
+msgstr ""
+
+#: .\organization\models.py:207
+msgid "Script used to delete a user from container"
+msgstr ""
+
+#: .\organization\models.py:208
+msgid "scope_add"
+msgstr ""
+
+#: .\organization\models.py:209
+msgid "Script used to add a scope to container"
+msgstr ""
+
+#: .\organization\models.py:210
+msgid "scope_del"
+msgstr ""
+
+#: .\organization\models.py:211
+msgid "Script used to delete a scope from container"
+msgstr ""
+
+#: .\organization\models.py:212
+msgid "user_to_scope"
+msgstr ""
+
+#: .\organization\models.py:213
+msgid "Script used to link a user to a container"
+msgstr ""
+
+#: .\organization\models.py:214
+msgid "user_from_scope"
+msgstr ""
+
+#: .\organization\models.py:215
+msgid "Script used to unlink a user from a container"
+msgstr ""

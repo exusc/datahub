@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser, Group
+from datahub.settings import LANGUAGES
 from django.utils.translation import gettext as _
 import uuid
 
@@ -40,6 +41,8 @@ class User(AbstractUser):
     owner = models.ForeignKey(
         'Owner', on_delete=models.PROTECT, null=True, blank=True,)
     scopes = models.ManyToManyField('Scope', blank=True)
+    language = models.CharField(_('language'), max_length=5, choices=LANGUAGES, default='en',
+                            help_text=_("Language used for DATA-Hub UI"))
 
 
 class Group(Group):
@@ -101,7 +104,7 @@ class Area(AbstractDatahubModel):
 
 
 class Scope(AbstractDatahubModel):
-    """ Scopes are linked to application and vused from all areas within these application """
+    """ Scopes are linked to application and used from all areas within these application """
     class Meta:
         verbose_name = _("Scope")
         verbose_name_plural = _("Scopes")
@@ -197,7 +200,7 @@ class ContainerType(AbstractDatahubModel):
     key = models.CharField(_('key'), max_length=20, unique=True,)
     type = models.CharField(_('type'), max_length=2, choices=TYPE)
     area_add = models.TextField(_('area_add'), null=True,
-                                blank=True, help_text=_("Scipt used to add an area to container"))
+                                blank=True, help_text=_("Script used to add an area to container"))
     user_add = models.TextField(_('user_add'), null=True,
                                 blank=True, help_text=_("Script used to add a user to container"))
     user_del = models.TextField(_('user_del'), null=True,

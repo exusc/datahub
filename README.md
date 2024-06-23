@@ -1,4 +1,4 @@
-Version 0.9.1
+Version 0.9.3
 
 Supports base functionality for 
 - Standard administration of DATA-Hub objects
@@ -8,7 +8,6 @@ Supports base functionality for
 Open Tasks
 - connection to secure connect
 - implementation of actions within data container (add are with existing scopes, add scope, ...)
-- translation of literals
 
 To be discussed
 - Scopes are defined on application level - if we want to reduce user access to specific areas, we have to define that

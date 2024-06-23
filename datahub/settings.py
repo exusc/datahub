@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+from django.utils.translation import gettext_lazy as _
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -105,8 +106,30 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
+"""
+ https://docs.djangoproject.com/en/5.0/topics/i18n/translation/#how-django-discovers-translations
+ https://docs.djangoproject.com/en/5.0/topics/i18n/translation/#localization-how-to-create-language-files
+ GNU Package: https://mlocati.github.io/articles/gettext-iconv-windows.html
 
-LANGUAGE_CODE = 'en-us'
+ Kommandos zum Übersetzen (dazu muss das Verzeichnis locale unter abx/aw liegen)
+ django-admin makemessages -l de
+ django-admin makemessages -a
+ django-admin compilemessages
+"""
+
+LOCALE_PATHS = [
+    BASE_DIR / 'locale'
+]
+
+LANGUAGES = [
+    ("de", _("German")),
+    ("it", _("Italien")),
+    ("fr", _("French")),
+    ("en", _("English")),
+]
+
+LANGUAGE_CODE = 'en'
+LANGUAGE_COOKIE_NAME = 'user_language'
 
 TIME_ZONE = 'MET'
 

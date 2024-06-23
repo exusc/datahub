@@ -1,0 +1,269 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-06-23 11:25+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: .\datahub\settings.py:121
+msgid "German"
+msgstr ""
+
+#: .\datahub\settings.py:122
+msgid "Italien"
+msgstr ""
+
+#: .\datahub\settings.py:123
+msgid "French"
+msgstr ""
+
+#: .\datahub\settings.py:124
+msgid "English"
+msgstr ""
+
+#: .\organization\models.py:19
+msgid "desc"
+msgstr "Beschreibung"
+
+#: .\organization\models.py:20
+msgid "text"
+msgstr "Text"
+
+#: .\organization\models.py:22
+msgid "ctime"
+msgstr "Zeit der Erstellung"
+
+#: .\organization\models.py:23
+msgid "cuser"
+msgstr "User der Erstellung"
+
+#: .\organization\models.py:24
+msgid "utime"
+msgstr "Zeit letzte Änderung"
+
+#: .\organization\models.py:25
+msgid "uuser"
+msgstr "User letzte Änderung"
+
+#: .\organization\models.py:38
+msgid "User"
+msgstr "Benutzer"
+
+#: .\organization\models.py:39
+msgid "Users"
+msgstr "Benutzer"
+
+#: .\organization\models.py:44
+msgid "language"
+msgstr "Sprache"
+
+#: .\organization\models.py:45
+msgid "Language used for DATA-Hub UI"
+msgstr "Wird in der Benutzeroberfläche des DATA-Hubs verwendet"
+
+#: .\organization\models.py:50
+msgid "Group"
+msgstr "Gruppe"
+
+#: .\organization\models.py:51
+msgid "Groups"
+msgstr "Gruppen"
+
+#: .\organization\models.py:62
+msgid "Owner"
+msgstr "Owner"
+
+#: .\organization\models.py:63
+msgid "Owners"
+msgstr "Owner"
+
+#: .\organization\models.py:65 .\organization\models.py:74
+#: .\organization\models.py:94 .\organization\models.py:118
+#: .\organization\models.py:176 .\organization\models.py:200
+msgid "key"
+msgstr "Name"
+
+#: .\organization\models.py:71
+msgid "Application"
+msgstr "Anwendung"
+
+#: .\organization\models.py:72
+msgid "Applications"
+msgstr "Anwendungen"
+
+#: .\organization\models.py:76 .\organization\models.py:124
+msgid "business_unit_1"
+msgstr "Geschäftseinheit 1"
+
+#: .\organization\models.py:78 .\organization\models.py:126
+msgid "business_unit_2"
+msgstr "Geschäftseinheit 2"
+
+#: .\organization\models.py:80 .\organization\models.py:128
+msgid "business_unit_3"
+msgstr "Geschäftseinheit 3"
+
+#: .\organization\models.py:82 .\organization\models.py:130
+msgid "business_unit_4"
+msgstr "Geschäftseinheit 4"
+
+#: .\organization\models.py:84 .\organization\models.py:132
+msgid "business_unit_5"
+msgstr "Geschäftseinheit 5"
+
+#: .\organization\models.py:90
+msgid "Area"
+msgstr "Area"
+
+#: .\organization\models.py:91
+msgid "Areas"
+msgstr "Areas"
+
+#: .\organization\models.py:97
+msgid "To store structured data"
+msgstr "Für strukturierte Daten"
+
+#: .\organization\models.py:99
+msgid "To store files"
+msgstr "Für Dateien"
+
+#: .\organization\models.py:109
+msgid "Scope"
+msgstr "Scope"
+
+#: .\organization\models.py:110
+msgid "Scopes"
+msgstr "Scopes"
+
+#: .\organization\models.py:113
+msgid "Standard"
+msgstr "Standard"
+
+#: .\organization\models.py:114
+msgid "Org scope"
+msgstr "Org. Scope"
+
+#: .\organization\models.py:115
+msgid "App scope"
+msgstr "Anwend. Scope"
+
+#: .\organization\models.py:119 .\organization\models.py:201
+msgid "type"
+msgstr "Typ"
+
+#: .\organization\models.py:120
+msgid "Defines how scope can be used"
+msgstr "Legt fest, wie der Scope verwendet werden kann"
+
+#: .\organization\models.py:133
+msgid "team"
+msgstr "Team"
+
+#: .\organization\models.py:135
+msgid "Here are the standard templates created by the client"
+msgstr "Hier werden die Standard-Templates des Owners abgelegt"
+
+#: .\organization\models.py:137
+msgid "Here are the standard templates created by Abraxas or other provider"
+msgstr "Hier werden Standard-Templates abgelegt"
+
+#: .\organization\models.py:169
+msgid "Container"
+msgstr "Container"
+
+#: .\organization\models.py:170
+msgid "Containers"
+msgstr "Container"
+
+#: .\organization\models.py:179
+msgid "Connection"
+msgstr "Connection"
+
+#: .\organization\models.py:180
+msgid "Script to establish connection to container"
+msgstr "Aufbau der Verbindung"
+
+#: .\organization\models.py:192
+msgid "ContainerType"
+msgstr "Containertyp"
+
+#: .\organization\models.py:193
+msgid "ContainerTypes"
+msgstr "Containertypen"
+
+#: .\organization\models.py:196
+msgid "DataBase"
+msgstr "Datenbank"
+
+#: .\organization\models.py:197
+msgid "FileStorage"
+msgstr "Speicher für Dateien"
+
+#: .\organization\models.py:202
+msgid "area_add"
+msgstr "Area hinzufügen"
+
+#: .\organization\models.py:203
+msgid "Script used to add an area to container"
+msgstr "So wird eine Area hinzugefügt"
+
+#: .\organization\models.py:204
+msgid "user_add"
+msgstr "User hinzufügen"
+
+#: .\organization\models.py:205
+msgid "Script used to add a user to container"
+msgstr "So wird ein User hinzugefügt"
+
+#: .\organization\models.py:206
+msgid "user_del"
+msgstr "User löschen"
+
+#: .\organization\models.py:207
+msgid "Script used to delete a user from container"
+msgstr "So wird ein User entfernt"
+
+#: .\organization\models.py:208
+msgid "scope_add"
+msgstr "Scope hinzufügen"
+
+#: .\organization\models.py:209
+msgid "Script used to add a scope to container"
+msgstr "So wird ein User hinzugefügt"
+
+#: .\organization\models.py:210
+msgid "scope_del"
+msgstr "Scope löschen"
+
+#: .\organization\models.py:211
+msgid "Script used to delete a scope from container"
+msgstr "So wird ein Scope vom Container entfernt"
+
+#: .\organization\models.py:212
+msgid "user_to_scope"
+msgstr "User für Scope zulassen"
+
+#: .\organization\models.py:213
+msgid "Script used to link a user to a container"
+msgstr "So wird ein User zum Container hinzugefügt"
+
+#: .\organization\models.py:214
+msgid "user_from_scope"
+msgstr "User vom Scope entfernen"
+
+#: .\organization\models.py:215
+msgid "Script used to unlink a user from a container"
+msgstr "So wird ein User vom Container entfernt"
