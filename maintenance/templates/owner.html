@@ -2,7 +2,7 @@
 
 {% block body %}
   
-<h2 >Owner: <a href="{% url 'admin:organization_owner_change' owner.id %}">{{owner}}</a> - {{owner.desc}}</h2>
+<h2>Organisation der Hub-Struktur von: <a href="{% url 'admin:organization_owner_change' owner.id %}">{{owner}}</a> - {{owner.desc}}</h2>
 
 <h3>Container</h3>
 <ul>{% for container in containers %}

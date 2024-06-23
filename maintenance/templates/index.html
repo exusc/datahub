@@ -2,30 +2,70 @@
 
 {% block body %}
 
-    <h2>List of Owner</h2>
-    <ul>
-    {% for owner in owners %}
-        <li>
-            <a href="{% url 'admin:organization_owner_change' owner.id %}">{{owner}}</a>
-            / <a href="{% url 'owner' owner.key %}">DETAILS</a>
-        </li>
-    {% endfor %}
-    </ul>
+{% if user.is_authenticated %}
 
-    <h2>List of User</h2>
-    <ul>
-    {% for user in users %}
-        <li>
-            <a href="{% url 'admin:organization_user_change' user.id %}">{{user}} {{user.first_name}} {{user.last_name}}</a>
-            / <a href="{% url 'user' user.id %}">DETAILS</a>
-        </li>
-    {% endfor %}
-    </ul>
+<h2>Willkommen {{user.first_name}} {{user.last_name}} ({{user.username}})</h2>
+{% if user.is_superuser %}
+    <h3>Als Superuser darfst du im Hub Anpassungen für alle Organisationen vornehmen</h3><br>
+{% else %}
+    {% if user.is_staff %}
+        <h3>Du darfst im Hub Self-Service für {{user.owner}} durchführen</h3><br>
+    {% endif %}
+{% endif %}
 
-    <h2>To be discussed</h2>
-    <li>Scopes are defined on application level - if we want to reduce user access to specific areas, we have to define that</li>
-    <li>Are the schemas ...-base still needed if we use privileges instead of barrier views?</li>
-    <li>In AW we are supporting Abraxas applications which are not owned by the client - client is part of the scope, and data is in the same db</li>
+
+<p>Du hast Zugriff auf die Daten und Applikationen von <a href="{% url 'admin:organization_owner_change' user.owner.id %}">{{user.owner}}</a>.
+    Dort kannst du folgende Scopes verwenden:
+    {% for scope in user.scopes.all %}
+    <li><a href="{% url 'admin:organization_scope_change' scope.id %}">{{scope}} ({{scope.desc}})</a></li>
+    {% endfor %}
+    {% if user.is_staff %}
+    <br>Folgende Optionen stehen dir im Self-Service zur Verfügung:
+    <ul>
+        <li><a href="/admin">Verwaltung der Elemente im Hub</a> (abhängig von deinen Berechtigungen)</li>
+        <li><a href="{% url 'owner' user.owner.key %}">Ansehen der Organisation</a> der Umgebung von {{user.owner}} im Hub</li>
+        <li><a href="{% url 'admin:organization_user_change' user.id %}">Deine Einstellungen anpassen</a>     
+        <li>Die <a href="{% url 'admin:organization_scope_changelist' %}">Business Units (Scopes) </a> und die 
+            <a href="{% url 'admin:organization_user_changelist' %}">Benutzer</a> verwalten </li>
+    </ul>
+    {% endif %}
+</p>
+
+<h3>Du bist Mitglied in folgenden Gruppen:</h3>
+<ul>
+    {% for group in user.groups.all %}
+    <li><a href="{% url 'admin:organization_group_change' group.id %}">{{group}}</a></li>
+    {% endfor %}
+</ul>
+
+
+<h3>Deine letzten 5 Aktivitäten waren:</h3>
+<ul>
+    {% for logentry in LogEntrys %}
+    <li>{{logentry}}</li>
+    {% endfor %}
+</ul>
+
+<h3>Hinweise:</h3>
+<ul>
+    <li>Falls dir Berechtigungen fehlen, können dir folgende Kollegen weiterhelfen:
+        {% for user in users %}
+        <a href="{% url 'switch_user' user.id %}">{{user.first_name}} {{user.last_name}}</a>, 
+        {% endfor %}
+    </li>
+    
+    <li>Andere Organisationen, die den Hub verwenden, sind:
+        {% for owner in owners %}
+        <a href="{% url 'owner' owner.key %}">{{owner.key}}</a>, 
+        {% endfor %}
+    </li>
+    
+</ul>
+{% else %}
+Schade eigentlich
+
+{% endif %}
+
 
 
 {% endblock %}

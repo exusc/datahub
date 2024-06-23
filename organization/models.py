@@ -151,8 +151,8 @@ class Scope(AbstractDatahubModel):
             self.key += f'/{self.team.upper()}'
 
         for area in self.application.area_set.all():
-            area.database.add_scope(self)
-            area.filestorage.add_scope(self)
+            area.database.add_scope(area, self)
+            area.filestorage.add_scope(area, self)
 
         super().save(force_insert, force_update, using, update_fields)
 
@@ -176,9 +176,9 @@ class Container(AbstractDatahubModel):
     connection = models.TextField(_('Connection'), max_length=200, null=True,
                                   blank=True, help_text=_("Script to establish connection to container"))
 
-    def add_scope(self, scope):
+    def add_scope(self, area, scope ):
         print(
-            f'TODO: Implement action to create scope {scope.key} in container {self}')
+            f'Execute script to create scope {scope.key} in container {self} for area {area}')
 
 
 class ContainerType(AbstractDatahubModel):

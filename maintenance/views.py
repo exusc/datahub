@@ -8,17 +8,17 @@ from django.views import View
 
 
 def index(request):
+    if not request.user.is_authenticated:
+        user = User.objects.get(username='sys')
+        login(request, user)
+        return redirect(reverse("index"))
     context = {}
     context['owners'] = Owner.objects.all()
     context['users'] = User.objects.all()
+    context['user'] = request.user
+    context['LogEntrys'] = LogEntry.objects.all().filter(user=request.user)[
+        0:5]
     return render(request, 'index.html', context)
-
-
-class UserView(View):
-    def get(self, request, userid):
-        context = {'user': User.objects.get(id=userid)}
-        context['LogEntrys'] = LogEntry.objects.all().filter(user=userid)[0:5]
-        return render(request, 'user.html', context)
 
 
 def owner(request, key):
@@ -30,9 +30,17 @@ def owner(request, key):
     return render(request, 'owner.html', context)
 
 
+class UserView(View):
+    def get(self, request, userid):
+        context = {'user': User.objects.get(id=userid)}
+        context['LogEntrys'] = LogEntry.objects.all().filter(user=userid)[0:5]
+        return render(request, 'user.html', context)
+
+
 def switch_user(request, userid):
-    username = User.objects.get(id=userid).username
-    user = authenticate(request, username=username, password='99999999')
+    # username = User.objects.get(id=userid).username
+    # user = authenticate(request, username=username, password='99999999')
+    user = User.objects.get(id=userid)
     if user:
         login(request, user)
     return redirect(reverse("index"))

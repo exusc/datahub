@@ -1,18 +1,14 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>DATA-Hub - Index</title>
+  <title>DATA-Hub - Konzept-Demonstrator</title>
 </head>
 
 {% load static %}
 <link rel="stylesheet" href="{% static 'base.css' %}">
 
 <body>
-    <h1>Logged in as User: {{request.user.username}} - {{request.user.first_name}} {{request.user.last_name}}</h1>
-    <h2>
-        <a href="{% url 'index' %}">Home</a>
-      / <a href="/admin">Administration Site</a>
-    </h2>
+    <h2>DATA-Hub - Prototyp zur Demonstration / <a href="{% url 'index' %}">Home</a></h2>
     <br>
 
     {% block body %}
