@@ -46,6 +46,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -107,6 +108,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
 """
+ https://www.thecoderscamp.com/how-to-explicitly-set-django-language-in-django-sessiondjango/
  https://docs.djangoproject.com/en/5.0/topics/i18n/translation/#how-django-discovers-translations
  https://docs.djangoproject.com/en/5.0/topics/i18n/translation/#localization-how-to-create-language-files
  GNU Package: https://mlocati.github.io/articles/gettext-iconv-windows.html
@@ -115,6 +117,7 @@ AUTH_PASSWORD_VALIDATORS = [
  django-admin makemessages -l de
  django-admin makemessages -a
  django-admin compilemessages
+ 'django.middleware.locale.LocaleMiddleware', must be used
 """
 
 LOCALE_PATHS = [
@@ -129,7 +132,7 @@ LANGUAGES = [
 ]
 
 LANGUAGE_CODE = 'en'
-LANGUAGE_COOKIE_NAME = 'user_language'
+# LANGUAGE_COOKIE_NAME = 'user_language'
 
 TIME_ZONE = 'MET'
 

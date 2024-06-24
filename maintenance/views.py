@@ -3,10 +3,7 @@ from django.urls import reverse
 from organization.models import Owner, User, Application, Container
 from django.contrib.auth import authenticate, login
 from django.contrib.admin.models import LogEntry
-from django.views.decorators.csrf import csrf_protect
 from django.views import View
-from datahub.settings import LANGUAGE_COOKIE_NAME
-from django.utils import translation
 
 
 def index(request):
@@ -46,8 +43,9 @@ def switch_user(request, userid):
     user = User.objects.get(id=userid)
     if user:
         login(request, user)
-        translation.activate(user.language)
-        # TODO : Messages en are not used
-        print('Language:', user.language)
-        response.set_cookie(LANGUAGE_COOKIE_NAME, user.language)
+
+        # translation.activate(user.language)
+        from django.conf import settings
+        response.set_cookie(settings.LANGUAGE_COOKIE_NAME, user.language,)
+
     return response
