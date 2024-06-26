@@ -4,68 +4,93 @@
 
 {% if user.is_authenticated %}
 
-<h2>Willkommen {{user.first_name}} {{user.last_name}} ({{user.username}})</h2>
-{% if user.is_superuser %}
-    <h3>Als Superuser darfst du im Hub Anpassungen für alle Organisationen vornehmen</h3><br>
-{% else %}
-    {% if user.is_staff %}
-        <h3>Du darfst im Hub Self-Service für {{user.owner}} durchführen</h3><br>
-    {% endif %}
-{% endif %}
+<h2>Wellcome {{user.first_name}} {{user.last_name}} ({{user.username}})</h2>
 
-
-<p>Du hast Zugriff auf die Daten und Applikationen von <a href="{% url 'admin:organization_owner_change' user.owner.id %}">{{user.owner}}</a>.
-    Dort kannst du folgende Scopes verwenden:
+<h3>You have access to applications and data from
+    <a href="{% url 'admin:organization_owner_change' user.owner.id %}">{{user.owner}}</a>. You can use following scopes:
+</h3>
+<ul>
     {% for scope in user.scopes.all %}
-    <li><a href="{% url 'admin:organization_scope_change' scope.id %}">{{scope}} ({{scope.desc}})</a></li>
+        <li><a href="{% url 'admin:organization_scope_change' scope.id %}">{{scope}} ({{scope.desc}})</a></li>
     {% endfor %}
-    {% if user.is_staff %}
-    <br>Folgende Optionen stehen dir im Self-Service zur Verfügung:
-    <ul>
-        <li><a href="/admin">Verwaltung der Elemente im Hub</a> (abhängig von deinen Berechtigungen)</li>
-        <li><a href="{% url 'owner' user.owner.key %}">Ansehen der Organisation</a> der Umgebung von {{user.owner}} im Hub</li>
-        <li><a href="{% url 'admin:organization_user_change' user.id %}">Deine Einstellungen anpassen</a>     
-        <li>Die <a href="{% url 'admin:organization_scope_changelist' %}">Business Units (Scopes) </a> und die 
-            <a href="{% url 'admin:organization_user_changelist' %}">Benutzer</a> verwalten </li>
-    </ul>
-    {% endif %}
-</p>
+</ul>
 
-<h3>Du bist Mitglied in folgenden Gruppen:</h3>
+<h3>You are member of these groups:</h3>
 <ul>
     {% for group in user.groups.all %}
     <li><a href="{% url 'admin:organization_group_change' group.id %}">{{group}}</a></li>
     {% endfor %}
 </ul>
 
+{% if user.is_staff %}
+    {% if user.is_superuser %}
+        <h3>You are superuser - so you can change restrictions for all DATA-Hub elements</h3>
+    {% else %}
+        <h3>You have access to self-service for {{user.owner}}:</h3>
+    {% endif %}
+    <ul>
+        <li><a href="/admin">Maintenance of security</a> (dependent from your acsess rights)</li>
+        <li><a href="{% url 'owner' user.owner.key %}">See the structure</a> of the DATA-Hub elements for {{user.owner}}</li>
+        <li><a href="{% url 'admin:organization_user_change' user.id %}">Maintain your configuration (language, standard scope)</a>     
+        <li><a href="{% url 'admin:organization_scope_changelist' %}">Maintain business units (scopes) </a> and 
+            <a href="{% url 'admin:organization_user_changelist' %}">user</a></li>
+    </ul>
+{% endif %}
 
-<h3>Deine letzten 5 Aktivitäten waren:</h3>
+<h3>Your last 5 activities:</h3>
 <ul>
     {% for logentry in LogEntrys %}
     <li>{{logentry}}</li>
     {% endfor %}
 </ul>
 
-<h3>Hinweise:</h3>
+<h3>Hint:</h3>
 <ul>
-    <li>Falls dir Berechtigungen fehlen, können dir folgende Kollegen weiterhelfen:
-        {% for user in users %}
-        <a href="{% url 'switch_user' user.id %}">{{user.first_name}} {{user.last_name}}</a>, 
+    <li>If you are missing permissions, following kollegs can help you:
+        {% for other_user in users %}
+            {% if not other_user == user %}
+                {% if other_user.is_superuser %}
+                    <a href="{% url 'switch_user' other_user.id %}">{{other_user.first_name}} {{other_user.last_name}} ({{other_user.owner}})</a>, 
+                {% else %}
+                    {% if other_user.is_staff %}
+                        {% if other_user.owner == user.owner %}
+                        <a href="{% url 'switch_user' other_user.id %}">{{other_user.first_name}} {{other_user.last_name}} ({{other_user.owner}})</a>, 
+                        {% endif %}
+                    {% endif %}
+                {% endif %}
+            {% endif %}
+        {% endfor %}
+    </li>
+
+    <li>Other users are:
+        {% for other_user in users %}
+            {% if not other_user == user %}
+                <a href="{% url 'switch_user' other_user.id %}">{{other_user.first_name}} {{other_user.last_name}} ({{other_user.owner}})</a>, 
+            {% endif %}
         {% endfor %}
     </li>
     
-    <li>Andere Organisationen, die den Hub verwenden, sind:
+    <li>Other organizations using the DATA-Hub:
         {% for owner in owners %}
         <a href="{% url 'owner' owner.key %}">{{owner.key}}</a>, 
         {% endfor %}
-    </li>
-    
+    </li>    
 </ul>
+
+{% if user.is_superuser %}
+    <h3>To be discussed (internal):</h3>
+    <ul>
+        <li>Maintenance of areas and their data container - Combination of application and area must be unique -> results in schema name. <a href="{% url 'admin:organization_area_changelist' %}">See areas</a></li></li>
+        <li>Do we still need the ...-base-schemas? Original idea was to use barrier views, so we needed a secound schema. See: <a href="{% url 'owner' 'SVA ZH' %}">'SVA ZH'</a>, </li>
+        <li>Owner concept for self-service. Can be solved by Hub Security or owner assignment.</li>
+        <li>Discuss usage of central scopes and teams</li>
+        <li>Business unit definition and scopes are on application-Level -> how do we restrict Users to specific areas</li>
+    </ul>
+{% endif %}
 {% else %}
 Schade eigentlich
 
 {% endif %}
-
 
 
 {% endblock %}

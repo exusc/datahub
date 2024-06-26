@@ -66,7 +66,9 @@ class Owner(AbstractDatahubModel):
 
 
 class Application(AbstractDatahubModel):
-    """ Business units are defined on application level - in this prototype its just a simple definition """
+    """ Business units are defined on application level - in this prototype its just a simple definition
+        For real implementation this mut be a separate object with information about allowed values ...
+    """
     class Meta:
         verbose_name = _("Application")
         verbose_name_plural = _("Applications")
@@ -100,6 +102,17 @@ class Area(AbstractDatahubModel):
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         self.owner = self.application.owner
+        
+        print('-'*80)
+        # Implement Area and Scopes in Container
+        self.database.add_area(self)
+        for scope in self.application.scope_set.all():
+            self.database.add_scope(self, scope)
+        self.filestorage.add_area(self)
+        for scope in self.application.scope_set.all():
+            self.filestorage.add_scope(self, scope)
+        print('-'*80)
+            
         super().save(force_insert, force_update, using, update_fields)
 
 
@@ -153,9 +166,13 @@ class Scope(AbstractDatahubModel):
         if self.team:
             self.key += f'/{self.team.upper()}'
 
+        # Implement Scope in Container
+        print('-'*80)
         for area in self.application.area_set.all():
             area.database.add_scope(area, self)
+        for area in self.application.area_set.all():
             area.filestorage.add_scope(area, self)
+        print('-'*80)
 
         super().save(force_insert, force_update, using, update_fields)
 
@@ -180,8 +197,11 @@ class Container(AbstractDatahubModel):
                                   blank=True, help_text=_("Script to establish connection to container"))
 
     def add_scope(self, area, scope ):
-        print(
-            f'Execute script to create scope {scope.key} in container {self} for area {area}')
+        print(f'Container {str(self):15} : "add_scope"  Area: {area.key:10}  Application: {area.application.key:10}  Scope: {scope.key}  Connection:{self.connection}')
+        print (self.containertype.scope_add)
+
+    def add_area(self, area):
+        print(f'Container {str(self):15} : "add_area "  Area: {area.key:10}  Application: {area.application.key:10}  Connection:{self.connection}')
 
 
 class ContainerType(AbstractDatahubModel):

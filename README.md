@@ -1,4 +1,4 @@
-Version 0.9.3
+Version 0.9.3.1
 
 Supports base functionality for 
 - Standard administration of DATA-Hub objects

@@ -136,7 +136,7 @@ LANGUAGE_CODE = 'en'
 
 TIME_ZONE = 'MET'
 
-USE_I18N = True
+USE_I18N = False
 
 USE_TZ = True
 

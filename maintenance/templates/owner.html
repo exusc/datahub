@@ -2,11 +2,12 @@
 
 {% block body %}
   
-<h2>Organisation der Hub-Struktur von: <a href="{% url 'admin:organization_owner_change' owner.id %}">{{owner}}</a> - {{owner.desc}}</h2>
+<h2>Organization of <a href="{% url 'admin:organization_owner_change' owner.id %}">{{owner}}</a> - {{owner.desc}} within DATA-Hub</h2>
 
 <h3>Container</h3>
 <ul>{% for container in containers %}
-    <li><b><a href="{% url 'admin:organization_container_change' container.id %}">{{container}}</a></b> ({{container.containertype}})</li>
+    <li><b><a href="{% url 'admin:organization_container_change' container.id %}">{{container}}</a></b> ({{container.containertype}})
+    <a href="{% url 'container' container.key %}">Infos</a></li>
     {% endfor %}
 </ul>
 
@@ -24,7 +25,7 @@
         <ul>{% for area in application.area_set.all %}
         <li><b><a href="{% url 'admin:organization_area_change' area.id %}">{{area}}</a></b> ({{area.desc}})
             with Database: <b><a href="{% url 'admin:organization_container_change' area.database.id %}">{{area.database}}</a></b> ({{area.database.desc}});
-            Schema for user acces: <b>{{area.application.key.lower}}_{{area.key.lower}}</b>; 
+            Schema for user access: <b>{{area.application.key.lower}}_{{area.key.lower}}</b>; 
             Schema for tables: <b>{{area.application.key.lower}}_{{area.key.lower}}_base</b>
             <br>
             with Filestorage: <b><a href="{% url 'admin:organization_container_change' area.filestorage.id %}">{{area.filestorage}}</a></b> ({{area.filestorage.desc}});

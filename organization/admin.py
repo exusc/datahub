@@ -3,25 +3,28 @@ from django.contrib.admin.models import LogEntry
 from django.contrib import admin
 from django.utils import timezone
 from .models import *
+from django.utils.translation import gettext as _
 
 
-class DatahubAdminSite (admin.AdminSite):
+class DatahubAdminSite(admin.AdminSite):
 
-    site_header = f'DATA-Hub'
+    site_header = _('DATA-Hub Maintenance')
     site_title = site_header
 
     def get_app_list(self, request, app_label=None):
         """ Sorts the list of Object within the admin menu        """
         ordering = {
-            "Owner": 1,
-            "Group": 2,
-            "User": 3,
-            "Container": 4,
-            "ContainerType": 5,
-            "Application": 6,
-            "Area": 7,
-            "Scope": 8,
-            "LogEntry": 9,
+            #"Report": 1,
+            #"Order": 2,
+            "Application": 11,
+            "Area": 12,
+            "User": 21,
+            "Scope": 22,
+            "Group": 23,
+            "Owner": 24,
+            "Container": 31,
+            "ContainerType": 32,
+            "LogEntry": 0,
         }
         app_dict = self._build_app_dict(request, app_label)
         app_list = sorted(app_dict.values(), key=lambda x: x['name'].lower())
@@ -33,7 +36,7 @@ class DatahubAdminSite (admin.AdminSite):
         return app_list
 
 
-class DatahubModelAdmin (admin.ModelAdmin):
+class DatahubModelAdmin(admin.ModelAdmin):
     """ Defaults für Model """
 
     list_per_page = 15
@@ -100,6 +103,10 @@ class DataHubUserAdmin(UserAdmin):
                 kwargs["queryset"] = Scope.objects.filter(
                     owner=request.user.owner)
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+
+class DataHubGroupAdmin(GroupAdmin):
+    list_display = ['name', 'owner', ]
 
 
 class OwnerAdmin(DatahubModelAdmin):
@@ -229,7 +236,7 @@ class ContainerTypeAdmin(DatahubModelAdmin):
     list_filter = ['owner', 'type']
     fieldsets = [
         (None, {'fields': [('key', 'owner',), 'desc', 'type'], }),
-        ('Scripts', {'fields': [('area_add', 'user_add'), ], }),
+        ('Scripts', {'fields': [('area_add', 'user_add', 'scope_add'), ], }),
         ('History', {'fields': [('ctime', 'cuser'), ('utime', 'uuser')], },),
     ]
 
@@ -244,7 +251,7 @@ class LogEntryAdmin(admin.ModelAdmin):
 
 datahub_admin_site = DatahubAdminSite(name="datahub_admin")
 datahub_admin_site.register(User, DataHubUserAdmin)
-datahub_admin_site.register(Group, GroupAdmin)
+datahub_admin_site.register(Group, DataHubGroupAdmin)
 datahub_admin_site.register(Owner, OwnerAdmin)
 datahub_admin_site.register(Application, ApplicationAdmin)
 datahub_admin_site.register(Area, AreaAdmin)

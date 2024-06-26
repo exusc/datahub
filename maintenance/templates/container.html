@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block body %}
+  
+<h2>Container {{container}} ({{container.containertype}}) </h2>
+
+<h3>Used by Areas:</h3>
+<ul>
+    {% for area in areas %}
+        <li>{{area.application}} - {{area}} from {{area.owner}}</li>
+    {% endfor %}
+</ul>
+
+
+{% endblock %}

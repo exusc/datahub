@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.urls import reverse
-from organization.models import Owner, User, Application, Container
+from organization.models import Owner, User, Application, Area, Container
 from django.contrib.auth import authenticate, login
 from django.contrib.admin.models import LogEntry
 from django.views import View
@@ -27,6 +27,16 @@ def owner(request, key):
     context['applications'] = Application.objects.filter(owner=owner)
     context['containers'] = Container.objects.filter(owner=owner)
     return render(request, 'owner.html', context)
+
+
+def container(request, key):
+    container = Container.objects.get(key=key)
+    context = {}
+    context['container'] = container
+    areas = Area.objects.filter(database = container) # Area.objects.filter(filestorage = container)
+    context['areas'] = areas
+    print(areas)
+    return render(request, 'container.html', context)
 
 
 class UserView(View):
