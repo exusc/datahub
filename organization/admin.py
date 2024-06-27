@@ -127,8 +127,11 @@ class ApplicationAdmin(DatahubModelAdmin):
     list_filter = ['owner']
     fieldsets = [
         (None, {'fields': [('key', 'owner'), 'desc', 'text', ], }),
-        ('Business Units', {'fields': ['business_unit_1', 'business_unit_2',
-         'business_unit_3', 'business_unit_4', 'business_unit_5',], }),
+        ('Business Units', {'fields': [('business_unit_1', 'regex_1',), 
+                                       ('business_unit_2', 'regex_2',),
+                                       ('business_unit_3', 'regex_3',),
+                                       ('business_unit_4', 'regex_4',),
+                                       ('business_unit_5', 'regex_5',),], }),
         ('History', {'fields': [('ctime', 'cuser'), ('utime', 'uuser')], },),
     ]
 

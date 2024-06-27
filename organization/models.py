@@ -1,3 +1,5 @@
+from django.core.exceptions import ValidationError
+from django.core.validators import RegexValidator
 from django.db import models
 from django.contrib.auth.models import AbstractUser, Group
 from datahub.settings import LANGUAGES
@@ -42,7 +44,7 @@ class User(AbstractUser):
         'Owner', on_delete=models.PROTECT, null=True, blank=True,)
     scopes = models.ManyToManyField('Scope', blank=True)
     language = models.CharField(_('language'), max_length=5, choices=LANGUAGES, default='en',
-                            help_text=_("Language used for DATA-Hub UI"))
+                                help_text=_("Language used for DATA-Hub UI"))
 
 
 class Group(Group):
@@ -85,6 +87,17 @@ class Application(AbstractDatahubModel):
     business_unit_5 = models.CharField(
         _('business_unit_5'), max_length=80, null=True, blank=True)
 
+    regex_1 = models.CharField(
+        _('regex_1'), max_length=80, null=True, blank=True)
+    regex_2 = models.CharField(
+        _('regex_2'), max_length=80, null=True, blank=True)
+    regex_3 = models.CharField(
+        _('regex_3'), max_length=80, null=True, blank=True)
+    regex_4 = models.CharField(
+        _('regex_4'), max_length=80, null=True, blank=True)
+    regex_5 = models.CharField(
+        _('regex_5'), max_length=80, null=True, blank=True)
+
 
 class Area(AbstractDatahubModel):
     """ Each area belongs to an application and can have its own database and file storage"""
@@ -102,7 +115,7 @@ class Area(AbstractDatahubModel):
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         self.owner = self.application.owner
-        
+
         print('-'*80)
         # Implement Area and Scopes in Container
         self.database.add_area(self)
@@ -112,12 +125,15 @@ class Area(AbstractDatahubModel):
         for scope in self.application.scope_set.all():
             self.filestorage.add_scope(self, scope)
         print('-'*80)
-            
+
         super().save(force_insert, force_update, using, update_fields)
 
 
 class Scope(AbstractDatahubModel):
-    """ Scopes are linked to application and used from all areas within these application """
+    """ Scopes are linked to application and used from all areas within these application 
+        BUs will be checked by validator
+        https://docs.djangoproject.com/en/5.0/ref/validators/
+    """
     class Meta:
         verbose_name = _("Scope")
         verbose_name_plural = _("Scopes")
@@ -134,7 +150,7 @@ class Scope(AbstractDatahubModel):
     application = models.ForeignKey(
         'Application', on_delete=models.PROTECT, null=True, blank=True,)
     business_unit_1 = models.CharField(
-        _('business_unit_1'), max_length=80, null=True, blank=True)
+        _('business_unit_1'), max_length=80, null=True, blank=True,)
     business_unit_2 = models.CharField(
         _('business_unit_2'), max_length=80, null=True, blank=True)
     business_unit_3 = models.CharField(
@@ -149,12 +165,49 @@ class Scope(AbstractDatahubModel):
     app_scope = models.ForeignKey('Scope', on_delete=models.PROTECT, null=True, blank=True, related_name='+',
                                   help_text=_("Here are the standard templates created by Abraxas or other provider"))
 
-    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
-        
+
+    def full_clean(self, exclude=None, validate_unique=True, validate_constraints=True):
+        """ Before the data is cleaned a validator for Business-Units will be added / replaced
+            https://docs.djangoproject.com/en/5.0/ref/forms/validation/
+        """
+        for f in self._meta.fields:            
+            if f.name == 'business_unit_1' and self.application.regex_1:
+                for vali in f.validators:
+                    if type(vali) == RegexValidator:
+                        f.validators.remove(vali)                    
+                f.validators.append(RegexValidator(regex=self.application.regex_1)) 
+            if f.name == 'business_unit_2' and self.application.regex_2:
+                for vali in f.validators:
+                    if type(vali) == RegexValidator:
+                        f.validators.remove(vali)                    
+                f.validators.append(RegexValidator(regex=self.application.regex_2)) 
+            if f.name == 'business_unit_3' and self.application.regex_3:
+                for vali in f.validators:
+                    if type(vali) == RegexValidator:
+                        f.validators.remove(vali)                    
+                f.validators.append(RegexValidator(regex=self.application.regex_3)) 
+            if f.name == 'business_unit_4' and self.application.regex_4:
+                for vali in f.validators:
+                    if type(vali) == RegexValidator:
+                        f.validators.remove(vali)                    
+                f.validators.append(RegexValidator(regex=self.application.regex_4)) 
+            if f.name == 'business_unit_5' and self.application.regex_5:
+                for vali in f.validators:
+                    if type(vali) == RegexValidator:
+                        f.validators.remove(vali)                    
+                f.validators.append(RegexValidator(regex=self.application.regex_5)) 
+        super().full_clean(exclude=exclude, validate_unique=validate_unique, validate_constraints=validate_constraints)
+
+
+    def clean(self):
+
         self.owner = self.application.owner
         """ Creates the key based on the BUs
         """
-        self.key = f'{self.application.key.upper()}_{self.business_unit_1.upper()}'
+
+        self.key = f'{self.application.key.upper()}'
+        if self.business_unit_1:
+            self.key += f'_{self.business_unit_1.upper()}'
         if self.business_unit_2:
             self.key += f'_{self.business_unit_2.upper()}'
         if self.business_unit_3:
@@ -166,6 +219,7 @@ class Scope(AbstractDatahubModel):
         if self.team:
             self.key += f'/{self.team.upper()}'
 
+
         # Implement Scope in Container
         print('-'*80)
         for area in self.application.area_set.all():
@@ -174,7 +228,14 @@ class Scope(AbstractDatahubModel):
             area.filestorage.add_scope(area, self)
         print('-'*80)
 
-        super().save(force_insert, force_update, using, update_fields)
+        """ Check if scope already exists """
+        if Scope.objects.filter(key = self.key):
+            raise ValidationError(
+                _("Scope: %(value)s already exists."),
+                code="invalid",
+                params={"value": self.key},
+                )
+
 
 
 class Container(AbstractDatahubModel):
@@ -196,12 +257,13 @@ class Container(AbstractDatahubModel):
     connection = models.TextField(_('Connection'), max_length=200, null=True,
                                   blank=True, help_text=_("Script to establish connection to container"))
 
-    def add_scope(self, area, scope ):
+    def add_scope(self, area, scope):
         print(f'Container {str(self):15} : "add_scope"  Area: {area.key:10}  Application: {area.application.key:10}  Scope: {scope.key}  Connection:{self.connection}')
-        print (self.containertype.scope_add)
+        print(self.containertype.scope_add)
 
     def add_area(self, area):
-        print(f'Container {str(self):15} : "add_area "  Area: {area.key:10}  Application: {area.application.key:10}  Connection:{self.connection}')
+        print(
+            f'Container {str(self):15} : "add_area "  Area: {area.key:10}  Application: {area.application.key:10}  Connection:{self.connection}')
 
 
 class ContainerType(AbstractDatahubModel):
