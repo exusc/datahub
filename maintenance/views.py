@@ -4,6 +4,7 @@ from organization.models import Owner, User, Application, Area, Container
 from django.contrib.auth import authenticate, login
 from django.contrib.admin.models import LogEntry
 from django.views import View
+from datahub.settings import ALLOWED_OWNER
 
 
 def index(request):
@@ -47,12 +48,25 @@ class UserView(View):
 
 
 def switch_user(request, userid):
+    response = redirect(reverse("index"))
+
     # username = User.objects.get(id=userid).username
     # user = authenticate(request, username=username, password='???')
-    response = redirect(reverse("index"))
     user = User.objects.get(id=userid)
     if user:
         login(request, user)
+        # Creates the list of allowed owner.keys
+        ownerlist = []
+        for scope in request.user.scopes.filter(application__key='HUB'):
+            if scope.business_unit_1 == '*':
+                ownerlist = ['*']
+                break
+            try:
+                owner = Owner.objects.get(key=scope.business_unit_1)
+                ownerlist.append(owner.key)
+            except: 
+                pass
+        request.session[ALLOWED_OWNER] = ownerlist
 
         # translation.activate(user.language)
         from django.conf import settings

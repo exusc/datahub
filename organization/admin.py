@@ -4,6 +4,7 @@ from django.contrib import admin
 from django.utils import timezone
 from .models import *
 from django.utils.translation import gettext as _
+from datahub.settings import ALLOWED_OWNER
 
 
 class DatahubAdminSite(admin.AdminSite):
@@ -54,12 +55,13 @@ class DatahubModelAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         """ 
         Superusers are allowed to see every object
-        Normal users are restricted to their own client
+        Normal users are restricted to their ALLOWED_OWNER
         """
         queryset = super().get_queryset(request)
         if request.user.is_superuser:
             return queryset
-        queryset = queryset.filter(owner=request.user.owner)
+        if not '*' in request.session[ALLOWED_OWNER]:
+            queryset = queryset.filter(owner__key__in=request.session[ALLOWED_OWNER])
         return queryset
 
 
@@ -80,12 +82,13 @@ class DataHubUserAdmin(UserAdmin):
     def get_queryset(self, request):
         """ 
         Superusers are allowed to see every object
-        Normal users are restricted to their own client
+        Normal users are restricted to their ALLOWED_OWNER
         """
         queryset = super().get_queryset(request)
         if request.user.is_superuser:
             return queryset
-        queryset = queryset.filter(owner=request.user.owner)
+        if not '*' in request.session[ALLOWED_OWNER]:
+            queryset = queryset.filter(owner__key__in=request.session[ALLOWED_OWNER])
         return queryset
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):

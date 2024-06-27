@@ -78,13 +78,21 @@
 </ul>
 
 {% if user.is_superuser %}
-    <h3>To be discussed (internal):</h3>
+<h3>TODO:</h3>
+<ul>
+    <li>Check and improve User maintenance  - darf nur das vergeben, was ich darf (Scopes und Roles)</li>
+    <li>Das gilt auch für die Auswahl, zu welchem Owner ein Objekt gehört</li>
+</ul>
+<h3>Discussion on 26.06.2024:</h3>
+    <h4>ToDo</h4>
     <ul>
-        <li>Maintenance of areas and their data container - Combination of application and area must be unique -> results in schema name. <a href="{% url 'admin:organization_area_changelist' %}">See areas</a></li></li>
-        <li>Do we still need the ...-base-schemas? Original idea was to use barrier views, so we needed a secound schema. See: <a href="{% url 'owner' 'SVA ZH' %}">'SVA ZH'</a>, </li>
-        <li>Owner concept for self-service. Can be solved by Hub Security or owner assignment.</li>
-        <li>Discuss usage of central scopes and teams</li>
-        <li>Business unit definition and scopes are on application-Level -> how do we restrict Users to specific areas</li>
+        <li>Maintenance of areas and their data container - Combination of application and area must be unique -> results in schema name. <a href="{% url 'admin:organization_area_changelist' %}">See areas</a></li>
+        <li>Owner concept for self-service. Solved by Hub Security and not owner assignment like implemented in this Prototype.</li>
+    </ul>
+    <h4>Postponed</h4>
+        <ul>
+        <li>Central scopes and teams should be  defined flexible - they are just other scopes</li>
+        <li>Business unit definition and scopes are on application-Level -> If we want to restrict Users to specific areas, e have to set up new applications</li>
     </ul>
 {% endif %}
 {% else %}

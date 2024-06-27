@@ -156,3 +156,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # https://docs.djangoproject.com/en/dev/topics/auth/customizing/#substituting-a-custom-user-model
 
 AUTH_USER_MODEL = "organization.User"
+
+# Cookie name for ALLOWED_OWNER 
+ALLOWED_OWNER = 'allowed_hub_owner'
