@@ -15,8 +15,8 @@ class DatahubAdminSite(admin.AdminSite):
     def get_app_list(self, request, app_label=None):
         """ Sorts the list of Object within the admin menu        """
         ordering = {
-            #"Report": 1,
-            #"Order": 2,
+            # "Report": 1,
+            # "Order": 2,
             "Application": 11,
             "Area": 12,
             "User": 21,
@@ -38,7 +38,7 @@ class DatahubAdminSite(admin.AdminSite):
 
 
 class DatahubModelAdmin(admin.ModelAdmin):
-    """ Defaults für Model """
+    """ Defaults for display """
 
     list_per_page = 15
     empty_value_display = '---'
@@ -61,14 +61,26 @@ class DatahubModelAdmin(admin.ModelAdmin):
         if request.user.is_superuser:
             return queryset
         if not '*' in request.session[ALLOWED_OWNER]:
-            queryset = queryset.filter(owner__key__in=request.session[ALLOWED_OWNER])
+            queryset = queryset.filter(
+                owner__key__in=request.session[ALLOWED_OWNER])
         return queryset
+
+    def get_list_display(self, request):
+        """ If user is just allowed to maintan on owner, he must not see the owners """
+        list_display = list(self.list_display)
+        if request.user.is_superuser or '*' in request.session[ALLOWED_OWNER] or len(request.session[ALLOWED_OWNER]) > 1:
+            return list_display
+        list_display.remove("owner")
+        return list_display
 
 
 class DataHubUserAdmin(UserAdmin):
+    """ User must not give other users more rights then they have themselves """
+
     list_filter = ['owner', 'groups']
     list_display = ['username', 'first_name', 'last_name', 'language',
                     'is_active', 'is_staff', 'is_superuser', 'owner', ]
+    # list_editable = ("is_active",)
     readonly_fields = ["last_login",]
     fieldsets = [
         (None, {'fields': [('username', 'owner'),
@@ -79,6 +91,18 @@ class DataHubUserAdmin(UserAdmin):
     ]
     filter_horizontal = ['scopes', 'groups']
 
+    def get_list_display(self, request):
+        return DatahubModelAdmin.get_list_display(self, request)
+
+    def save_model(self, request, obj, form, change):
+        """ While saving, users owner will be the same as request.user.owner
+            If user is not superuser, the new user also can't be a superuser
+        """
+        obj.owner = request.user.owner
+        if not request.user.is_superuser:
+            obj.is_superuser = False
+        obj.save()
+
     def get_queryset(self, request):
         """ 
         Superusers are allowed to see every object
@@ -88,28 +112,43 @@ class DataHubUserAdmin(UserAdmin):
         if request.user.is_superuser:
             return queryset
         if not '*' in request.session[ALLOWED_OWNER]:
-            queryset = queryset.filter(owner__key__in=request.session[ALLOWED_OWNER])
+            queryset = queryset.filter(
+                owner__key__in=request.session[ALLOWED_OWNER])
         return queryset
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        """ Reduce list of selectable container to according type """
-        if db_field.name == "owner":
+        """ Reduce list of selectable owner to owner of users scopes """
+        if db_field.name == "owner" or '*' in request.session[ALLOWED_OWNER]:
             if request.user.is_superuser:
                 kwargs["queryset"] = Owner.objects.all()
             else:
                 kwargs["queryset"] = Owner.objects.filter(
-                    owner=request.user.owner)
+                    owner__key__in=request.session[ALLOWED_OWNER])
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        """ Reduce list of selectable scopes """
         if db_field.name == "scopes":
-            if request.user.is_superuser:
+            if request.user.is_superuser or '*' in request.session[ALLOWED_OWNER]:
                 kwargs["queryset"] = Scope.objects.all()
             else:
                 kwargs["queryset"] = Scope.objects.filter(
-                    owner=request.user.owner)
-        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+                    owner__key__in=request.session[ALLOWED_OWNER])
+        """ Reduce list of selectable groups """
+        if db_field.name == "groups":
+            if request.user.is_superuser or '*' in request.session[ALLOWED_OWNER]:
+                kwargs["queryset"] = Group.objects.all()
+            else:
+                kwargs["queryset"] = request.user.groups
+        return super().formfield_for_manytomany(db_field, request, **kwargs)
 
 
 class DataHubGroupAdmin(GroupAdmin):
+
     list_display = ['name', 'owner', ]
+
+    def get_list_display(self, request):
+        return DatahubModelAdmin.get_list_display(self, request)
 
 
 class OwnerAdmin(DatahubModelAdmin):
@@ -130,7 +169,7 @@ class ApplicationAdmin(DatahubModelAdmin):
     list_filter = ['owner']
     fieldsets = [
         (None, {'fields': [('key', 'owner'), 'desc', 'text', ], }),
-        ('Business Units', {'fields': [('business_unit_1', 'regex_1',), 
+        ('Business Units', {'fields': [('business_unit_1', 'regex_1',),
                                        ('business_unit_2', 'regex_2',),
                                        ('business_unit_3', 'regex_3',),
                                        ('business_unit_4', 'regex_4',),
@@ -170,11 +209,12 @@ class ScopeAdmin(DatahubModelAdmin):
             kwargs["queryset"] = scopes
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
+    save_as = True
     search_fields = ['key', 'application__key', 'desc']
     ordering = ['application__key', 'key',]
     list_filter = ['owner', 'application', 'type']
     list_display = ['key', 'application',
-                    'type', 'desc', 'org_scope', 'app_scope', 'owner']
+                    'type', 'desc', 'org_scope', 'app_scope', 'owner',]
     fieldsets = [
         ('Combination', {'fields': [('application', 'type', ),  'business_unit_1', 'business_unit_2',
          'business_unit_3', 'business_unit_4', 'business_unit_5', 'team'], }),
@@ -215,6 +255,7 @@ class AreaAdmin(DatahubModelAdmin):
     search_fields = ['key', 'application__key', 'desc']
     list_display = ['application', 'key', 'desc',
                     'database', 'filestorage', 'owner']
+    list_display_links = ['key']
     ordering = ['application__key', 'key',]
     list_filter = ['owner', 'application']
     fieldsets = [

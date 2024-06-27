@@ -78,16 +78,11 @@
 </ul>
 
 {% if user.is_superuser %}
-<h3>TODO:</h3>
-<ul>
-    <li>Check and improve User maintenance  - darf nur das vergeben, was ich darf (Scopes und Roles)</li>
-    <li>Das gilt auch für die Auswahl, zu welchem Owner ein Objekt gehört</li>
-</ul>
 <h3>Discussion on 26.06.2024:</h3>
     <h4>ToDo</h4>
     <ul>
         <li>Maintenance of areas and their data container - Combination of application and area must be unique -> results in schema name. <a href="{% url 'admin:organization_area_changelist' %}">See areas</a></li>
-        <li>Owner concept for self-service. Solved by Hub Security and not owner assignment like implemented in this Prototype.</li>
+        <li>Owner concept for self-service. Solved by Hub Security.</li>
     </ul>
     <h4>Postponed</h4>
         <ul>
