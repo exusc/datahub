@@ -47,8 +47,8 @@ class User(AbstractUser):
 
 class Group(Group):
     class Meta:
-        verbose_name = _("Group")
-        verbose_name_plural = _("Groups")
+        verbose_name = _("Role")
+        verbose_name_plural = _("Roles")
 
     owner = models.ForeignKey(
         'Owner', on_delete=models.PROTECT, null=True, blank=True,)

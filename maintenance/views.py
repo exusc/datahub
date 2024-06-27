@@ -48,7 +48,7 @@ class UserView(View):
 
 def switch_user(request, userid):
     # username = User.objects.get(id=userid).username
-    # user = authenticate(request, username=username, password='99999999')
+    # user = authenticate(request, username=username, password='???')
     response = redirect(reverse("index"))
     user = User.objects.get(id=userid)
     if user:
