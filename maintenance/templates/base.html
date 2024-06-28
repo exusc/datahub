@@ -8,7 +8,11 @@
 <link rel="stylesheet" href="{% static 'base.css' %}">
 
 <body>
-    <h2>DATA-Hub - Prototyp for Concept Reviews / <a href="{% url 'index' %}">Home</a></h2>
+    <h2>DATA-Hub - Prototyp for Concept Reviews 
+      / <a href="{% url 'index' %}">Home</a>
+      / <a href="{% url 'add_scope' %}">Add a Scope</a>
+      / <a href="{% url 'form' %}">Test Form</a>
+    </h2>
     <br>
 
     {% block body %}

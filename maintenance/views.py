@@ -1,3 +1,8 @@
+from django.utils import timezone
+from .forms import SampleForm
+from django.core.exceptions import ValidationError
+from django.core import validators
+from django import forms
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from organization.models import Owner, User, Application, Area, Container
@@ -5,6 +10,7 @@ from django.contrib.auth import authenticate, login
 from django.contrib.admin.models import LogEntry
 from django.views import View
 from datahub.settings import ALLOWED_OWNER
+from .forms import ScopeForm
 
 
 def index(request):
@@ -34,9 +40,9 @@ def container(request, key):
     container = Container.objects.get(key=key)
     context = {}
     context['container'] = container
-    areas = Area.objects.filter(database = container) # Area.objects.filter(filestorage = container)
+    # Area.objects.filter(filestorage = container)
+    areas = Area.objects.filter(database=container)
     context['areas'] = areas
-    print(areas)
     return render(request, 'container.html', context)
 
 
@@ -64,7 +70,7 @@ def switch_user(request, userid):
             try:
                 owner = Owner.objects.get(key=scope.business_unit_1)
                 ownerlist.append(owner.key)
-            except: 
+            except:
                 pass
         request.session[ALLOWED_OWNER] = ownerlist
 
@@ -73,3 +79,35 @@ def switch_user(request, userid):
         response.set_cookie(settings.LANGUAGE_COOKIE_NAME, user.language,)
 
     return response
+
+
+# --------------------------------------------------------------------------------
+# Test Form
+
+
+def sample_form(request):
+    data = {}
+    data['title'] = 'xx'
+    data['zahl'] = '1111'
+    data['datum'] = timezone.now()
+    context = {'form': SampleForm(data)}
+    return render(request, 'form/form.html', context)
+
+from organization.models import Scope, Application
+
+class AddScopeView(View):
+    """ ToDo: sollte eine CreateView sein, die richtigen Validatoren verwenden und richtige T """
+    application = Application.objects.get(key="HUB")
+
+    def get(self, request):
+        scope = Scope.objects.filter(application=AddScopeView.application)[0]
+        form = ScopeForm(application=AddScopeView.application, instance=scope)
+        context = {'form': form}
+        return render(request, 'form/form.html', context)
+
+    def post(self, request):
+        form = ScopeForm(application=AddScopeView.application, data=request.POST, )
+        if not form.is_valid():
+            context = {'form': form}
+            return render(request, 'form/form.html', context)
+        return redirect(reverse("index"))

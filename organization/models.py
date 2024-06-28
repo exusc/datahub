@@ -34,6 +34,77 @@ class AbstractDatahubModel(models.Model):
         return f'{self.key}'
 
 
+class Owner(AbstractDatahubModel):
+    """ Used to assign ownership to applications and container.
+        A owner might be owned by an other organization
+    """
+    class Meta:
+        verbose_name = _("Owner")
+        verbose_name_plural = _("Owners")
+        ordering = ['-key']
+
+    key = models.CharField(_('key'), max_length=20, unique=True,)
+
+
+class ContainerType(AbstractDatahubModel):
+    """ ContainerType defines how the hub handels different activities like
+        adding an area, adding an user, ...
+    """
+    class Meta:
+        verbose_name = _("ContainerType")
+        verbose_name_plural = _("ContainerTypes")
+
+    TYPE = {
+        "DB": _("DataBase"),
+        "FS": _("FileStorage"),
+    }
+
+    key = models.CharField(_('key'), max_length=20, unique=True,)
+    type = models.CharField(_('type'), max_length=2, choices=TYPE)
+    area_add = models.TextField(_('area_add'), null=True,
+                                blank=True, help_text=_("Script used to add an area to container"))
+    user_add = models.TextField(_('user_add'), null=True,
+                                blank=True, help_text=_("Script used to add a user to container"))
+    user_del = models.TextField(_('user_del'), null=True,
+                                blank=True, help_text=_("Script used to delete a user from container"))
+    scope_add = models.TextField(_('scope_add'), null=True,
+                                 blank=True, help_text=_("Script used to add a scope to container"))
+    scope_del = models.TextField(_('scope_del'), null=True,
+                                 blank=True, help_text=_("Script used to delete a scope from container"))
+    user_to_scope = models.TextField(_('user_to_scope'), null=True,
+                                     blank=True, help_text=_("Script used to link a user to a container"))
+    user_from_scope = models.TextField(_('user_from_scope'), null=True,
+                                       blank=True, help_text=_("Script used to unlink a user from a container"))
+
+
+class Container(AbstractDatahubModel):
+    """ Can contain data of multiple areas/application
+        But we expect that every client wants to have his own containers
+        TODO: implement methods add_scope, delete_scope using scripts from ContainerType
+    """
+    class Meta:
+        verbose_name = _("Container")
+        verbose_name_plural = _("Containers")
+        permissions = [
+            ("upload_templates", "Is allowed to upload report templates"),
+            ("download_templates", "Is allowed to download report templates"),
+        ]
+
+    key = models.CharField(_('key'), max_length=20, unique=True,)
+    containertype = models.ForeignKey(
+        to=ContainerType, on_delete=models.PROTECT)
+    connection = models.TextField(_('Connection'), max_length=200, null=True,
+                                  blank=True, help_text=_("Script to establish connection to container"))
+
+    def add_scope(self, area, scope):
+        print(f'Container {str(self):15} : "add_scope"  Area: {area.key:10}  Application: {area.application.key:10}  Scope: {scope.key}  Connection:{self.connection}')
+        print(self.containertype.scope_add)
+
+    def add_area(self, area):
+        print(
+            f'Container {str(self):15} : "add_area "  Area: {area.key:10}  Application: {area.application.key:10}  Connection:{self.connection}')
+
+
 class User(AbstractUser):
     """ If a user is assigned to an owner, that person is just allowed to work with owner related objects """
     class Meta:
@@ -41,7 +112,7 @@ class User(AbstractUser):
         verbose_name_plural = _("Users")
 
     owner = models.ForeignKey(
-        'Owner', on_delete=models.PROTECT, null=True, blank=True,)
+        to=Owner, on_delete=models.PROTECT, null=True, blank=True,)
     scopes = models.ManyToManyField('Scope', blank=True)
     language = models.CharField(_('language'), max_length=5, choices=LANGUAGES, default='en',
                                 help_text=_("Language used for DATA-Hub UI"))
@@ -53,18 +124,7 @@ class Group(Group):
         verbose_name_plural = _("Roles")
 
     owner = models.ForeignKey(
-        'Owner', on_delete=models.PROTECT, null=True, blank=True,)
-
-
-class Owner(AbstractDatahubModel):
-    """ Used to assign ownership to applications and container.
-        A owner might be owned by an other organization
-    """
-    class Meta:
-        verbose_name = _("Owner")
-        verbose_name_plural = _("Owners")
-
-    key = models.CharField(_('key'), max_length=20, unique=True,)
+        to=Owner, on_delete=models.PROTECT, null=True, blank=True,)
 
 
 class Application(AbstractDatahubModel):
@@ -107,11 +167,11 @@ class Area(AbstractDatahubModel):
         unique_together = ['application', 'key']
 
     key = models.CharField(_('key'), max_length=20)
-    application = models.ForeignKey('Application', on_delete=models.PROTECT)
-    database = models.ForeignKey(
-        'Container', on_delete=models.PROTECT, related_name='+', help_text=_("To store structured data"))
+    application = models.ForeignKey(to=Application, on_delete=models.PROTECT)
+    database = models.ForeignKey(to=Container, on_delete=models.PROTECT,
+                                 related_name='+', help_text=_("To store structured data"))
     filestorage = models.ForeignKey(
-        'Container', on_delete=models.PROTECT, related_name='+', help_text=_("To store files"))
+        to=Container, on_delete=models.PROTECT, related_name='+', help_text=_("To store files"))
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         self.owner = self.application.owner
@@ -148,7 +208,7 @@ class Scope(AbstractDatahubModel):
     type = models.CharField(_('type'), max_length=1, choices=TYPE, default='S',
                             help_text=_("Defines how scope can be used"))
     application = models.ForeignKey(
-        'Application', on_delete=models.PROTECT, null=True, blank=True,)
+        to=Application, on_delete=models.PROTECT, null=True, blank=True,)
     business_unit_1 = models.CharField(
         _('business_unit_1'), max_length=80, null=True, blank=True,)
     business_unit_2 = models.CharField(
@@ -165,39 +225,43 @@ class Scope(AbstractDatahubModel):
     app_scope = models.ForeignKey('Scope', on_delete=models.PROTECT, null=True, blank=True, related_name='+',
                                   help_text=_("Here are the standard templates created by Abraxas or other provider"))
 
-
     def full_clean(self, exclude=None, validate_unique=True, validate_constraints=True):
         """ Before the data is cleaned a validator for Business-Units will be added / replaced
             https://docs.djangoproject.com/en/5.0/ref/forms/validation/
         """
-        for f in self._meta.fields:            
+        for f in self._meta.fields:
             if f.name == 'business_unit_1' and self.application.regex_1:
                 for vali in f.validators:
                     if type(vali) == RegexValidator:
-                        f.validators.remove(vali)                    
-                f.validators.append(RegexValidator(regex=self.application.regex_1)) 
+                        f.validators.remove(vali)
+                f.validators.append(RegexValidator(
+                    regex=self.application.regex_1))
             if f.name == 'business_unit_2' and self.application.regex_2:
                 for vali in f.validators:
                     if type(vali) == RegexValidator:
-                        f.validators.remove(vali)                    
-                f.validators.append(RegexValidator(regex=self.application.regex_2)) 
+                        f.validators.remove(vali)
+                f.validators.append(RegexValidator(
+                    regex=self.application.regex_2))
             if f.name == 'business_unit_3' and self.application.regex_3:
                 for vali in f.validators:
                     if type(vali) == RegexValidator:
-                        f.validators.remove(vali)                    
-                f.validators.append(RegexValidator(regex=self.application.regex_3)) 
+                        f.validators.remove(vali)
+                f.validators.append(RegexValidator(
+                    regex=self.application.regex_3))
             if f.name == 'business_unit_4' and self.application.regex_4:
                 for vali in f.validators:
                     if type(vali) == RegexValidator:
-                        f.validators.remove(vali)                    
-                f.validators.append(RegexValidator(regex=self.application.regex_4)) 
+                        f.validators.remove(vali)
+                f.validators.append(RegexValidator(
+                    regex=self.application.regex_4))
             if f.name == 'business_unit_5' and self.application.regex_5:
                 for vali in f.validators:
                     if type(vali) == RegexValidator:
-                        f.validators.remove(vali)                    
-                f.validators.append(RegexValidator(regex=self.application.regex_5)) 
-        super().full_clean(exclude=exclude, validate_unique=validate_unique, validate_constraints=validate_constraints)
-
+                        f.validators.remove(vali)
+                f.validators.append(RegexValidator(
+                    regex=self.application.regex_5))
+        super().full_clean(exclude=exclude, validate_unique=validate_unique,
+                           validate_constraints=validate_constraints)
 
     def clean(self):
 
@@ -219,8 +283,22 @@ class Scope(AbstractDatahubModel):
         if self.team:
             self.key += f'/{self.team.upper()}'
 
+        """ Check if scope already exists """
+        if Scope.objects.filter(key=self.key):
+            raise ValidationError(
+                _("Scope: %(value)s already exists."),
+                code="invalid",
+                params={"value": self.key},
+            )
 
-        # Implement Scope in Container
+
+    def save(
+        self, force_insert=False, force_update=False, using=None, update_fields=None
+    ):
+
+        super().save(force_insert=force_insert, force_update=force_update,
+                     using=using, update_fields=update_fields)
+        """ While saving a scope, the scope has to be added to the container"""
         print('-'*80)
         for area in self.application.area_set.all():
             area.database.add_scope(area, self)
@@ -228,70 +306,3 @@ class Scope(AbstractDatahubModel):
             area.filestorage.add_scope(area, self)
         print('-'*80)
 
-        """ Check if scope already exists """
-        if Scope.objects.filter(key = self.key):
-            raise ValidationError(
-                _("Scope: %(value)s already exists."),
-                code="invalid",
-                params={"value": self.key},
-                )
-
-
-
-class Container(AbstractDatahubModel):
-    """ Can contain data of multiple areas/application
-        But we expect that every client wants to have his own containers
-        TODO: implement methods add_scope, delete_scope using scripts from ContainerType
-    """
-    class Meta:
-        verbose_name = _("Container")
-        verbose_name_plural = _("Containers")
-        permissions = [
-            ("upload_templates", "Is allowed to upload report templates"),
-            ("download_templates", "Is allowed to download report templates"),
-        ]
-
-    key = models.CharField(_('key'), max_length=20, unique=True,)
-    containertype = models.ForeignKey(
-        'ContainerType', on_delete=models.PROTECT)
-    connection = models.TextField(_('Connection'), max_length=200, null=True,
-                                  blank=True, help_text=_("Script to establish connection to container"))
-
-    def add_scope(self, area, scope):
-        print(f'Container {str(self):15} : "add_scope"  Area: {area.key:10}  Application: {area.application.key:10}  Scope: {scope.key}  Connection:{self.connection}')
-        print(self.containertype.scope_add)
-
-    def add_area(self, area):
-        print(
-            f'Container {str(self):15} : "add_area "  Area: {area.key:10}  Application: {area.application.key:10}  Connection:{self.connection}')
-
-
-class ContainerType(AbstractDatahubModel):
-    """ ContainerType defines how the hub handels different activities like
-        adding an area, adding an user, ...
-    """
-    class Meta:
-        verbose_name = _("ContainerType")
-        verbose_name_plural = _("ContainerTypes")
-
-    TYPE = {
-        "DB": _("DataBase"),
-        "FS": _("FileStorage"),
-    }
-
-    key = models.CharField(_('key'), max_length=20, unique=True,)
-    type = models.CharField(_('type'), max_length=2, choices=TYPE)
-    area_add = models.TextField(_('area_add'), null=True,
-                                blank=True, help_text=_("Script used to add an area to container"))
-    user_add = models.TextField(_('user_add'), null=True,
-                                blank=True, help_text=_("Script used to add a user to container"))
-    user_del = models.TextField(_('user_del'), null=True,
-                                blank=True, help_text=_("Script used to delete a user from container"))
-    scope_add = models.TextField(_('scope_add'), null=True,
-                                 blank=True, help_text=_("Script used to add a scope to container"))
-    scope_del = models.TextField(_('scope_del'), null=True,
-                                 blank=True, help_text=_("Script used to delete a scope from container"))
-    user_to_scope = models.TextField(_('user_to_scope'), null=True,
-                                     blank=True, help_text=_("Script used to link a user to a container"))
-    user_from_scope = models.TextField(_('user_from_scope'), null=True,
-                                       blank=True, help_text=_("Script used to unlink a user from a container"))
