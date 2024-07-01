@@ -1,3 +1,4 @@
+from organization.models import Scope, Application
 from django.utils import timezone
 from .forms import SampleForm
 from django.core.exceptions import ValidationError
@@ -93,7 +94,6 @@ def sample_form(request):
     context = {'form': SampleForm(data)}
     return render(request, 'form/form.html', context)
 
-from organization.models import Scope, Application
 
 class AddScopeView(View):
     """ ToDo: sollte eine CreateView sein, die richtigen Validatoren verwenden und richtige T """
@@ -106,8 +106,27 @@ class AddScopeView(View):
         return render(request, 'form/form.html', context)
 
     def post(self, request):
-        form = ScopeForm(application=AddScopeView.application, data=request.POST, )
+        form = ScopeForm(application=AddScopeView.application,
+                         data=request.POST, )
         if not form.is_valid():
             context = {'form': form}
             return render(request, 'form/form.html', context)
         return redirect(reverse("index"))
+
+
+class AddScopesView(View):
+
+    def get(self, request, appkey):
+        application = Application.objects.get(key=appkey)
+        scope = Scope(application=application)
+        form = ScopeForm(application=application, instance=scope)
+        context = {'form': form}
+        return render(request, 'form/form.html', context)
+
+    def post(self, request, appkey):
+        application = Application.objects.get(key=appkey)
+        form = ScopeForm(application=application, data=request.POST, )
+        if not form.is_valid():
+            context = {'form': form}
+            return render(request, 'form/form.html', context)
+        return self.get(request,appkey)
