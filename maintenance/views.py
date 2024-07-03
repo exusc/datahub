@@ -7,14 +7,20 @@ from django.views import View
 from datahub.settings import ALLOWED_OWNER
 
 
+def default_context(request):
+    result = {}
+    result['all_owners'] = Owner.objects.all().order_by('key')
+    result['all_users'] = User.objects.all().order_by('first_name')
+    result['all_scopes'] = request.user.scopes.all().order_by('key')
+    result['all_containers'] = Container.objects.all().order_by('containertype', 'key')
+    return result
+
 def index(request):
     if not request.user.is_authenticated:
         user = User.objects.get(username='sys')
         login(request, user)
         return redirect(reverse("index"))
-    context = {}
-    context['owners'] = Owner.objects.all()
-    context['users'] = User.objects.all()
+    context = default_context(request)
     context['user'] = request.user
     context['LogEntrys'] = LogEntry.objects.all().filter(user=request.user)[
         0:5]
@@ -23,7 +29,7 @@ def index(request):
 
 def owner(request, key):
     owner = Owner.objects.get(key=key)
-    context = {}
+    context = default_context(request)
     context['owner'] = owner
     context['applications'] = Application.objects.filter(owner=owner)
     context['containers'] = Container.objects.filter(owner=owner)
@@ -32,11 +38,10 @@ def owner(request, key):
 
 def container(request, key):
     container = Container.objects.get(key=key)
-    context = {}
+    context = default_context(request)
     context['container'] = container
-    areas = Area.objects.filter(database = container) # Area.objects.filter(filestorage = container)
+    areas = Area.objects.filter(database = container) | Area.objects.filter(filestorage = container)
     context['areas'] = areas
-    print(areas)
     return render(request, 'container.html', context)
 
 

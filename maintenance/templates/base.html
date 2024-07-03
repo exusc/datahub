@@ -5,13 +5,45 @@
 </head>
 
 {% load static %}
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<!--style>
+   h1{font-size:24px} h2{font-size:20px} h3{font-size:18px} h4{font-size:16px} h5{font-size:14px} h6{font-size:12px}
+   body{font-size:12px}
+</style-->
 <link rel="stylesheet" href="{% static 'base.css' %}">
 
 <body>
-    <h2>DATA-Hub - Prototyp for Concept Reviews / <a href="{% url 'index' %}">Home</a></h2>
-    <br>
 
-    {% block body %}
-    {% endblock %}
+  <div class="w3-bar w3-light-grey w3-card-4">
+    <a href="/admin" class="w3-bar-item w3-button">Admin</a>
+    <div class="w3-dropdown-hover">
+      <button class="w3-button w3-light-green">User</button>
+      <div class="w3-dropdown-content w3-bar-block w3-card-4">
+        {% for auser in all_users %}
+        <a href="{% url 'switch_user' auser.id %}" class="w3-bar-item w3-button" >{{auser.first_name}} {{auser.last_name}} </a> 
+        {% endfor %}
+      </div>
+    </div>
+    <div class="w3-dropdown-hover">
+      <button class="w3-button w3-light-blue">Owner</button>
+      <div class="w3-dropdown-content w3-bar-block w3-card-4">
+        {% for owner in all_owners %}
+        <a href="{% url 'owner' owner.key %}" class="w3-bar-item w3-button">{{owner.key}}</a> 
+        {% endfor %}
+      </div>
+    </div>
+    <div class="w3-dropdown-hover">
+      <button class="w3-button w3-khaki">Container</button>
+      <div class="w3-dropdown-content w3-bar-block w3-card-4">
+        {% for container in all_containers %}
+        <a href="{% url 'container' container.key %}" class="w3-bar-item w3-button">{{container.key}}</a> 
+        {% endfor %}
+      </div>
+    </div>
+    <div class="w3-bar-item w3-button w3-right">{{request.user.first_name}} {{request.user.last_name}}</div>
+    </div>
+
+  {% block body %}
+  {% endblock %}
 
 </body>

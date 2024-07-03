@@ -98,8 +98,8 @@ class DataHubUserAdmin(UserAdmin):
         """ While saving, users owner will be the same as request.user.owner
             If user is not superuser, the new user also can't be a superuser
         """
-        obj.owner = request.user.owner
         if not request.user.is_superuser:
+            obj.owner = request.user.owner
             obj.is_superuser = False
         obj.save()
 
@@ -118,8 +118,8 @@ class DataHubUserAdmin(UserAdmin):
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         """ Reduce list of selectable owner to owner of users scopes """
-        if db_field.name == "owner" or '*' in request.session[ALLOWED_OWNER]:
-            if request.user.is_superuser:
+        if db_field.name == "owner":
+            if request.user.is_superuser or '*' in request.session[ALLOWED_OWNER]:
                 kwargs["queryset"] = Owner.objects.all()
             else:
                 kwargs["queryset"] = Owner.objects.filter(
@@ -179,11 +179,11 @@ class ApplicationAdmin(DatahubModelAdmin):
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "owner":
-            if request.user.is_superuser:
+            if request.user.is_superuser or '*' in request.session[ALLOWED_OWNER]:
                 kwargs["queryset"] = Owner.objects.all()
             else:
                 kwargs["queryset"] = Owner.objects.filter(
-                    key=request.user.owner)
+                    owner__key__in=request.session[ALLOWED_OWNER])
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 

@@ -2,14 +2,18 @@
 
 {% block body %}
   
-<h2>Container {{container}} ({{container.containertype}}) </h2>
+<div class="w3-panel w3-leftbar w3-khaki w3-card-4 w3-padding">
+<h2>Container {{container}} ({{container.containertype}}) {{container.desc}} / Owner: {{container.owner}}</h2>
+</div>
 
+<div class="w3-panel w3-leftbar w3-light-gray w3-card-4 w3-padding">
 <h3>Used by Areas:</h3>
 <ul>
     {% for area in areas %}
-        <li>{{area.application}} - {{area}} from {{area.owner}}</li>
+        <li><a href="{% url 'admin:organization_area_change' area.id %}">{{area.application}}-{{area}} {{area.desc}}</a> Owner: {{area.owner}}</li>
     {% endfor %}
 </ul>
+</div>
 
 
 {% endblock %}
