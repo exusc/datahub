@@ -190,13 +190,14 @@ class ApplicationAdmin(DatahubModelAdmin):
 class ScopeAdmin(DatahubModelAdmin):
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        """ Reduce list of selectable container to according type """
+        """ Reduce list of owner dependent from superuser status """
         if db_field.name == "application":
             if request.user.is_superuser:
                 kwargs["queryset"] = Application.objects.all()
             else:
                 kwargs["queryset"] = Application.objects.filter(
                     owner=request.user.owner)
+        """ Reduce list of selectable scopes to according type """
         if db_field.name == "org_scope":
             scopes = Scope.objects.filter(type='O')
             if not request.user.is_superuser:
