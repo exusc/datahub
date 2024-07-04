@@ -1,14 +1,20 @@
 {% extends 'base.html' %}
 
 {% block body %}
-<p>
+
+
+<div class="w3-panel w3-leftbar w3-card-4 w3-padding">
+<h2>Add Scope to Applikation {{application.key}} {{application.desc}}</h2>
+</div>
+
+<div class="w3-panel w3-leftbar w3-card-4 w3-padding w3-display-middle">
     <form action="" method="POST">
         {% csrf_token %}
         <table>    
             {{ form.as_table }}
         </table>
-        <input type="submit" value="Submit">
-        <input type="submit" onclick="window.location='{% url 'index' %}'; return false;" value="Cancel">
+        <input class="w3-green" type="submit" value="Save" >
+        <input class="w3-khaki" type="submit" onclick="window.location='{% url 'index' %}'; return false;" value="Cancel">
     </form>
-</p>
+</div>
 {% endblock %}

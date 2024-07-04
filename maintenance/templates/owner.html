@@ -19,7 +19,6 @@
 {% for application in applications %}
 <div class="w3-panel w3-leftbar w3-light-gray w3-card-4 w3-padding">
 
-<<<<<<< HEAD
     <h3>Application <b><a href="{% url 'admin:organization_application_change' application.id %}">{{application}}</a></b> {{application.desc}} </h3>
 
     <h4>Business units</h4>    
@@ -39,12 +38,8 @@
     </li>  
     {% endfor area %}
     
-    <h4>Scopes = MinIo Buckets or Folder in Filesystem and RLS in DBs:</h4>
+    <h4>Scopes = MinIo Buckets or Folder in Filesystem and RLS in DBs - <a href="{% url 'addscopes' application.key %}"><b>Add Scope</b></a></h4>
         {% for scope in application.scope_set.all %}
-=======
-    <li>Scopes = MinIo Buckets or Folder in Filesystem and RLS in DBs: <a href="{% url 'addscopes' application.key %}"><b>Add Scopes</b></a></li>
-    <ul>{% for scope in application.scope_set.all %}
->>>>>>> 2d4de7c2490063ffb66657d4c025e77107e0585d
         <li><b><a href="{% url 'admin:organization_scope_change' scope.id %}">{{scope}}</a> {{scope.desc}} </b>
             org: <b><a href="{% url 'admin:organization_scope_change' scope.org_scope_id %}">{{scope.org_scope}}</a></b> {{scope.org_scope.desc}}
             app: <b><a href="{% url 'admin:organization_scope_change' scope.app_scope_id %}">{{scope.app_scope}}</a></b> {{scope.app_scope.desc}}

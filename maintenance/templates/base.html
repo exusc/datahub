@@ -6,6 +6,8 @@
 
 {% load static %}
 <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<!--link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"-->
 <!--style>
    h1{font-size:24px} h2{font-size:20px} h3{font-size:18px} h4{font-size:16px} h5{font-size:14px} h6{font-size:12px}
    body{font-size:12px}
@@ -13,43 +15,65 @@
 <link rel="stylesheet" href="{% static 'base.css' %}">
 
 <body>
-<<<<<<< HEAD
-=======
-    <h2>DATA-Hub - Prototyp for Concept Reviews 
-      / <a href="{% url 'index' %}">Home</a>
-      / <a href="{% url 'form' %}">Test Form</a>
-    </h2>
-    <br>
->>>>>>> 2d4de7c2490063ffb66657d4c025e77107e0585d
 
   <div class="w3-bar w3-light-grey w3-card-4">
-    <a href="/admin" class="w3-bar-item w3-button">Admin</a>
-    <div class="w3-dropdown-hover">
-      <button class="w3-button w3-light-green">User</button>
+    
+    <a href="{% url 'index' %}" class="w3-bar-item w3-button fa fa-home w3-large" ></a>
+    
+    {% if user.is_staff %}
+      <div class="w3-dropdown-hover">
+        <button class="w3-button w3-light-blue">Owner</button>
+        <div class="w3-dropdown-content w3-bar-block w3-card-4">
+          {% for owner in all_owners %}
+          <a href="{% url 'owner' owner.key %}" class="w3-bar-item w3-button">{{owner.key}}</a> 
+          {% endfor %}
+        </div>
+      </div>
+      <div class="w3-dropdown-hover">
+        <button class="w3-button w3-khaki">Container</button>
+        <div class="w3-dropdown-content w3-bar-block w3-card-4">
+          {% for container in all_containers %}
+          <a href="{% url 'container' container.key %}" class="w3-bar-item w3-button">{{container.key}}</a> 
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+    <a class="w3-bar-item w3-button">Reporting</a>
+  
+    {% if perms.organization %}
+      <a href="/admin" class="w3-bar-item w3-button">Admin</a>
+    {% endif %}
+  
+
+    <div class="w3-dropdown-hover w3-right" style="width:12em">
+      <button class="w3-button">{{request.user.first_name}} {{request.user.last_name}}</button>
       <div class="w3-dropdown-content w3-bar-block w3-card-4">
         {% for auser in all_users %}
         <a href="{% url 'switch_user' auser.id %}" class="w3-bar-item w3-button" >{{auser.first_name}} {{auser.last_name}} </a> 
         {% endfor %}
       </div>
     </div>
-    <div class="w3-dropdown-hover">
-      <button class="w3-button w3-light-blue">Owner</button>
+
+    <div class="w3-dropdown-hover w3-right">
+      <button class="w3-button">Scope: xxx</button>
       <div class="w3-dropdown-content w3-bar-block w3-card-4">
-        {% for owner in all_owners %}
-        <a href="{% url 'owner' owner.key %}" class="w3-bar-item w3-button">{{owner.key}}</a> 
+        {% for owner in all_scopes.all %}
+        <a class="w3-bar-item w3-button">{{owner.key}}</a> 
         {% endfor %}
       </div>
     </div>
-    <div class="w3-dropdown-hover">
-      <button class="w3-button w3-khaki">Container</button>
+
+    <div class="w3-dropdown-hover w3-right">
+      <button class="w3-button">Language: en</button>
       <div class="w3-dropdown-content w3-bar-block w3-card-4">
-        {% for container in all_containers %}
-        <a href="{% url 'container' container.key %}" class="w3-bar-item w3-button">{{container.key}}</a> 
-        {% endfor %}
+        <a class="w3-bar-item w3-button">fr</a> 
+        <a class="w3-bar-item w3-button">it</a> 
+        <a class="w3-bar-item w3-button">de</a> 
       </div>
     </div>
-    <div class="w3-bar-item w3-button w3-right">{{request.user.first_name}} {{request.user.last_name}}</div>
-    </div>
+
+  </div>
 
   {% block body %}
   {% endblock %}

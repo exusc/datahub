@@ -4,55 +4,70 @@
 
 {% if user.is_authenticated %}
 
-<div class="w3-panel w3-leftbar w3-light-green w3-card-4 w3-padding">
-    <h2>User {{user.first_name}} {{user.last_name}} ({{user.username}})
-        - <a href="{% url 'admin:organization_owner_change' user.owner.id %}">{{user.owner}} / {{user.owner.desc}}</a>
+<div class="w3-panel w3-leftbar w3-light-gray w3-card-4 w3-padding">
+    <h2>{{user.first_name}} {{user.last_name}} ({{user.username}})
+        / Organization: <a href="{% url 'owner' user.owner.key %}">{{user.owner.desc}} ({{user.owner}})</a>
         {% if user.is_superuser %}
-        (Superuser)
+        / State: Superuser = Maintenance of all Hub-Elements
         {% else %}
         {% if user.is_staff %}
-        (Staff)
+        / State: Staff
         {% endif %}
         {% endif %}
 
     </h2>
 </div>
 
-<div class="w3-panel w3-leftbar w3-light-gray w3-card-4 w3-padding">
-    <h3>Assigned roles:</h3>
-    {% for group in user.groups.all %}
-    |<a href="{% url 'admin:organization_group_change' group.id %}" class="w3-btn">{{group}}</a>
-    {% endfor %}|
-</div>
+<div class="w3-row" >
+    
+    <div class="w3-col l3 m6 w3-panel w3-leftbar w3-light-gray w3-card-4 w3-padding w3-margin-right" style="height:6cm">
+        {% if user.is_staff %}
+            {% if user.is_superuser %}
+            <h3>You are superuser</h3>
+            {% else %}
+            <h3>Self-services for {{user.owner}}:</h3>
+            {% endif %}
+            {% if perms.organization.add_application %}            
+                <li><a href="/admin">Maintain Areas and Business Unit-Definitions</a></li>
+            {% endif %}
+            {% if perms.organization.add_scope %}            
+                <li><a href="{% url 'admin:organization_scope_changelist' %}">Maintain Scopes</a></li>
+            {% endif %}
+            {% if perms.organization.add_user %}            
+                <li><a href="{% url 'admin:organization_user_changelist' %}">Maintain User</a></li>
+            {% endif %}
+            {% if perms.organization.add_container %}            
+                <li><a href="/admin">Maintain Databases</a></li>
+            {% endif %}
+            <li><a href="{% url 'owner' user.owner.key %}">Review DATA-Hub Organization {{user.owner}} </a></li>
+        {% else %}
+            <h3>No self-services available</h3>
+        {% endif %}
+    </div>
 
-<div class="w3-panel w3-leftbar w3-light-gray w3-card-4">
-    <h3>Assigned scopes:</h3>
-    {% for scope in all_scopes.all %}
-    |<a href="{% url 'admin:organization_scope_change' scope.id %}" class="w3-btn" >{{scope}}</a>
-    {% endfor %}|
-</div>
+    <div class="w3-col l3 m6 w3-panel w3-leftbar w3-light-gray w3-card-4 w3-margin-right" style="height:6cm">
+        <h3>Scopes:</h3>
+        {% for scope in all_scopes.all %}
+            <li>{{scope}} - {{scope.desc}}</li>
+        {% endfor %}
+    </div>
 
-<div class="w3-panel w3-leftbar w3-light-gray w3-card-4 w3-padding">
-    {% if user.is_staff %}
-    {% if user.is_superuser %}
-        <h3>You are superuser - so you can change restrictions for all DATA-Hub elements</h3>
-    {% else %}
-        <h3>You have access to self-services for {{user.owner}}:</h3>
-    {% endif %}
-    |<a href="/admin" class="w3-btn">Maintenance of DATA-Hub</a>
-    |<a href="{% url 'admin:organization_scope_changelist' %}" class="w3-btn" >Maintain scopes</a>  
-    |<a href="{% url 'admin:organization_user_changelist' %}" class="w3-btn" >Maintain user</a>
-    |<a href="{% url 'admin:organization_user_change' user.id %}" class="w3-btn" >Maintain your configuration (language, standard scope)</a>
-    |<a href="{% url 'owner' user.owner.key %}" class="w3-btn">See the structure of the DATA-Hub elements for {{user.owner}} </a> 
-    |{% endif %}
-</div>
+    <div class="w3-col l2 m5 w3-panel w3-leftbar w3-light-gray w3-card-4 w3-padding w3-margin-right" style="height:6cm">
+        <h3>Roles:</h3>
+        {% for group in user.groups.all %}
+            <li>{{group}}</li>
+        {% endfor %}
+    </div>    
 
-<div class="w3-panel w3-leftbar w3-light-gray w3-card-4 w3-padding">
-    <h3>Last 5 activities:</h3>
-    {% for logentry in LogEntrys %}
-    <li>{{logentry}}</li>
-    {% endfor %}
+    <div class="w3-col l2 m5 w3-panel w3-leftbar w3-light-gray w3-card-4 w3-padding" style="height:6cm">
+        <h3>Last 5 activities:</h3>
+        {% for logentry in LogEntrys %}
+            <li>{{logentry}}</li>
+        {% endfor %}
+    </div>
+    
 </div>
+    
 
 
 {% if user.is_superuser %}

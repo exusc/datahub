@@ -284,7 +284,7 @@ class Scope(AbstractDatahubModel):
             self.key += f'/{self.team.upper()}'
 
         """ Check if scope already exists """
-        if Scope.objects.filter(key=self.key):
+        if self._state.adding and Scope.objects.filter(key=self.key):
             raise ValidationError(
                 _("Scope: %(value)s already exists."),
                 code="invalid",
