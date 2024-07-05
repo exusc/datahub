@@ -24,17 +24,6 @@ def default_context(request):
     return result
 
 
-def index(request):
-    if not request.user.is_authenticated:
-        user = User.objects.get(username='sys')
-        login(request, user)
-        return redirect(reverse("index"))
-    context = default_context(request)
-    context['user'] = request.user
-    context['LogEntrys'] = LogEntry.objects.all().filter(user=request.user)[
-        0:5]
-    return render(request, 'index.html', context)
-
 
 def dashboard(request):
     if not request.user.is_authenticated:
@@ -49,7 +38,7 @@ def dashboard(request):
     return render(request, 'dashboard.html', context)
 
 
-def overview(request):
+def index(request):
     if not request.user.is_authenticated:
         user = User.objects.get(username='sys')
         login(request, user)
@@ -59,37 +48,21 @@ def overview(request):
     context['LogEntrys'] = LogEntry.objects.all().filter(user=request.user)[
         0:5]
     context['applications'] = Application.objects.filter(owner=request.user.owner)
-    return render(request, 'overview.html', context)
+    return render(request, 'index.html', context)
 
 
-def owner(request, key):
-    owner = Owner.objects.get(key=key)
-    context = default_context(request)
-    context['owner'] = owner
-    context['applications'] = Application.objects.filter(owner=owner)
-    context['containers'] = Container.objects.filter(owner=owner)
-    return render(request, 'owner.html', context)
 
-
-def container(request, key):
-    container = Container.objects.get(key=key)
-    context = default_context(request)
-    context['container'] = container
-    areas = Area.objects.filter(
-        database=container) | Area.objects.filter(filestorage=container)
-    context['areas'] = areas
-    return render(request, 'container.html', context)
-
-
+"""
 class UserView(View):
     def get(self, request, userid):
         context = {'user': User.objects.get(id=userid)}
         context['LogEntrys'] = LogEntry.objects.all().filter(user=userid)[0:5]
         return render(request, 'user.html', context)
+"""
 
 
 def switch_user(request, userid):
-    response = redirect(reverse("overview"))
+    response = redirect(reverse("index"))
 
     # username = User.objects.get(id=userid).username
     # user = authenticate(request, username=username, password='???')

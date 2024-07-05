@@ -1,4 +1,4 @@
-Version 0.9.6
+Version 0.9.7
 
 Supports base functionality for 
 - Standard administration of DATA-Hub objects
@@ -9,4 +9,7 @@ Open Tasks
 - connection to secure connect
 - implementation of actions within data container (add are with existing scopes, add scope, ...)
 
+Next Steps
+- Create Dasboard
+- Super-User Overview
 

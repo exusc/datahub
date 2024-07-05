@@ -2,90 +2,98 @@
 
 {% block body %}
 
-{% if user.is_authenticated %}
+<header class="w3-container" style="padding-top:22px">
+    <h2>Overview for {{request.user.first_name}} {{request.user.last_name}} ({{request.user.username}})</b></h2>
+</header>
 
-<div class="w3-panel w3-leftbar w3-light-gray w3-card-4 w3-padding">
-    <h2>{{user.first_name}} {{user.last_name}} ({{user.username}})
-        / Organization: <a href="{% url 'owner' user.owner.key %}">{{user.owner.desc}} ({{user.owner}})</a>
-    </h2>
-</div>
-
-<div class="w3-row" >
-    
-    <div class="w3-col l3 m6 w3-panel w3-leftbar w3-light-gray w3-card-4 w3-padding w3-margin-right" style="height:6cm">
-        {% if user.is_staff %}
-            {% if user.is_superuser%}
-            <h3>You are Superuser for all Owner:</h3>
-            {% else %}
-            <h3>Self-services for {{user.owner}}:</h3>
-            {% endif %}
-            {% if perms.organization.add_application %}            
-                <li><a href="/admin">Maintain Areas and Business Unit-Definitions</a></li>
-            {% endif %}
-            {% if perms.organization.add_scope %}            
-                <li><a href="{% url 'admin:organization_scope_changelist' %}">Maintain Scopes</a></li>
-            {% endif %}
-            {% if perms.organization.add_user %}            
-                <li><a href="{% url 'admin:organization_user_changelist' %}">Maintain User</a></li>
-            {% endif %}
-            {% if perms.organization.add_container %}            
-                <li><a href="/admin">Maintain Databases</a></li>
-            {% endif %}
-            <li><a href="{% url 'owner' user.owner.key %}">Review DATA-Hub Organization {{user.owner}} </a></li>
-        {% else %}
-            <h3>No self-services available</h3>
-        {% endif %}
-    </div>
-
-    <div class="w3-col l3 m6 w3-panel w3-leftbar w3-light-gray w3-card-4 w3-margin-right" style="height:6cm">
-        <h3>Scopes:</h3>
-        {% for scope in all_scopes.all %}
-            <li>{{scope}} - {{scope.desc}}</li>
-        {% endfor %}
-    </div>
-
-    <div class="w3-col l3 m5 w3-panel w3-leftbar w3-light-gray w3-card-4 w3-padding w3-margin-right" style="height:6cm">
-        <h3>Roles:</h3>
-        {% if user.is_superuser %}
+<div class="w3-row-padding w3-margin-bottom">
+    <div class="w3-third">
+        <div class="w3-container w3-theme w3-padding-16">
+            <!--div class="w3-left"><i class="fa fa-warehouse w3-xxxlarge"></i></div-->
+            <div class="w3-clear"></div>
+            <h4>Roles:</h4>
+            {% if user.is_superuser %}
             <li>Superuser (Maintenance of all Hub-Elements)</li>
-        {% else %}
-            {% if user.is_staff %}
-            <li>Staff (Access to Admin Sites)</li>
+            {% else %}
+                {% if user.is_staff %}
+                <li>Staff (Maintenance of {{request.user.owner}} Hub-Elements)</li>
+                {% endif %}
             {% endif %}
-        {% endif %}
-
-        {% for group in user.groups.all %}
+            {% for group in user.groups.all %}
             <li>{{group}}</li>
-        {% endfor %}
-    </div>    
-
-    <div class="w3-col l3 m5 w3-panel w3-leftbar w3-light-gray w3-card-4 w3-padding w3-margin-right" style="height:6cm">
-        <h3>Last 5 Activities:</h3>
-        {% for logentry in LogEntrys %}
-            <li>{{logentry}}</li>
-        {% endfor %}
+            {% endfor %}
+        </div>
     </div>
-    
 
-    {% if user.is_superuser %}
-        <div class="w3-col l3 m5 w3-panel w3-leftbar w3-light-gray w3-card-4 w3-padding w3-margin-right" style="height:6cm">
-            <h3>Discussion on 26.06.2024:</h3>
-            <li>ToDo: Maintenance of areas and their data container - Combination of application and area must be unique -> results in schema name. <a href="{% url 'admin:organization_area_changelist' %}">See areas</a></li>
-            <li>ToDo: Owner concept for self-service. Solved by Hub Security.</li>
-            <li>Postponed: Central scopes and teams should be  defined flexible - they are just other scopes</li>
+    <div class="w3-third">
+        <div class="w3-container w3-theme w3-padding-16">
+            <!--div class="w3-left"><i class="fa fa-warehouse w3-xxxlarge"></i></div-->
+            <div class="w3-clear"></div>
+            <h4>Scopes:</h4>
+            {% for scope in all_scopes.all %}
+            <li>{{scope}} - {{scope.desc}}</li>
+            {% endfor %}
         </div>
+    </div>
 
-        <div class="w3-col l3 m5 w3-panel w3-leftbar w3-light-gray w3-card-4 w3-padding w3-margin-right" style="height:6cm">
-            <h3>Open:</h3>
-            <li>Scopes anlage: üben und als Übersicht anbieten: Schnellerfassung pagination nach neu angelegt und von mir, wer darf alles dran</li>
-            <li>Upload File: https://docs.djangoproject.com/en/5.0/ref/forms/api/#binding-uploaded-files-to-a-form</li>
+    <div class="w3-third">
+        <div class="w3-container w3-theme w3-padding-16">
+            <!--div class="w3-left"><i class="fa fa-warehouse w3-xxxlarge"></i></div-->
+            <div class="w3-clear"></div>
+            <h4>Last 5 Activities:</h4>
+            {% for logentry in LogEntrys %}
+            <li>{{logentry}}</li>
+            {% endfor %}
         </div>
-
-    {% endif %}
-    {% else %}
-    Schade eigentlich
-
-    {% endif %}
-
+    </div>
 </div>
+
+
+{% if user.is_staff %}
+<header class="w3-container" style="padding-top:22px">
+    <h2>Overview for {{request.user.owner}} - {{request.user.owner.desc}}  Number of User:  {{request.user.owner.user_set.all|length}}</b></h2>
+</header>
+
+<div class="w3-row-padding w3-margin-bottom">
+    {% for application in applications %}
+    <div class="w3-third">
+        <div class="w3-container w3-theme w3-padding-16">
+            <!--div class="w3-left"><i class="fa fa-warehouse w3-xxxlarge"></i></div-->
+            <div class="w3-clear"></div>
+            <h4>Application: {{application}} - {{application.desc}}</h4>
+            <br>Business-Units:
+            {% if application.business_unit_1 %}
+            <li>{{application.business_unit_1}}</li>
+            {% endif %}
+            {% if application.business_unit_2 %}
+            <li>{{application.business_unit_2}}</li>
+            {% endif %}
+            {% if application.business_unit_3 %}
+            <li>{{application.business_unit_3}}</li>
+            {% endif %}
+            {% if application.business_unit_4 %}
+            <li>{{application.business_unit_3}}</li>
+            {% endif %}
+            {% if application.business_unit_5 %}
+            <li>{{application.business_unit_5}}</li>
+            {% endif %}
+            <br>Scopes: {{application.scope_set.all|length}}<br>
+
+            {% for area in application.area_set.all %}
+            <br>Area: {{area}} - {{area.desc}}
+            <li>Database: <a href="{% url 'admin:organization_container_change' area.database.id %}">{{area.database}}</a> ({{area.database.desc}})</li>
+            <li>Schema Views: {{area.application.key.lower}}_{{area.key.lower}}</li>
+            <li>Schema Tables: {{area.application.key.lower}}_{{area.key.lower}}_base</li>
+            <li>Filestorage: <a href="{% url 'admin:organization_container_change' area.filestorage.id %}">{{area.filestorage}}</a> ({{area.filestorage.desc}})</li>
+
+            {% endfor area %}
+
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% endif %}
+
+
 {% endblock %}
