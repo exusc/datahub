@@ -7,14 +7,6 @@
 <div class="w3-panel w3-leftbar w3-light-gray w3-card-4 w3-padding">
     <h2>{{user.first_name}} {{user.last_name}} ({{user.username}})
         / Organization: <a href="{% url 'owner' user.owner.key %}">{{user.owner.desc}} ({{user.owner}})</a>
-        {% if user.is_superuser %}
-        / State: Superuser = Maintenance of all Hub-Elements
-        {% else %}
-        {% if user.is_staff %}
-        / State: Staff
-        {% endif %}
-        {% endif %}
-
     </h2>
 </div>
 
@@ -22,8 +14,8 @@
     
     <div class="w3-col l3 m6 w3-panel w3-leftbar w3-light-gray w3-card-4 w3-padding w3-margin-right" style="height:6cm">
         {% if user.is_staff %}
-            {% if user.is_superuser %}
-            <h3>You are superuser</h3>
+            {% if user.is_superuser%}
+            <h3>You are Superuser for all Owner:</h3>
             {% else %}
             <h3>Self-services for {{user.owner}}:</h3>
             {% endif %}
@@ -52,47 +44,48 @@
         {% endfor %}
     </div>
 
-    <div class="w3-col l2 m5 w3-panel w3-leftbar w3-light-gray w3-card-4 w3-padding w3-margin-right" style="height:6cm">
+    <div class="w3-col l3 m5 w3-panel w3-leftbar w3-light-gray w3-card-4 w3-padding w3-margin-right" style="height:6cm">
         <h3>Roles:</h3>
+        {% if user.is_superuser %}
+            <li>Superuser (Maintenance of all Hub-Elements)</li>
+        {% else %}
+            {% if user.is_staff %}
+            <li>Staff (Access to Admin Sites)</li>
+            {% endif %}
+        {% endif %}
+
         {% for group in user.groups.all %}
             <li>{{group}}</li>
         {% endfor %}
     </div>    
 
-    <div class="w3-col l2 m5 w3-panel w3-leftbar w3-light-gray w3-card-4 w3-padding" style="height:6cm">
-        <h3>Last 5 activities:</h3>
+    <div class="w3-col l3 m5 w3-panel w3-leftbar w3-light-gray w3-card-4 w3-padding w3-margin-right" style="height:6cm">
+        <h3>Last 5 Activities:</h3>
         {% for logentry in LogEntrys %}
             <li>{{logentry}}</li>
         {% endfor %}
     </div>
     
+
+    {% if user.is_superuser %}
+        <div class="w3-col l3 m5 w3-panel w3-leftbar w3-light-gray w3-card-4 w3-padding w3-margin-right" style="height:6cm">
+            <h3>Discussion on 26.06.2024:</h3>
+            <li>ToDo: Maintenance of areas and their data container - Combination of application and area must be unique -> results in schema name. <a href="{% url 'admin:organization_area_changelist' %}">See areas</a></li>
+            <li>ToDo: Owner concept for self-service. Solved by Hub Security.</li>
+            <li>Postponed: Central scopes and teams should be  defined flexible - they are just other scopes</li>
+        </div>
+
+        <div class="w3-col l3 m5 w3-panel w3-leftbar w3-light-gray w3-card-4 w3-padding w3-margin-right" style="height:6cm">
+            <h3>Open:</h3>
+            <li>Scopes anlage: üben und als Übersicht anbieten: Schnellerfassung pagination nach neu angelegt und von mir, wer darf alles dran</li>
+            <li>Upload File: https://docs.djangoproject.com/en/5.0/ref/forms/api/#binding-uploaded-files-to-a-form</li>
+        </div>
+
+    {% endif %}
+    {% else %}
+    Schade eigentlich
+
+    {% endif %}
+
 </div>
-    
-
-
-{% if user.is_superuser %}
-<h3>Discussion on 26.06.2024:</h3>
-    <h4>ToDo</h4>
-    <ul>
-        <li>Maintenance of areas and their data container - Combination of application and area must be unique -> results in schema name. <a href="{% url 'admin:organization_area_changelist' %}">See areas</a></li>
-        <li>Owner concept for self-service. Solved by Hub Security.</li>
-    </ul>
-    <h4>Postponed</h4>
-        <ul>
-        <li>Central scopes and teams should be  defined flexible - they are just other scopes</li>
-        <li>Business unit definition and scopes are on application-Level -> If we want to restrict Users to specific areas, e have to set up new applications</li>
-    </ul>
-    <h3>My TODO</h3>
-    <ul>
-        <li>Scopes anlage: üben und als Übersicht anbieten: Schnellerfassung pagination nach neu angelegt und von mir, wer darf alles dran</li>
-        <li>Upload File: https://docs.djangoproject.com/en/5.0/ref/forms/api/#binding-uploaded-files-to-a-form</li>
-    </ul>
-
-{% endif %}
-{% else %}
-Schade eigentlich
-
-{% endif %}
-
-
 {% endblock %}

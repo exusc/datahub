@@ -20,9 +20,9 @@
     
     <a href="{% url 'index' %}" class="w3-bar-item w3-button fa fa-home w3-large" ></a>
     
-    {% if user.is_staff %}
+    {% if user.is_superuser %}
       <div class="w3-dropdown-hover">
-        <button class="w3-button w3-light-blue">Owner</button>
+        <button class="w3-button">Owner</button>
         <div class="w3-dropdown-content w3-bar-block w3-card-4">
           {% for owner in all_owners %}
           <a href="{% url 'owner' owner.key %}" class="w3-bar-item w3-button">{{owner.key}}</a> 
@@ -30,7 +30,7 @@
         </div>
       </div>
       <div class="w3-dropdown-hover">
-        <button class="w3-button w3-khaki">Container</button>
+        <button class="w3-button">Container</button>
         <div class="w3-dropdown-content w3-bar-block w3-card-4">
           {% for container in all_containers %}
           <a href="{% url 'container' container.key %}" class="w3-bar-item w3-button">{{container.key}}</a> 
@@ -39,6 +39,8 @@
       </div>
     {% endif %}
 
+    <a href="{% url 'dashboard' %}" class="w3-bar-item w3-button">Dashboard</a> 
+    <a href="{% url 'overview' %}" class="w3-bar-item w3-button">Overview</a> 
     <a class="w3-bar-item w3-button">Reporting</a>
   
     {% if perms.organization %}

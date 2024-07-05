@@ -36,6 +36,32 @@ def index(request):
     return render(request, 'index.html', context)
 
 
+def dashboard(request):
+    if not request.user.is_authenticated:
+        user = User.objects.get(username='sys')
+        login(request, user)
+        return redirect(reverse("index"))
+    context = default_context(request)
+    context['user'] = request.user
+    context['LogEntrys'] = LogEntry.objects.all().filter(user=request.user)[
+        0:5]
+    context['applications'] = Application.objects.filter(owner=request.user.owner)
+    return render(request, 'dashboard.html', context)
+
+
+def overview(request):
+    if not request.user.is_authenticated:
+        user = User.objects.get(username='sys')
+        login(request, user)
+        return redirect(reverse("index"))
+    context = default_context(request)
+    context['user'] = request.user
+    context['LogEntrys'] = LogEntry.objects.all().filter(user=request.user)[
+        0:5]
+    context['applications'] = Application.objects.filter(owner=request.user.owner)
+    return render(request, 'overview.html', context)
+
+
 def owner(request, key):
     owner = Owner.objects.get(key=key)
     context = default_context(request)
@@ -63,7 +89,7 @@ class UserView(View):
 
 
 def switch_user(request, userid):
-    response = redirect(reverse("index"))
+    response = redirect(reverse("overview"))
 
     # username = User.objects.get(id=userid).username
     # user = authenticate(request, username=username, password='???')

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>W3.CSS Template</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
+    <script src="https://kit.fontawesome.com/b93e436f24.js" crossorigin="anonymous"></script>
+
+    <link rel="stylesheet" href="https://www.w3schools.com/lib/w3-theme-blue-grey.css">
+    <style>html,body,h1,h2,h3,h4,h5 {
+            font-family: "Raleway", sans-serif
+        }
+    </style>
+</head>
+
+<body class="w3-light-grey">
+
+    <!-- Top container -->
+    <div class="w3-bar w3-top w3-theme-d5 w3-large" style="z-index:4">
+        <button class="w3-bar-item w3-button w3-hide-large w3-hover-none w3-hover-text-light-grey"
+            onclick="w3_open();"><i class="fa fa-bars"></i>  Menu</button>
+            <span class="w3-bar-item">DATA-Hub Prototype</span>
+            <span class="w3-bar-item w3-right">Abraxas / DATA-Hub</span>
+    </div>
+
+    <!-- Sidebar/menu -->
+    <nav class="w3-sidebar w3-collapse w3-white w3-animate-left" style="z-index:3;width:300px;" id="mySidebar"><br>
+        <div class="w3-container w3-row">
+            <div class="w3-col s8 w3-bar">
+                Welcome, 
+                <span><br>{{request.user.first_name}} {{request.user.last_name}}
+                <br>{{request.user.owner.desc}} ({{request.user.owner}})
+                </span>
+                <br>
+                <div class="w3-dropdown-hover">
+                    <a href="#" class="w3-bar-item w3-button"><i class="fa fa-user"></i></a>
+                    <div class="w3-dropdown-content w3-bar-block w3-card-4">
+                        {% for auser in all_users %}
+                        <a href="{% url 'switch_user' auser.id %}" class="w3-bar-item w3-button" >{{auser.first_name}} {{auser.last_name}} </a> 
+                        {% endfor %}
+                    </div>
+                </div>
+            
+                <a href="#" class="w3-bar-item w3-button"><i class="fa fa-cog"></i></a>
+            </div>
+        </div>
+        <hr>
+        <div class="w3-container w3-theme">
+            <h5>Report Ordering</h5>
+        </div>
+        <div class="w3-bar-block">
+            <a href="#" class="w3-bar-item w3-button w3-padding"><i class="fa fa-file fa-fw"></i>  Order New Report</a>
+            <a href="#" class="w3-bar-item w3-button w3-padding"><i class="fa fa-download fa-fw"></i>  Download
+                Results</a>
+        </div>
+
+
+        <div class="w3-container w3-theme">
+            <h5>Overview</h5>
+        </div>
+        <div class="w3-bar-block">
+            <a href="#" class="w3-bar-item w3-button w3-padding-16 w3-hide-large w3-dark-grey w3-hover-black"
+                onclick="w3_close()" title="close menu"><i class="fa fa-remove fa-fw"></i>  Close Menu</a>
+            <a href="{% url 'overview' %}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-address-card fa-fw"></i>  Overview</a>
+
+        {% if user.is_staff %}
+
+            <a href="{% url 'dashboard' %}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-gauge-high fa-fw"></i>  Dashboard</a>
+
+            </div>
+            <div class="w3-container w3-theme">
+                <h5>Maintenance</h5>
+            </div>
+            <div class="w3-bar-block">
+    
+
+
+            {% if perms.organization.add_application %}     
+            <a href="{% url 'admin:organization_application_changelist' %}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-warehouse fa-fw"></i>  Applications</a>
+            {% endif %}
+            {% if perms.organization.add_area %}     
+            <a href="{% url 'admin:organization_area_changelist' %}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-warehouse fa-fw"></i>  Areas</a>
+            {% endif %}
+            {% if perms.organization.add_scope %}            
+                <a href="{% url 'admin:organization_scope_changelist' %}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-solid fa-layer-group"></i> Scopes</a>
+            {% endif %}
+            {% if perms.organization.add_user %}            
+                <a href="{% url 'admin:organization_user_changelist' %}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-users fa-fw"></i> Users</a>
+            {% endif %}
+            {% if perms.organization.add_container %}            
+                <a href="/admin" class="w3-bar-item w3-button w3-padding"><i class="fa fa-database fa-fw"></i> Data Storage</a><br>
+            {% endif %}
+            <a href="{% url 'index' %}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-database fa-fw"></i>  Index</a><br>
+    
+        {% endif %}
+        </div>
+    </nav>
+
+
+    <!-- Overlay effect when opening sidebar on small screens -->
+    <div class="w3-overlay w3-hide-large w3-animate-opacity" onclick="w3_close()" style="cursor:pointer"
+        title="close side menu" id="myOverlay"></div>
+    
+    <div class="w3-main" style="margin-left:300px;margin-top:43px;">
+
+        {% block body %}
+        {% endblock %}
+    
+        <br><br>
+        <!-- Footer -->
+        <footer class="w3-container w3-padding-16 w3-theme-l3">
+            <h4>Prototype for Concept Discussions</h4>
+            <p>Powered by Team Data Science / Abraxas</p>
+        </footer>
+    </div>  
+    
+    <script>
+        // Get the Sidebar
+        var mySidebar = document.getElementById("mySidebar");
+
+        // Get the DIV with overlay effect
+        var overlayBg = document.getElementById("myOverlay");
+
+        // Toggle between showing and hiding the sidebar, and add overlay effect
+        function w3_open() {
+            if (mySidebar.style.display === 'block') {
+                mySidebar.style.display = 'none';
+                overlayBg.style.display = "none";
+            } else {
+                mySidebar.style.display = 'block';
+                overlayBg.style.display = "block";
+            }
+        }
+
+        // Close the sidebar with the close button
+        function w3_close() {
+            mySidebar.style.display = "none";
+            overlayBg.style.display = "none";
+        }
+    </script>
+
+</body>
+
+</html>
