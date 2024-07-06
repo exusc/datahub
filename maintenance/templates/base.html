@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <title>W3.CSS Template</title>
+    <title>DATA-Hub Prototype</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
@@ -16,6 +16,17 @@
     </style>
 </head>
 
+<script>
+    function show(id) {
+      var x = document.getElementById(id);
+      if (x.style.display === "none") {
+        x.style.display = "block";
+      } else {
+        x.style.display = "none";
+      }
+    }
+</script>
+
 <body class="w3-light-grey">
 
     <!-- Top container -->
@@ -28,12 +39,11 @@
 
     <!-- Sidebar/menu -->
     <nav class="w3-sidebar w3-collapse w3-white w3-animate-left" style="z-index:3;width:300px;" id="mySidebar"><br>
-        <div class="w3-container w3-row">
-            <div class="w3-col s8 w3-bar">
+        <div class="w3-container w3-row w3-theme">
+            <div class="w3-col s8 w3-bar ">
                 Welcome, 
-                <span><br>{{request.user.first_name}} {{request.user.last_name}}
-                <br>{{request.user.owner.desc}} ({{request.user.owner}})
-                </span>
+                <br>{{request.user.first_name}} {{request.user.last_name}}
+                <br>{{request.user.owner.desc}} 
                 <br>
                 <div class="w3-dropdown-hover">
                     <a href="#" class="w3-bar-item w3-button"><i class="fa fa-user"></i></a>
@@ -49,11 +59,11 @@
         </div>
         <hr>
         <div class="w3-container w3-theme">
-            <h5>Report Ordering</h5>
+            <h5>Reporting</h5>
         </div>
         <div class="w3-bar-block">
-            <a href="#" class="w3-bar-item w3-button w3-padding"><i class="fa fa-file fa-fw"></i>  Order New Report</a>
-            <a href="#" class="w3-bar-item w3-button w3-padding"><i class="fa fa-download fa-fw"></i>  Download
+            <a href="#" class="w3-bar-item w3-button w3-padding"><i class="fa fa-file fa-fw"></i> Order New Report</a>
+            <a href="#" class="w3-bar-item w3-button w3-padding"><i class="fa fa-download fa-fw"></i> Download
                 Results</a>
         </div>
 
@@ -63,12 +73,13 @@
         </div>
         <div class="w3-bar-block">
             <a href="#" class="w3-bar-item w3-button w3-padding-16 w3-hide-large w3-dark-grey w3-hover-black"
-                onclick="w3_close()" title="close menu"><i class="fa fa-remove fa-fw"></i>  Close Menu</a>
-            <a href="{% url 'index' %}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-address-card fa-fw"></i>  Overview</a>
+                onclick="w3_close()" title="close menu"><i class="fa fa-remove fa-fw"></i> Close Menu</a>
+            <a href="{% url 'index' %}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-globe fa-fw"></i> My DATA-Hub</a>
 
         {% if user.is_staff %}
 
-            <a href="{% url 'dashboard' %}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-gauge-high fa-fw"></i>  Dashboard</a>
+            <a href="{% url 'dashboard' %}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-gauge-high fa-fw"></i> Dashboard</a>
+            <a href="#" class="w3-bar-item w3-button w3-padding"><i class="fa fa-stethoscope fa-fw"></i> Health Check (TBD)</a>
 
             </div>
             <div class="w3-container w3-theme">
@@ -79,10 +90,10 @@
 
 
             {% if perms.organization.add_application %}     
-            <a href="{% url 'admin:organization_application_changelist' %}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-warehouse fa-fw"></i>  Applications</a>
+            <a href="{% url 'admin:organization_application_changelist' %}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-city fa-fw"></i>  Applications</a>
             {% endif %}
             {% if perms.organization.add_area %}     
-            <a href="{% url 'admin:organization_area_changelist' %}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-warehouse fa-fw"></i>  Areas</a>
+            <a href="{% url 'admin:organization_area_changelist' %}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-building fa-fw"></i>  Areas</a>
             {% endif %}
             {% if perms.organization.add_scope %}            
                 <a href="{% url 'admin:organization_scope_changelist' %}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-solid fa-layer-group"></i> Scopes</a>
@@ -91,7 +102,10 @@
                 <a href="{% url 'admin:organization_user_changelist' %}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-users fa-fw"></i> Users</a>
             {% endif %}
             {% if perms.organization.add_container %}            
-                <a href="/admin" class="w3-bar-item w3-button w3-padding"><i class="fa fa-database fa-fw"></i> Data Storage</a><br>
+                <a href="/admin" class="w3-bar-item w3-button w3-padding"><i class="fa fa-database fa-fw"></i> Data Storage</a>
+            {% endif %}
+            {% if perms.organization.add_application %}     
+            <a href="#" class="w3-bar-item w3-button w3-padding"><i class="fa fa-share fa-fw"></i>  Migration (TBD)</a>
             {% endif %}
     
         {% endif %}

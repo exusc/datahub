@@ -14,8 +14,8 @@ class AbstractDatahubModel(models.Model):
     class Meta:
         abstract = True
 
-    owner = models.ForeignKey(
-        'Owner', on_delete=models.PROTECT, null=True, blank=True, related_name='+',)
+    #owner = models.ForeignKey(
+    #    'Owner', on_delete=models.PROTECT, null=True, blank=True, related_name='+',)
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     desc = models.CharField(_('desc'), max_length=80, null=True, blank=True)
@@ -43,6 +43,8 @@ class Owner(AbstractDatahubModel):
         verbose_name_plural = _("Owners")
         ordering = ['-key']
 
+    owner = models.ForeignKey(
+        'Owner', on_delete=models.PROTECT, null=True, blank=True, related_name='+',)
     key = models.CharField(_('key'), max_length=20, unique=True,)
 
 
@@ -59,6 +61,8 @@ class ContainerType(AbstractDatahubModel):
         "FS": _("FileStorage"),
     }
 
+    owner = models.ForeignKey(
+        to=Owner, on_delete=models.PROTECT, null=True, blank=True, related_name='+',)
     key = models.CharField(_('key'), max_length=20, unique=True,)
     type = models.CharField(_('type'), max_length=2, choices=TYPE)
     area_add = models.TextField(_('area_add'), null=True,
@@ -90,6 +94,8 @@ class Container(AbstractDatahubModel):
             ("download_templates", "Is allowed to download report templates"),
         ]
 
+    owner = models.ForeignKey(
+        to=Owner, on_delete=models.PROTECT, null=True, blank=True, related_name='+',)
     key = models.CharField(_('key'), max_length=20, unique=True,)
     containertype = models.ForeignKey(
         to=ContainerType, on_delete=models.PROTECT)
@@ -135,6 +141,8 @@ class Application(AbstractDatahubModel):
         verbose_name = _("Application")
         verbose_name_plural = _("Applications")
 
+    owner = models.ForeignKey(
+        to=Owner, on_delete=models.PROTECT, null=True, blank=True,)
     key = models.CharField(_('key'), max_length=20, unique=True,)
     business_unit_1 = models.CharField(
         _('business_unit_1'), max_length=80, null=True, blank=True)
@@ -166,6 +174,8 @@ class Area(AbstractDatahubModel):
         verbose_name_plural = _("Areas")
         unique_together = ['application', 'key']
 
+    owner = models.ForeignKey(
+        to=Owner, on_delete=models.PROTECT, null=True, blank=True, related_name='+',)
     key = models.CharField(_('key'), max_length=20)
     application = models.ForeignKey(to=Application, on_delete=models.PROTECT)
     database = models.ForeignKey(to=Container, on_delete=models.PROTECT,
@@ -188,6 +198,9 @@ class Area(AbstractDatahubModel):
 
         super().save(force_insert, force_update, using, update_fields)
 
+    def schema(self):
+        return f'{self.application.key}_{self.key}_base'
+
 
 class Scope(AbstractDatahubModel):
     """ Scopes are linked to application and used from all areas within these application 
@@ -204,6 +217,8 @@ class Scope(AbstractDatahubModel):
         "A": _("App scope"),
     }
 
+    owner = models.ForeignKey(
+        to=Owner, on_delete=models.PROTECT, null=True, blank=True, related_name='+',)
     key = models.CharField(_('key'), max_length=80, unique=True, default="tbd")
     type = models.CharField(_('type'), max_length=1, choices=TYPE, default='S',
                             help_text=_("Defines how scope can be used"))

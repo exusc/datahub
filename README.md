@@ -1,4 +1,4 @@
-Version 0.9.7
+Version 0.9.8
 
 Supports base functionality for 
 - Standard administration of DATA-Hub objects
@@ -10,6 +10,11 @@ Open Tasks
 - implementation of actions within data container (add are with existing scopes, add scope, ...)
 
 Next Steps
+- Multi-Language-Support
 - Create Dasboard
-- Super-User Overview
+- Migration
+- Super-User Overview for Container - including health check
+- Add Scope from Super-User-Overview
+- active from-to für Application, areas, scopes -> nur sichtbar für Staff 
 
+- Jump to Dashboard from Overview SuperUser

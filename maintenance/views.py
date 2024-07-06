@@ -24,17 +24,13 @@ def default_context(request):
     return result
 
 
-
 def dashboard(request):
-    if not request.user.is_authenticated:
-        user = User.objects.get(username='sys')
-        login(request, user)
-        return redirect(reverse("index"))
     context = default_context(request)
-    context['user'] = request.user
-    context['LogEntrys'] = LogEntry.objects.all().filter(user=request.user)[
-        0:5]
-    context['applications'] = Application.objects.filter(owner=request.user.owner)
+    context['number_areas'] = len(Area.objects.filter(owner=request.user.owner))
+    context['number_scopes'] = len(Scope.objects.filter(owner=request.user.owner))
+    # request.user.scopes.all().order_by('key')
+    print(context['number_areas'])
+    print(context['number_scopes'])
     return render(request, 'dashboard.html', context)
 
 
@@ -44,10 +40,8 @@ def index(request):
         login(request, user)
         return redirect(reverse("index"))
     context = default_context(request)
-    context['user'] = request.user
     context['LogEntrys'] = LogEntry.objects.all().filter(user=request.user)[
         0:5]
-    context['applications'] = Application.objects.filter(owner=request.user.owner)
     return render(request, 'index.html', context)
 
 
