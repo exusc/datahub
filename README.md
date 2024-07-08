@@ -11,10 +11,8 @@ Open Tasks
 
 Next Steps
 - Multi-Language-Support
-- Create Dasboard
+- Create Dasboard 
 - Migration
 - Super-User Overview for Container - including health check
 - Add Scope from Super-User-Overview
 - active from-to für Application, areas, scopes -> nur sichtbar für Staff 
-
-- Jump to Dashboard from Overview SuperUser

@@ -3,7 +3,11 @@
 {% block body %}
 
 <header class="w3-container" style="padding-top:22px">
-    <h2><i class="fa fa-gauge-high fa-fw"></i> Dashboard for {{request.user.owner}} - {{request.user.owner.desc}} (TBD)</b></h2>
+    <h2><i class="fa fa-gauge-high fa-fw"></i> Dashboard for {{owner}} - {{owner.desc}} (TBD)
+        {% if application %}
+        / {{application.key}} - {{application.desc}}
+        {% endif %}
+    </b></h2>
 </header>
 
 <div class="w3-row-padding w3-margin-bottom">
@@ -11,7 +15,7 @@
         <div class="w3-container w3-theme w3-padding-16">
             <div class="w3-left"><i class="fa fa-city w3-xxxlarge"></i></div> 
             <div class="w3-right">
-                <h3>{{request.user.owner.application_set.all|length}}/{{number_areas}}</h3>
+                <h3>{{owner.application_set.all|length}}/{{number_areas}}</h3>
             </div>
             <div class="w3-clear"></div>
             <h4>Applications / Areas </h4>
@@ -31,7 +35,7 @@
         <div class="w3-container w3-theme w3-padding-16">
             <div class="w3-left"><i class="fa fa-users w3-xxxlarge"></i></div>
             <div class="w3-right">
-                <h3>{{request.user.owner.user_set.all|length}}</h3>
+                <h3>{{owner.user_set.all|length}}</h3>
             </div>
             <div class="w3-clear"></div>
             <h4>Users</h4>
