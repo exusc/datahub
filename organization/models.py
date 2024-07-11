@@ -14,10 +14,10 @@ class AbstractDatahubModel(models.Model):
     class Meta:
         abstract = True
 
-    #owner = models.ForeignKey(
-    #    'Owner', on_delete=models.PROTECT, null=True, blank=True, related_name='+',)
-
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    active = models.BooleanField(_('active'), null=False, default=True,
+                                help_text=_("Inactive object is not available for end users"))
+
     desc = models.CharField(_('desc'), max_length=80, null=True, blank=True)
     text = models.TextField(_('text'), null=True, blank=True)
 
