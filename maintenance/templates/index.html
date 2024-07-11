@@ -10,7 +10,7 @@
 
 <div class="w3-row-padding w3-margin-bottom">
     <div class="w3-third">
-        <div class="w3-container w3-theme w3-padding-16" style="height:6cm">
+        <div class="w3-container w3-theme w3-padding-16" style="min-height:15em">
             <!--div class="w3-left"><i class="fa fa-warehouse w3-xxxlarge"></i></div-->
             <div class="w3-clear"></div>
             <h4>Roles:</h4>
@@ -28,7 +28,7 @@
     </div>
 
     <div class="w3-third">
-        <div class="w3-container w3-theme w3-padding-16" style="height:6cm">
+        <div class="w3-container w3-theme w3-padding-16" style="min-height:15em">
             <!--div class="w3-left"><i class="fa fa-warehouse w3-xxxlarge"></i></div-->
             <div class="w3-clear"></div>
             <h4>Scopes:</h4>
@@ -39,7 +39,7 @@
     </div>
 
     <div class="w3-third">
-        <div class="w3-container w3-theme w3-padding-16" style="height:6cm">
+        <div class="w3-container w3-theme w3-padding-16" style="min-height:15em">
             <!--div class="w3-left"><i class="fa fa-warehouse w3-xxxlarge"></i></div-->
             <div class="w3-clear"></div>
             <h4>Last 5 Activities:</h4>
@@ -52,13 +52,15 @@
 
 
 {% if user.is_staff %}
-<header class="w3-container" style="padding-top:22px">
-    <h2>Overview for {{request.user.owner}} - {{request.user.owner.desc}} Number of User:
-        {{request.user.owner.user_set.all|length}}</b></h2>
-</header>
 
 <div class="w3-row-padding w3-margin-bottom">
+
     {% if not user.is_superuser %}
+    
+    <header class="w3-container" style="padding-top:22px">
+            <h2>Overview for {{request.user.owner}} - {{request.user.owner.desc}} Number of User:
+                {{request.user.owner.user_set.all|length}}</b></h2>
+        </header>    
     {% for application in request.user.owner.application_set.all %}
     <div class="w3-third">
         <div class="w3-container w3-theme w3-padding-16">
@@ -88,8 +90,10 @@
             <li>Database: <a
                     href="{% url 'admin:organization_container_change' area.database.id %}">{{area.database}}</a>
                 ({{area.database.desc}})</li>
-            <li>Schema Views: {{area.application.key.lower}}_{{area.key.lower}}</li>
-            <li>Schema Tables: {{area.application.key.lower}}_{{area.key.lower}}_base</li>
+            <ul>
+                <li>Schema Views: {{area.application.key.lower}}_{{area.key.lower}}</li>
+                <li>Schema Tables: {{area.application.key.lower}}_{{area.key.lower}}_base</li>
+            </ul>
             <li>Filestorage: <a
                     href="{% url 'admin:organization_container_change' area.filestorage.id %}">{{area.filestorage}}</a>
                 ({{area.filestorage.desc}})</li>
@@ -108,7 +112,10 @@
         {% for owner in all_owners %}
         <div class="w3-container w3-theme-l3 w3-padding-16">
             <h3>{{owner}} - {{owner.desc}} / User: {{owner.user_set.all|length}} / Scopes:
-                {{owner.scope_set.all|length}}  <button class="w3-bar-item w3-theme w3-right"  onclick="show('{{owner}}')"><i class="fa fa-plus fa-fw"></i></button> </h3>
+                {{owner.scope_set.all|length}}  
+                <button class="w3-bar-item w3-theme w3-right w3-margin-right"  onclick="show('{{owner}}')"><i class="fa fa-plus fa-fw"></i></button> 
+                <button class="w3-bar-item w3-theme w3-right w3-margin-right"  onclick="window.location.href='{% url "dashboard" owner.key %}';"><i class="fa fa-gauge-high fa-fw"></i></button> 
+            </h3>
 
             <div id="{{owner}}" style="display:none">
 

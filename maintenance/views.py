@@ -24,13 +24,16 @@ def default_context(request):
     return result
 
 
-def dashboard(request):
-    context = default_context(request)
-    context['number_areas'] = len(Area.objects.filter(owner=request.user.owner))
-    context['number_scopes'] = len(Scope.objects.filter(owner=request.user.owner))
-    # request.user.scopes.all().order_by('key')
-    print(context['number_areas'])
-    print(context['number_scopes'])
+def dashboard(request, ownerKey=None):
+    context = {}
+    if ownerKey:
+        owner = Owner.objects.get(key=ownerKey)
+    else:
+        owner = request.user.owner
+    context['owner'] = owner
+    # context = default_context(request)
+    context['number_areas'] = len(Area.objects.filter(owner=owner))
+    context['number_scopes'] = len(Scope.objects.filter(owner=owner))
     return render(request, 'dashboard.html', context)
 
 
@@ -43,7 +46,6 @@ def index(request):
     context['LogEntrys'] = LogEntry.objects.all().filter(user=request.user)[
         0:5]
     return render(request, 'index.html', context)
-
 
 
 """
