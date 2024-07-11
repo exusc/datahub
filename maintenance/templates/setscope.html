@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block body %}
+
+<header class="w3-container" style="padding-top:22px">
+    <h2><i class="fa fa-cog fa-fw"></i> Set Scope for {{request.user.first_name}} {{request.user.last_name}} ({{request.user.username}})</h2>
+    <h2>Used Scope: {{request.user.use_scope}}</h2>
+</header>
+
+<br>
+
+
+{% for application, scopes in applications.items %}
+<div class="w3-container w3-theme-l3 w3-padding-16">
+    <h3>{{application}} - {{application.desc}} 
+        <button class="w3-bar-item w3-theme w3-right w3-margin-right"  onclick="show('{{application}}')"><i class="fa fa-plus fa-fw"></i></button> 
+    </h3>
+
+    <div id="{{application}}" style="display:none">
+        {% for scope in scopes %}
+            <a href='{% url "setscope" scope.id %}'>{{scope}} {% if scope.desc %}</a>  - {{scope.desc}} {% endif %}
+            <br>
+        {% endfor %}
+
+    </div>
+</div>
+<hr>
+{% endfor %}
+
+<br>
+
+{% endblock %}

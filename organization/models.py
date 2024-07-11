@@ -120,6 +120,8 @@ class User(AbstractUser):
     owner = models.ForeignKey(
         to=Owner, on_delete=models.PROTECT, null=True, blank=True,)
     scopes = models.ManyToManyField('Scope', blank=True)
+    use_scope = models.ForeignKey(
+        'Scope', on_delete=models.PROTECT, null=True, blank=True, related_name='+',)
     language = models.CharField(_('language'), max_length=5, choices=LANGUAGES, default='en',
                                 help_text=_("Language used for DATA-Hub UI"))
 

@@ -9,6 +9,8 @@ Open Tasks
 - implementation of actions within data container (add are with existing scopes, add scope, ...)
 
 Next Stories
+- Selection of a single scope -> same behavior than UI 
+- Improve Scope Selection *-Handling , Lost-Scope-Handling
 - Multi-Language-Support
 - Dasboard 
 - Migration of DATA-Hub-Objects to different Environments

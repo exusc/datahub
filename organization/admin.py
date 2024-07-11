@@ -4,7 +4,7 @@ from django.contrib import admin
 from django.utils import timezone
 from .models import *
 from django.utils.translation import gettext as _
-from datahub.settings import ALLOWED_OWNER
+from datahub.settings import HUB_ALLOWED_OWNER_KEYS
 
 
 class DatahubAdminSite(admin.AdminSite):
@@ -60,15 +60,15 @@ class DatahubModelAdmin(admin.ModelAdmin):
         queryset = super().get_queryset(request)
         if request.user.is_superuser:
             return queryset
-        if not '*' in request.session[ALLOWED_OWNER]:
+        if not '*' in request.session[HUB_ALLOWED_OWNER_KEYS]:
             queryset = queryset.filter(
-                owner__key__in=request.session[ALLOWED_OWNER])
+                owner__key__in=request.session[HUB_ALLOWED_OWNER_KEYS])
         return queryset
 
     def get_list_display(self, request):
         """ If user is just allowed to maintan on owner, he must not see the owners """
         list_display = list(self.list_display)
-        if request.user.is_superuser or '*' in request.session[ALLOWED_OWNER] or len(request.session[ALLOWED_OWNER]) > 1:
+        if request.user.is_superuser or '*' in request.session[HUB_ALLOWED_OWNER_KEYS] or len(request.session[HUB_ALLOWED_OWNER_KEYS]) > 1:
             return list_display
         list_display.remove("owner")
         return list_display
@@ -81,10 +81,10 @@ class DataHubUserAdmin(UserAdmin):
     list_display = ['username', 'first_name', 'last_name', 'language',
                     'is_staff', 'is_superuser', 'owner', 'is_active', ]
     # list_editable = ("is_active",)
-    readonly_fields = ["last_login",]
+    readonly_fields = ["last_login",'use_scope']
     fieldsets = [
         (None, {'fields': [('username', 'owner'),
-                           ('first_name', 'last_name'), 'email', 'language'], }),
+                           ('first_name', 'last_name'), 'email', ('language', 'use_scope')], }),
         ('Permissions', {'fields': [
          'is_active', 'is_staff', 'is_superuser', 'scopes', 'groups', ], }),
         ('Info', {'fields': ['last_login', ], }),
@@ -111,32 +111,32 @@ class DataHubUserAdmin(UserAdmin):
         queryset = super().get_queryset(request)
         if request.user.is_superuser:
             return queryset
-        if not '*' in request.session[ALLOWED_OWNER]:
+        if not '*' in request.session[HUB_ALLOWED_OWNER_KEYS]:
             queryset = queryset.filter(
-                owner__key__in=request.session[ALLOWED_OWNER])
+                owner__key__in=request.session[HUB_ALLOWED_OWNER_KEYS])
         return queryset
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         """ Reduce list of selectable owner to owner of users scopes """
         if db_field.name == "owner":
-            if request.user.is_superuser or '*' in request.session[ALLOWED_OWNER]:
+            if request.user.is_superuser or '*' in request.session[HUB_ALLOWED_OWNER_KEYS]:
                 kwargs["queryset"] = Owner.objects.all()
             else:
                 kwargs["queryset"] = Owner.objects.filter(
-                    owner__key__in=request.session[ALLOWED_OWNER])
+                    owner__key__in=request.session[HUB_ALLOWED_OWNER_KEYS])
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
         """ Reduce list of selectable scopes """
         if db_field.name == "scopes":
-            if request.user.is_superuser or '*' in request.session[ALLOWED_OWNER]:
+            if request.user.is_superuser or '*' in request.session[HUB_ALLOWED_OWNER_KEYS]:
                 kwargs["queryset"] = Scope.objects.all()
             else:
                 kwargs["queryset"] = Scope.objects.filter(
-                    owner__key__in=request.session[ALLOWED_OWNER])
+                    owner__key__in=request.session[HUB_ALLOWED_OWNER_KEYS])
         """ Reduce list of selectable groups """
         if db_field.name == "groups":
-            if request.user.is_superuser or '*' in request.session[ALLOWED_OWNER]:
+            if request.user.is_superuser or '*' in request.session[HUB_ALLOWED_OWNER_KEYS]:
                 kwargs["queryset"] = Group.objects.all()
             else:
                 kwargs["queryset"] = request.user.groups
@@ -183,11 +183,11 @@ class ApplicationAdmin(DatahubModelAdmin):
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "owner":
-            if request.user.is_superuser or '*' in request.session[ALLOWED_OWNER]:
+            if request.user.is_superuser or '*' in request.session[HUB_ALLOWED_OWNER_KEYS]:
                 kwargs["queryset"] = Owner.objects.all()
             else:
                 kwargs["queryset"] = Owner.objects.filter(
-                    owner__key__in=request.session[ALLOWED_OWNER])
+                    owner__key__in=request.session[HUB_ALLOWED_OWNER_KEYS])
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
@@ -237,27 +237,27 @@ class AreaAdmin(DatahubModelAdmin):
                 kwargs["queryset"] = Owner.objects.all()
             else:
                 kwargs["queryset"] = Owner.objects.filter(
-                    owner__key__in=request.session[ALLOWED_OWNER])
+                    owner__key__in=request.session[HUB_ALLOWED_OWNER_KEYS])
 
         if db_field.name == "application":
             if request.user.is_superuser:
                 kwargs["queryset"] = Application.objects.all()
             else:
                 kwargs["queryset"] = Application.objects.filter(
-                    owner__key__in=request.session[ALLOWED_OWNER])
+                    owner__key__in=request.session[HUB_ALLOWED_OWNER_KEYS])
         """ Reduce list of selectable container to according type """
         if db_field.name == "database":
             container = Container.objects.filter(containertype__type='DB')
             if not request.user.is_superuser:
                 container = container.filter(
-                    owner__key__in=request.session[ALLOWED_OWNER])
+                    owner__key__in=request.session[HUB_ALLOWED_OWNER_KEYS])
 
             kwargs["queryset"] = container
         if db_field.name == "filestorage":
             container = Container.objects.filter(containertype__type='FS')
             if not request.user.is_superuser:
                 container = container.filter(
-                    owner__key__in=request.session[ALLOWED_OWNER])
+                    owner__key__in=request.session[HUB_ALLOWED_OWNER_KEYS])
             kwargs["queryset"] = container
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 

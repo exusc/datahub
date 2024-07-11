@@ -38,12 +38,12 @@
     </div>
 
     <!-- Sidebar/menu -->
-    <nav class="w3-sidebar w3-collapse w3-white w3-animate-left" style="z-index:3;width:300px;" id="mySidebar"><br>
+    <nav class="w3-sidebar w3-collapse w3-white" style="z-index:3;width:300px;" id="mySidebar"><br>
         <div class="w3-container w3-row w3-theme">
             <div class="w3-col s8 w3-bar ">
                 Welcome, 
                 <br>{{request.user.first_name}} {{request.user.last_name}}
-                <br>{{request.user.owner.desc}} 
+                <br>{% if request.user.use_scope %}{{request.user.use_scope}} {% endif %}
                 <br>
                 <div class="w3-dropdown-hover">
                     <a href="#" class="w3-bar-item w3-button"><i class="fa fa-user"></i></a>
@@ -54,7 +54,7 @@
                     </div>
                 </div>
             
-                <a href="#" class="w3-bar-item w3-button"><i class="fa fa-cog"></i></a>
+                <a href="{% url 'setscope' %}" class="w3-bar-item w3-button"><i class="fa fa-cog"></i></a>
             </div>
         </div>
         <hr>
@@ -62,9 +62,9 @@
             <h5>Reporting</h5>
         </div>
         <div class="w3-bar-block">
-            <a href="#" class="w3-bar-item w3-button w3-padding"><i class="fa fa-file fa-fw"></i> Order New Report</a>
+            <a href="#" class="w3-bar-item w3-button w3-padding"><i class="fa fa-file fa-fw"></i> Order New Report (TBD)</a>
             <a href="#" class="w3-bar-item w3-button w3-padding"><i class="fa fa-download fa-fw"></i> Download
-                Results</a>
+                Results (TBD)</a>
         </div>
 
 
@@ -124,7 +124,7 @@
     
         <br><br>
         <!-- Footer -->
-        <footer class="w3-container w3-padding-16 w3-theme-l3">
+        <footer class="w3-container w3-padding-16 w3-theme-d5">
             <h4>Prototype for Concept Discussions</h4>
             <p>Powered by Team Data Science / Abraxas</p>
         </footer>

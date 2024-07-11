@@ -10,7 +10,7 @@ from organization.models import Owner, User, Application, Area, Container
 from django.contrib.auth import authenticate, login
 from django.contrib.admin.models import LogEntry
 from django.views import View
-from datahub.settings import ALLOWED_OWNER
+from datahub.settings import HUB_ALLOWED_OWNER_KEYS
 from . forms import ScopeForm
 
 
@@ -24,10 +24,10 @@ def default_context(request):
     return result
 
 
-def dashboard(request, ownerKey=None):
-    context = {}
-    if ownerKey:
-        owner = Owner.objects.get(key=ownerKey)
+def dashboard(request, owner_id=None):
+    context = default_context(request)
+    if owner_id:
+        owner = Owner.objects.get(id=owner_id)
     else:
         owner = request.user.owner
     context['owner'] = owner
@@ -35,6 +35,25 @@ def dashboard(request, ownerKey=None):
     context['number_areas'] = len(Area.objects.filter(owner=owner))
     context['number_scopes'] = len(Scope.objects.filter(owner=owner))
     return render(request, 'dashboard.html', context)
+
+
+def setscope(request, scope_id=None):
+    """ seleection and setting of the scope for the user """
+    if scope_id:
+        try:
+            scope = Scope.objects.get(id=scope_id)
+            request.user.use_scope = scope
+            request.user.save()
+        except:
+            pass
+    context = default_context(request)
+    user_scopes = request.user.scopes.all().order_by('key')
+    context['applications'] = {}
+    for application in Application.objects.all().order_by('key'):
+        app_scopes = user_scopes.filter(application=application).order_by('key')
+        if len(app_scopes) > 0:
+            context['applications'][application] = app_scopes
+    return render(request, 'setscope.html', context)
 
 
 def index(request):
@@ -57,12 +76,12 @@ class UserView(View):
 """
 
 
-def switch_user(request, userid):
+def switch_user(request, user_id):
     response = redirect(reverse("index"))
 
     # username = User.objects.get(id=userid).username
     # user = authenticate(request, username=username, password='???')
-    user = User.objects.get(id=userid)
+    user = User.objects.get(id=user_id)
     if user:
         login(request, user)
         # Creates the list of allowed owner.keys
@@ -76,7 +95,7 @@ def switch_user(request, userid):
                 ownerlist.append(owner.key)
             except:
                 pass
-        request.session[ALLOWED_OWNER] = ownerlist
+        request.session[HUB_ALLOWED_OWNER_KEYS] = ownerlist
 
         # translation.activate(user.language)
         from django.conf import settings
@@ -90,8 +109,8 @@ def switch_user(request, userid):
 
 class AddScopesView(View):
 
-    def get(self, request, appkey):
-        application = Application.objects.get(key=appkey)
+    def get(self, request, application_key):
+        application = Application.objects.get(key=application_key)
         scope = Scope(application=application)
         form = ScopeForm(application=application, instance=scope)
         context = default_context(request)

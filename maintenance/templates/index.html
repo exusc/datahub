@@ -5,7 +5,7 @@
 
 
 <header class="w3-container" style="padding-top:22px">
-    <h2><i class="fa fa-globe fa-fw"></i> My DATA-Hub for {{request.user.first_name}} {{request.user.last_name}} ({{request.user.username}})</b></h2>
+    <h2><i class="fa fa-globe fa-fw"></i> My DATA-Hub for {{request.user.first_name}} {{request.user.last_name}} ({{request.user.username}})</h2>
 </header>
 
 <div class="w3-row-padding w3-margin-bottom">
@@ -31,6 +31,8 @@
         <div class="w3-container w3-theme w3-padding-16" style="min-height:15em">
             <!--div class="w3-left"><i class="fa fa-warehouse w3-xxxlarge"></i></div-->
             <div class="w3-clear"></div>
+            <button class="w3-bar-item w3-theme w3-right w3-margin-right"  onclick="window.location.href='{% url "setscope" %}';"><i class="fa fa-cog fa-fw"></i></button> 
+
             <h4>Scopes:</h4>
             {% for scope in all_scopes.all %}
             <li>{{scope}} - {{scope.desc}}</li>
@@ -114,7 +116,7 @@
             <h3>{{owner}} - {{owner.desc}} / User: {{owner.user_set.all|length}} / Scopes:
                 {{owner.scope_set.all|length}}  
                 <button class="w3-bar-item w3-theme w3-right w3-margin-right"  onclick="show('{{owner}}')"><i class="fa fa-plus fa-fw"></i></button> 
-                <button class="w3-bar-item w3-theme w3-right w3-margin-right"  onclick="window.location.href='{% url "dashboard" owner.key %}';"><i class="fa fa-gauge-high fa-fw"></i></button> 
+                <button class="w3-bar-item w3-theme w3-right w3-margin-right"  onclick="window.location.href='{% url "dashboard" owner.id %}';"><i class="fa fa-gauge-high fa-fw"></i></button> 
             </h3>
 
             <div id="{{owner}}" style="display:none">
