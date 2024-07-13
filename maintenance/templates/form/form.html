@@ -2,12 +2,13 @@
 
 {% block body %}
 
+<header class="w3-container" style="padding-top:22px">
+    <h2><i class="fa fa-gauge-high fa-fw"></i> Load Data</h2>
+</header>
 
-<div class="w3-panel w3-leftbar w3-card-4 w3-padding">
-<h2>Add Scope to Applikation {{application.key}} {{application.desc}}</h2>
-</div>
+<br>
 
-<div class="w3-panel w3-leftbar w3-card-4 w3-padding w3-display-middle">
+<div class="w3-row-padding w3-margin-bottom">
     <form action="" method="POST">
         {% csrf_token %}
         <table>    

@@ -13,5 +13,7 @@ urlpatterns = [
     path('setscope', views.setscope, name='setscope'),
     path('setscope/<str:scope_id>', views.setscope, name='setscope'),
     
+    path('load', views.load, name='load'),
+
     path('switch_user/<int:user_id>', views.switch_user, name='switch_user'),
 ]

@@ -125,6 +125,22 @@ class User(AbstractUser):
     language = models.CharField(_('language'), max_length=5, choices=LANGUAGES, default='en',
                                 help_text=_("Language used for DATA-Hub UI"))
 
+    def get_scopes(self,detailed=False,separate_application=True):
+        """ Returns a dict of all active Scopes the user can choose
+            * scope is replaced by all possible Scopes
+            separate_application -> separate dict per application; else one dict for all scopes
+        TODO: Test cases needed
+        """
+        result = {}
+        all_scopes = self.scopes.all().filter(active=True).order_by('key').filter(application__active=True)
+        if not separate_application:
+            return all_scopes
+        for scope in all_scopes:
+            application = result.get(scope.application)
+            if application == None:
+                result[scope.application] = all_scopes.filter(application=scope.application)
+        return result    
+
 
 class Group(Group):
     class Meta:

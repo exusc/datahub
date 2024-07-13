@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block body %}
+
+<header class="w3-container" style="padding-top:22px">
+    <h2><i class="fa fa-upload fa-fw"></i> Load Data</h2>
+</header>
+<br>
+
+
+<div class="w3-row-padding w3-margin-bottom">
+    <form action="" method="POST">
+        {% csrf_token %}
+
+        <div class="w3-row-padding w3-margin-bottom w3-third">
+                <h3>Number User loaded: {{len_user}}
+                    <input class="w3-green w3-right w3-margin-right" type="submit" name="user" value="Save" >
+                    <input class="w3-red w3-right w3-margin-right" type="submit" name="user" value="Delete" >
+                </h3>
+                <h3>Number Owner loaded: {{len_owner   }}
+                    <input class="w3-green w3-right w3-margin-right" type="submit" name="owner" value="Save" >
+                    <input class="w3-red w3-right w3-margin-right" type="submit" name="owner" value="Delete" >
+                </h3>
+            </div>
+    </form>
+</div>
+{% endblock %}

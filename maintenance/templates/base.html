@@ -107,6 +107,9 @@
             {% if perms.organization.add_application %}     
             <a href="#" class="w3-bar-item w3-button w3-padding"><i class="fa fa-share fa-fw"></i>  Migration (TBD)</a>
             {% endif %}
+            {% if request.user.is_superuser %}     
+            <a href="{% url 'load' %}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-upload fa-fw"></i>  Load Data</a>
+            {% endif %}
     
         {% endif %}
         </div>
@@ -119,6 +122,18 @@
     
     <div class="w3-main" style="margin-left:300px;margin-top:43px;">
 
+        {% if messages %}
+        <div class="w3-row-padding w3-margin-bottom">
+            {% for message in messages %}
+            <p {% if message.tags %} class="{{ message.tags }}"{% endif %}>
+                {% if message.level == DEFAULT_MESSAGE_LEVELS.INFO %}
+                <h3 class="w3-green">{{ message }}</h3>
+                {% endif %}
+            </p>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
         {% block body %}
         {% endblock %}
     

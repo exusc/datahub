@@ -64,46 +64,47 @@
                 {{request.user.owner.user_set.all|length}}</b></h2>
         </header>    
     {% for application in request.user.owner.application_set.all %}
-    <div class="w3-third">
-        <div class="w3-container w3-theme w3-padding-16">
-            <!--div class="w3-left"><i class="fa fa-warehouse w3-xxxlarge"></i></div-->
-            <div class="w3-clear"></div>
-            <h4>Application: {{application}} - {{application.desc}}</h4>
-            <br>Business-Units:
-            {% if application.business_unit_1 %}
-            <li>{{application.business_unit_1}}</li>
-            {% endif %}
-            {% if application.business_unit_2 %}
-            <li>{{application.business_unit_2}}</li>
-            {% endif %}
-            {% if application.business_unit_3 %}
-            <li>{{application.business_unit_3}}</li>
-            {% endif %}
-            {% if application.business_unit_4 %}
-            <li>{{application.business_unit_3}}</li>
-            {% endif %}
-            {% if application.business_unit_5 %}
-            <li>{{application.business_unit_5}}</li>
-            {% endif %}
-            <br>Scopes: {{application.scope_set.all|length}}<br>
+        {% if application.active %}
+        <div class="w3-third">
+            <div class="w3-container w3-theme w3-padding-16">
+                <!--div class="w3-left"><i class="fa fa-warehouse w3-xxxlarge"></i></div-->
+                <div class="w3-clear"></div>
+                <h4>Application: {{application}} - {{application.desc}}</h4>
+                <br>Business-Units:
+                {% if application.business_unit_1 %}
+                <li>{{application.business_unit_1}}</li>
+                {% endif %}
+                {% if application.business_unit_2 %}
+                <li>{{application.business_unit_2}}</li>
+                {% endif %}
+                {% if application.business_unit_3 %}
+                <li>{{application.business_unit_3}}</li>
+                {% endif %}
+                {% if application.business_unit_4 %}
+                <li>{{application.business_unit_3}}</li>
+                {% endif %}
+                {% if application.business_unit_5 %}
+                <li>{{application.business_unit_5}}</li>
+                {% endif %}
+                <br>Scopes: {{application.scope_set.all|length}}<br>
 
-            {% for area in application.area_set.all %}
-            <br>Area: {{area}} - {{area.desc}}
-            <li>Database: <a
-                    href="{% url 'admin:organization_container_change' area.database.id %}">{{area.database}}</a>
-                ({{area.database.desc}})</li>
-            <ul>
-                <li>Schema Views: {{area.application.key.lower}}_{{area.key.lower}}</li>
-                <li>Schema Tables: {{area.application.key.lower}}_{{area.key.lower}}_base</li>
-            </ul>
-            <li>Filestorage: <a
-                    href="{% url 'admin:organization_container_change' area.filestorage.id %}">{{area.filestorage}}</a>
-                ({{area.filestorage.desc}})</li>
+                {% for area in application.area_set.all %}
+                    {% if area.active %}
+                    <br>Area: {{area}} - {{area.desc}}
+                    <li>Database: {{area.database}}
+                        ({{area.database.desc}})</li>
+                    <ul>
+                        <li>Schema Views: {{area.application.key.lower}}_{{area.key.lower}}</li>
+                        <li>Schema Tables: {{area.application.key.lower}}_{{area.key.lower}}_base</li>
+                    </ul>
+                    <li>Filestorage: {{area.filestorage}}
+                        ({{area.filestorage.desc}})</li>
+                    {% endif %}
+                {% endfor area %}
 
-            {% endfor area %}
-
+            </div>
         </div>
-    </div>
+        {% endif %}
     {% endfor %}
     {% endif %}
 
@@ -113,7 +114,8 @@
         <h2><span>Owner: {{all_owners|length}}</span> </h2>
         {% for owner in all_owners %}
         <div class="w3-container w3-theme-l3 w3-padding-16">
-            <h3>{{owner}} - {{owner.desc}} / User: {{owner.user_set.all|length}} / Scopes:
+            <h3><a href="{% url 'admin:organization_owner_change' owner.id %}">{{owner}}</a>
+                - {{owner.desc}} / User: {{owner.user_set.all|length}} / Scopes:
                 {{owner.scope_set.all|length}}  
                 <button class="w3-bar-item w3-theme w3-right w3-margin-right"  onclick="show('{{owner}}')"><i class="fa fa-plus fa-fw"></i></button> 
                 <button class="w3-bar-item w3-theme w3-right w3-margin-right"  onclick="window.location.href='{% url "dashboard" owner.id %}';"><i class="fa fa-gauge-high fa-fw"></i></button> 
@@ -124,7 +126,7 @@
             {% for application in owner.application_set.all %}
             <div class="w3-container w3-theme-l2 w3-padding-16">
 
-                <h4>Application: {{application}} - {{application.desc}}</h4>
+                <h4>Application: <a href="{% url 'admin:organization_application_change' application.id %}">{{application}}</a> - {{application.desc}}  {% if not application.active %}(not active){% endif %}</h4>
                 <h5>Business-Units:
                     {% if application.business_unit_1 %}
                     {{application.business_unit_1}}
@@ -145,10 +147,13 @@
                 <h5>Scopes: {{application.scope_set.all|length}}</h5>
 
                 {% for area in application.area_set.all %}
-                <h5>Area: {{area}} - {{area.desc}}</h5>
-                <li>Database: {{area.database}} - {{area.database.desc}} - Schema for tables: <b>{{area.schema}}</b>
+                <h5>Area: <a href="{% url 'admin:organization_area_change' area.id %}">{{area}}</a> - {{area.desc}}  {% if not area.active %}(not active){% endif %}</h5>
+                <li>Database: <a href="{% url 'admin:organization_container_change' area.database.id %}">{{area.database}}</a>
+                     - {{area.database.desc}} - Schema for tables: <b>{{area.schema}}</b>
                 </li>
-                <li>Filestorage: {{area.filestorage}} - {{area.filestorage.desc}}</li>
+                <li>Filestorage: <a
+                    href="{% url 'admin:organization_container_change' area.filestorage.id %}">{{area.filestorage}}</a>
+                     - {{area.filestorage.desc}}</li>
                 {% endfor %}
 
             </div>

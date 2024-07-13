@@ -6,19 +6,35 @@ from django.core import validators
 from django import forms
 from django.shortcuts import render, redirect
 from django.urls import reverse
-from organization.models import Owner, User, Application, Area, Container
+from organization.models import Owner, User, Application, Area, Container, Scope
 from django.contrib.auth import authenticate, login
 from django.contrib.admin.models import LogEntry
 from django.views import View
 from datahub.settings import HUB_ALLOWED_OWNER_KEYS
 from . forms import ScopeForm
+from django.contrib.messages import info, error
+
+
+def load(request):
+    if request.POST:
+        action = request.POST.get('user')
+        if action == 'Save':
+            info(request, 'xxx User loaded')            
+        if action == 'Delete':
+            info(request, 'xxx User deleted')            
+
+    context = default_context(request)
+    context['len_user'] = len(User.objects.all())
+    context['len_owner'] = len(Owner.objects.all())
+    context['len_scope'] = len(Scope.objects.all())
+    return render(request, 'load.html', context)
 
 
 def default_context(request):
     result = {}
     result['all_owners'] = Owner.objects.all().order_by('key')
     result['all_users'] = User.objects.all().order_by('first_name')
-    result['all_scopes'] = request.user.scopes.all().order_by('key')
+    result['all_scopes'] = request.user.get_scopes(separate_application=False)
     result['all_containers'] = Container.objects.all().order_by(
         'containertype', 'key')
     return result
@@ -38,21 +54,17 @@ def dashboard(request, owner_id=None):
 
 
 def setscope(request, scope_id=None):
-    """ seleection and setting of the scope for the user """
+    """ selection and setting of the scope for the user """
     if scope_id:
         try:
             scope = Scope.objects.get(id=scope_id)
             request.user.use_scope = scope
             request.user.save()
+            info(request,f'Scope is set to {scope} ({scope.desc})')
         except:
             pass
     context = default_context(request)
-    user_scopes = request.user.scopes.all().order_by('key')
-    context['applications'] = {}
-    for application in Application.objects.all().order_by('key'):
-        app_scopes = user_scopes.filter(application=application).order_by('key')
-        if len(app_scopes) > 0:
-            context['applications'][application] = app_scopes
+    context['applications'] = request.user.get_scopes()
     return render(request, 'setscope.html', context)
 
 
@@ -65,6 +77,8 @@ def index(request):
     context['LogEntrys'] = LogEntry.objects.all().filter(user=request.user)[
         0:5]
     return render(request, 'index.html', context)
+
+
 
 
 """
@@ -96,10 +110,17 @@ def switch_user(request, user_id):
             except:
                 pass
         request.session[HUB_ALLOWED_OWNER_KEYS] = ownerlist
+        info(request,f'Switched to User: {user.first_name} {user.last_name}')
 
         # translation.activate(user.language)
         from django.conf import settings
         response.set_cookie(settings.LANGUAGE_COOKIE_NAME, user.language,)
+
+        # if user-scope is inactive
+        if user.use_scope and not user.use_scope.active: 
+            user.use_scope = None
+            request.user.save()
+
 
     return response
 
