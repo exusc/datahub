@@ -13,15 +13,17 @@ from django.views import View
 from datahub.settings import HUB_ALLOWED_OWNER_KEYS
 from . forms import ScopeForm
 from django.contrib.messages import info, error
+from django.contrib.auth.decorators import login_required, permission_required
 
 
+@login_required(login_url="index")
 def load(request):
     if request.POST:
         action = request.POST.get('user')
         if action == 'Save':
-            info(request, 'xxx User loaded')            
+            info(request, 'xxx User loaded')
         if action == 'Delete':
-            info(request, 'xxx User deleted')            
+            info(request, 'xxx User deleted')
 
     context = default_context(request)
     context['len_user'] = len(User.objects.all())
@@ -40,10 +42,16 @@ def default_context(request):
     return result
 
 
+@login_required(login_url="index")
+@permission_required("organization.view_owner", login_url='index')
 def dashboard(request, owner_id=None):
     context = default_context(request)
     if owner_id:
         owner = Owner.objects.get(id=owner_id)
+        if request.user.is_superuser or '*' in request.session[HUB_ALLOWED_OWNER_KEYS] or owner.key in request.session[HUB_ALLOWED_OWNER_KEYS]:
+            pass
+        else:
+            owner = request.user.owner
     else:
         owner = request.user.owner
     context['owner'] = owner
@@ -53,6 +61,7 @@ def dashboard(request, owner_id=None):
     return render(request, 'dashboard.html', context)
 
 
+@login_required(login_url="index")
 def setscope(request, scope_id=None):
     """ selection and setting of the scope for the user """
     if scope_id:
@@ -60,7 +69,7 @@ def setscope(request, scope_id=None):
             scope = Scope.objects.get(id=scope_id)
             request.user.use_scope = scope
             request.user.save()
-            info(request,f'Scope is set to {scope} ({scope.desc})')
+            info(request, f'Scope is set to {scope} ({scope.desc})')
         except:
             pass
     context = default_context(request)
@@ -79,8 +88,6 @@ def index(request):
     return render(request, 'index.html', context)
 
 
-
-
 """
 class UserView(View):
     def get(self, request, userid):
@@ -90,6 +97,7 @@ class UserView(View):
 """
 
 
+@login_required(login_url="index")
 def switch_user(request, user_id):
     response = redirect(reverse("index"))
 
@@ -98,29 +106,21 @@ def switch_user(request, user_id):
     user = User.objects.get(id=user_id)
     if user:
         login(request, user)
-        # Creates the list of allowed owner.keys
-        ownerlist = []
-        for scope in request.user.scopes.filter(application__key='HUB'):
-            if scope.business_unit_1 == '*':
-                ownerlist = ['*']
-                break
-            try:
-                owner = Owner.objects.get(key=scope.business_unit_1)
-                ownerlist.append(owner.key)
-            except:
-                pass
-        request.session[HUB_ALLOWED_OWNER_KEYS] = ownerlist
-        info(request,f'Switched to User: {user.first_name} {user.last_name}')
+
+        # list of allowed owner.keys for maintenence
+        request.session[HUB_ALLOWED_OWNER_KEYS] = request.user.hub_owner()
+        info(request, f'Switched to User: {user.first_name} {user.last_name}')
 
         # translation.activate(user.language)
         from django.conf import settings
         response.set_cookie(settings.LANGUAGE_COOKIE_NAME, user.language,)
 
         # if user-scope is inactive
-        if user.use_scope and not user.use_scope.active: 
+        if user.use_scope and not user.use_scope.active:
             user.use_scope = None
             request.user.save()
 
+        print('Hub-Application:', Application.hub())
 
     return response
 

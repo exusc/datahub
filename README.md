@@ -11,11 +11,12 @@ Open Tasks
 Next Stories
 - AWS - Deployment
 - Multi-Language-Support
-- Dasboard 
-- Migration of DATA-Hub-Objects to different Environments
-- Superuser Overview for Container - including health check
-- Add Scope from Super-User-Overview
+- Add Scope 
 
 Steps
-- Testen von Verhalten ohne Login -> Fehler wg. Hub-Scopes
+- Testen von Verhalten ohne Login -> Fehler wg. Hub-Scopes , Login einbauen
 - *-Funktion bei Scopes nutzen
+
+https://stackoverflow.com/questions/6175030/django-shut-off-console-output-of-http-response-messages
+https://forum.djangoproject.com/t/no-console-output-for-http-request-messages-from-django-3-1-in-ubuntu-20/5046/2
+

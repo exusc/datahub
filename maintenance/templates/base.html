@@ -58,6 +58,8 @@
             </div>
         </div>
         <hr>
+
+
         <div class="w3-container w3-theme">
             <h5>Reporting</h5>
         </div>
@@ -79,16 +81,14 @@
         {% if user.is_staff %}
 
             <a href="{% url 'dashboard' %}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-gauge-high fa-fw"></i> Dashboard</a>
+            {% if request.user.is_superuser %}    
             <a href="#" class="w3-bar-item w3-button w3-padding"><i class="fa fa-stethoscope fa-fw"></i> Health Check (TBD)</a>
-
-            </div>
+            <a href="#" class="w3-bar-item w3-button w3-padding"><i class="fa fa-up-down-left-right fa-fw"></i> Cross Reference (TBD)</a>
+            {% endif %}    
             <div class="w3-container w3-theme">
                 <h5>Maintenance</h5>
             </div>
             <div class="w3-bar-block">
-    
-
-
             {% if perms.organization.add_application %}     
             <a href="{% url 'admin:organization_application_changelist' %}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-city fa-fw"></i>  Applications</a>
             {% endif %}

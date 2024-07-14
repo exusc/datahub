@@ -7,6 +7,18 @@ from django.utils.translation import gettext as _
 from datahub.settings import HUB_ALLOWED_OWNER_KEYS
 
 
+def allowed(request, set):
+    """ Superusers are allowed to see every object.
+        Normal users are restricted to their ALLOWED_OWNER
+        TODO: Move to Model??
+    """
+    if request.user.is_superuser:
+        return set
+    if not '*' in request.session[HUB_ALLOWED_OWNER_KEYS]:
+        return set.filter(
+            owner__key__in=request.session[HUB_ALLOWED_OWNER_KEYS])
+
+
 class DatahubAdminSite(admin.AdminSite):
 
     site_header = _('DATA-Hub Maintenance')
@@ -53,20 +65,10 @@ class DatahubModelAdmin(admin.ModelAdmin):
         super().save_model(request, obj, form, change)
 
     def get_queryset(self, request):
-        """ 
-        Superusers are allowed to see every object
-        Normal users are restricted to their ALLOWED_OWNER
-        """
-        queryset = super().get_queryset(request)
-        if request.user.is_superuser:
-            return queryset
-        if not '*' in request.session[HUB_ALLOWED_OWNER_KEYS]:
-            queryset = queryset.filter(
-                owner__key__in=request.session[HUB_ALLOWED_OWNER_KEYS])
-        return queryset
+        return allowed(request, super().get_queryset(request))
 
     def get_list_display(self, request):
-        """ If user is just allowed to maintan on owner, he must not see the owners """
+        """ If user is just allowed to maintan one owner, he must not see the owners """
         list_display = list(self.list_display)
         if request.user.is_superuser or '*' in request.session[HUB_ALLOWED_OWNER_KEYS] or len(request.session[HUB_ALLOWED_OWNER_KEYS]) > 1:
             return list_display
@@ -81,7 +83,7 @@ class DataHubUserAdmin(UserAdmin):
     list_display = ['username', 'first_name', 'last_name', 'language',
                     'is_staff', 'is_superuser', 'owner', 'is_active', ]
     # list_editable = ("is_active",)
-    readonly_fields = ["last_login",'use_scope']
+    readonly_fields = ["last_login", 'use_scope']
     fieldsets = [
         (None, {'fields': [('username', 'owner'),
                            ('first_name', 'last_name'), 'email', ('language', 'use_scope')], }),
@@ -104,36 +106,18 @@ class DataHubUserAdmin(UserAdmin):
         obj.save()
 
     def get_queryset(self, request):
-        """ 
-        Superusers are allowed to see every object
-        Normal users are restricted to their ALLOWED_OWNER
-        """
-        queryset = super().get_queryset(request)
-        if request.user.is_superuser:
-            return queryset
-        if not '*' in request.session[HUB_ALLOWED_OWNER_KEYS]:
-            queryset = queryset.filter(
-                owner__key__in=request.session[HUB_ALLOWED_OWNER_KEYS])
-        return queryset
+        return allowed(request, super().get_queryset(request))
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         """ Reduce list of selectable owner to owner of users scopes """
         if db_field.name == "owner":
-            if request.user.is_superuser or '*' in request.session[HUB_ALLOWED_OWNER_KEYS]:
-                kwargs["queryset"] = Owner.objects.all()
-            else:
-                kwargs["queryset"] = Owner.objects.filter(
-                    owner__key__in=request.session[HUB_ALLOWED_OWNER_KEYS])
+            kwargs["queryset"] = allowed(request, Owner.objects.all())
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
         """ Reduce list of selectable scopes """
         if db_field.name == "scopes":
-            if request.user.is_superuser or '*' in request.session[HUB_ALLOWED_OWNER_KEYS]:
-                kwargs["queryset"] = Scope.objects.all()
-            else:
-                kwargs["queryset"] = Scope.objects.filter(
-                    owner__key__in=request.session[HUB_ALLOWED_OWNER_KEYS])
+            kwargs["queryset"] = allowed(request, Scope.objects.all())
         """ Reduce list of selectable groups """
         if db_field.name == "groups":
             if request.user.is_superuser or '*' in request.session[HUB_ALLOWED_OWNER_KEYS]:
@@ -148,7 +132,7 @@ class DataHubGroupAdmin(GroupAdmin):
     list_display = ['name', 'owner', ]
     fieldsets = [
         (None, {'fields': [('name', 'owner',), 'permissions', ], }),
-        #('History', {'fields': [('ctime', 'cuser'), ('utime', 'uuser')], },),
+        # ('History', {'fields': [('ctime', 'cuser'), ('utime', 'uuser')], },),
     ]
 
     def get_list_display(self, request):
@@ -183,11 +167,7 @@ class ApplicationAdmin(DatahubModelAdmin):
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "owner":
-            if request.user.is_superuser or '*' in request.session[HUB_ALLOWED_OWNER_KEYS]:
-                kwargs["queryset"] = Owner.objects.all()
-            else:
-                kwargs["queryset"] = Owner.objects.filter(
-                    owner__key__in=request.session[HUB_ALLOWED_OWNER_KEYS])
+            kwargs["queryset"] = allowed(request, Owner.objects.all())
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
@@ -233,32 +213,15 @@ class AreaAdmin(DatahubModelAdmin):
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "owner":
-            if request.user.is_superuser:
-                kwargs["queryset"] = Owner.objects.all()
-            else:
-                kwargs["queryset"] = Owner.objects.filter(
-                    owner__key__in=request.session[HUB_ALLOWED_OWNER_KEYS])
-
+            kwargs["queryset"] = allowed(request, Owner.objects.all())
         if db_field.name == "application":
-            if request.user.is_superuser:
-                kwargs["queryset"] = Application.objects.all()
-            else:
-                kwargs["queryset"] = Application.objects.filter(
-                    owner__key__in=request.session[HUB_ALLOWED_OWNER_KEYS])
-        """ Reduce list of selectable container to according type """
+            kwargs["queryset"] = allowed(request, Application.objects.all())
         if db_field.name == "database":
-            container = Container.objects.filter(containertype__type='DB')
-            if not request.user.is_superuser:
-                container = container.filter(
-                    owner__key__in=request.session[HUB_ALLOWED_OWNER_KEYS])
-
-            kwargs["queryset"] = container
+            kwargs["queryset"] = allowed(
+                request, Container.objects.all()).filter(containertype__type='DB')
         if db_field.name == "filestorage":
-            container = Container.objects.filter(containertype__type='FS')
-            if not request.user.is_superuser:
-                container = container.filter(
-                    owner__key__in=request.session[HUB_ALLOWED_OWNER_KEYS])
-            kwargs["queryset"] = container
+            kwargs["queryset"] = allowed(
+                request, Container.objects.all()).filter(containertype__type='FS')
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     search_fields = ['key', 'application__key', 'desc']
@@ -268,7 +231,8 @@ class AreaAdmin(DatahubModelAdmin):
     ordering = ['application__key', 'key',]
     list_filter = ['owner', 'application']
     fieldsets = [
-        (None, {'fields': [('application', 'key', ), 'active', 'desc', 'text', ], }),
+        (None, {'fields': [('application', 'key', ),
+         'active', 'desc', 'text', ], }),
         ('Container', {'fields': ['database', 'filestorage'], }),
         ('History', {'fields': [('ctime', 'cuser'), ('utime', 'uuser')], },),
     ]
@@ -277,7 +241,8 @@ class AreaAdmin(DatahubModelAdmin):
 class ContainerAdmin(DatahubModelAdmin):
     search_fields = ['key', 'desc', ]
     ordering = ['key',]
-    list_display = ['key', 'desc', 'containertype', 'connection', 'owner', 'active']
+    list_display = ['key', 'desc', 'containertype',
+                    'connection', 'owner', 'active']
     list_filter = ['owner', 'containertype']
     fieldsets = [
         (None, {'fields': [('key', 'owner',), 'active', 'desc',
