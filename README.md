@@ -14,6 +14,8 @@ Next Stories
 - Add Scope 
 
 Steps
+- Datenbank neu aufbauen und laden aller Objekte einbauen: Owner, Application, User, Environments, Rolls
+- base.html permission for dashboard?
 - Testen von Verhalten ohne Login -> Fehler wg. Hub-Scopes , Login einbauen
 - *-Funktion bei Scopes nutzen
 

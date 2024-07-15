@@ -1,4 +1,4 @@
-from organization.models import Scope, Application
+from organization.models import *
 from django.utils import timezone
 from .forms import SampleForm
 from django.core.exceptions import ValidationError
@@ -14,21 +14,31 @@ from datahub.settings import HUB_ALLOWED_OWNER_KEYS
 from . forms import ScopeForm
 from django.contrib.messages import info, error
 from django.contrib.auth.decorators import login_required, permission_required
+from . load import EnvironmentLoader
 
 
 @login_required(login_url="index")
 def load(request):
+    registered_classes = [Environment, User, Owner, Application]
+
     if request.POST:
-        action = request.POST.get('user')
-        if action == 'Save':
-            info(request, 'xxx User loaded')
-        if action == 'Delete':
-            info(request, 'xxx User deleted')
+        for registered_class in registered_classes:
+            name = registered_class._meta.verbose_name_plural
+            action = request.POST.get(name)
+            if action == 'Save':
+                txt = f'{name} not loaded'
+                if registered_class == Environment:
+                    txt = EnvironmentLoader().load(request)
+                info(request, txt)
+            if action == 'Delete':
+                info(request, f'{name} not deleted')
 
     context = default_context(request)
-    context['len_user'] = len(User.objects.all())
-    context['len_owner'] = len(Owner.objects.all())
-    context['len_scope'] = len(Scope.objects.all())
+    classes = {}
+    for registered_class in registered_classes:
+        name = registered_class._meta.verbose_name_plural
+        classes[name] = len(registered_class.objects.all())
+    context['classes'] = classes
     return render(request, 'load.html', context)
 
 
@@ -43,7 +53,8 @@ def default_context(request):
 
 
 @login_required(login_url="index")
-@permission_required("organization.view_owner", login_url='index')
+@permission_required("organization.view_dashboard", login_url='index')
+#@permission_required("organization.view_owner", login_url='index')
 def dashboard(request, owner_id=None):
     context = default_context(request)
     if owner_id:

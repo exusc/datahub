@@ -29,6 +29,7 @@ class DatahubAdminSite(admin.AdminSite):
         ordering = {
             # "Report": 1,
             # "Order": 2,
+            "Environment": 10,
             "Application": 11,
             "Area": 12,
             "User": 21,
@@ -218,10 +219,10 @@ class AreaAdmin(DatahubModelAdmin):
             kwargs["queryset"] = allowed(request, Application.objects.all())
         if db_field.name == "database":
             kwargs["queryset"] = allowed(
-                request, Container.objects.all()).filter(containertype__type='DB')
+                request, Container.objects.all()).filter(containertype__type=ContainerType.DATABASE)
         if db_field.name == "filestorage":
             kwargs["queryset"] = allowed(
-                request, Container.objects.all()).filter(containertype__type='FS')
+                request, Container.objects.all()).filter(containertype__type=ContainerType.FILESTORAGE)
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     search_fields = ['key', 'application__key', 'desc']
@@ -262,6 +263,19 @@ class ContainerTypeAdmin(DatahubModelAdmin):
     ]
 
 
+class EnvironmentAdmin(DatahubModelAdmin):
+    ordering = ['key',]
+    search_fields = ['key', 'title', 'desc']
+    list_display = ['key', 'title', 'desc', 'hostname', 'natproc', 'awlib', 'owner', 'active']
+    list_filter = ['owner', 'active']
+    fieldsets = [
+        (None, {'fields': [('key', 'owner',), 'active', ('title', 'desc',), ], }),
+        ('Host', {'fields': [('hostname', 'username', 'password'), ], }),
+        ('AW', {'fields': ['ace_connect', ('natproc', 'awlib'), ], }),
+        ('History', {'fields': [('ctime', 'cuser'), ('utime', 'uuser')], },),
+    ]
+
+
 class LogEntryAdmin(admin.ModelAdmin):
     # https://docs.djangoproject.com/en/5.0/ref/contrib/admin/#django.contrib.admin.models.LogEntry.action_flag
     list_per_page = 15
@@ -271,6 +285,7 @@ class LogEntryAdmin(admin.ModelAdmin):
 
 
 datahub_admin_site = DatahubAdminSite(name="datahub_admin")
+datahub_admin_site.register(Environment, EnvironmentAdmin)
 datahub_admin_site.register(User, DataHubUserAdmin)
 datahub_admin_site.register(Group, DataHubGroupAdmin)
 datahub_admin_site.register(Owner, OwnerAdmin)

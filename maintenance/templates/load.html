@@ -7,21 +7,17 @@
 </header>
 <br>
 
-
 <div class="w3-row-padding w3-margin-bottom">
     <form action="" method="POST">
         {% csrf_token %}
-
         <div class="w3-row-padding w3-margin-bottom w3-third">
-                <h3>Number User loaded: {{len_user}}
-                    <input class="w3-green w3-right w3-margin-right" type="submit" name="user" value="Save" >
-                    <input class="w3-red w3-right w3-margin-right" type="submit" name="user" value="Delete" >
-                </h3>
-                <h3>Number Owner loaded: {{len_owner   }}
-                    <input class="w3-green w3-right w3-margin-right" type="submit" name="owner" value="Save" >
-                    <input class="w3-red w3-right w3-margin-right" type="submit" name="owner" value="Delete" >
-                </h3>
-            </div>
+            {% for cls, number in classes.items %}
+            <h3>Number {{cls}} loaded: {{number}}
+                <input class="w3-green w3-right w3-margin-right" type="submit" name="{{cls}}" value="Save">
+                <input class="w3-red w3-right w3-margin-right" type="submit" name="{{cls}}" value="Delete">
+            </h3>
+            {% endfor %}
+        </div>
     </form>
 </div>
 {% endblock %}

@@ -28,8 +28,6 @@ class AbstractDatahubModel(models.Model):
 
     def __str__(self):
         """ Field 'Key' has to be defined in derived class       
-        if self.desc:
-            return f'{self.key} ({self.desc})'
         """
         return f'{self.key}'
 
@@ -42,10 +40,25 @@ class Owner(AbstractDatahubModel):
         verbose_name = _("Owner")
         verbose_name_plural = _("Owners")
         ordering = ['-key']
+        permissions = [
+            ("view_dashboard", "Can view Dashboard"),
+        ]
+
+    __abx = None
 
     owner = models.ForeignKey(
         'Owner', on_delete=models.PROTECT, null=True, blank=True, related_name='+',)
     key = models.CharField(_('key'), max_length=20, unique=True,)
+
+    @classmethod
+    def abx(cls):
+        """ Returns the Owner Abraxas - must have the key "ABX"    """
+        if not cls.__abx:
+            try:
+                cls.__abx = cls.objects.get(key='ABX')
+            except:
+                cls.__abx = None
+        return cls.__abx
 
 
 class ContainerType(AbstractDatahubModel):
@@ -56,13 +69,16 @@ class ContainerType(AbstractDatahubModel):
         verbose_name = _("ContainerType")
         verbose_name_plural = _("ContainerTypes")
 
+    DATABASE = 'DB'
+    FILESTORAGE = 'FS'
+
     TYPE = {
-        "DB": _("DataBase"),
-        "FS": _("FileStorage"),
+        DATABASE: _("DataBase"),
+        FILESTORAGE: _("FileStorage"),
     }
 
     owner = models.ForeignKey(
-        to=Owner, on_delete=models.PROTECT, null=True, blank=True, related_name='+',)
+        to=Owner, on_delete=models.PROTECT, related_name='+',)
     key = models.CharField(_('key'), max_length=20, unique=True,)
     type = models.CharField(_('type'), max_length=2, choices=TYPE)
     area_add = models.TextField(_('area_add'), null=True,
@@ -95,7 +111,7 @@ class Container(AbstractDatahubModel):
         ]
 
     owner = models.ForeignKey(
-        to=Owner, on_delete=models.PROTECT, null=True, blank=True, related_name='+',)
+        to=Owner, on_delete=models.PROTECT, related_name='+',)
     key = models.CharField(_('key'), max_length=20, unique=True,)
     containertype = models.ForeignKey(
         to=ContainerType, on_delete=models.PROTECT)
@@ -177,8 +193,7 @@ class Application(AbstractDatahubModel):
 
     __hub = None
 
-    owner = models.ForeignKey(
-        to=Owner, on_delete=models.PROTECT, null=True, blank=True,)
+    owner = models.ForeignKey(to=Owner, on_delete=models.PROTECT)
     key = models.CharField(_('key'), max_length=20, unique=True,)
     business_unit_1 = models.CharField(
         _('business_unit_1'), max_length=80, null=True, blank=True)
@@ -220,8 +235,7 @@ class Area(AbstractDatahubModel):
         verbose_name_plural = _("Areas")
         unique_together = ['application', 'key']
 
-    owner = models.ForeignKey(
-        to=Owner, on_delete=models.PROTECT, null=True, blank=True, related_name='+',)
+    owner = models.ForeignKey(to=Owner, on_delete=models.PROTECT, related_name='+',)
     key = models.CharField(_('key'), max_length=20)
     application = models.ForeignKey(to=Application, on_delete=models.PROTECT)
     database = models.ForeignKey(to=Container, on_delete=models.PROTECT,
@@ -264,12 +278,11 @@ class Scope(AbstractDatahubModel):
     }
 
     owner = models.ForeignKey(
-        to=Owner, on_delete=models.PROTECT, null=True, blank=True, related_name='+',)
+        to=Owner, on_delete=models.PROTECT, related_name='+',)
     key = models.CharField(_('key'), max_length=80, unique=True, default="tbd")
     type = models.CharField(_('type'), max_length=1, choices=TYPE, default='S',
                             help_text=_("Defines how scope can be used"))
-    application = models.ForeignKey(
-        to=Application, on_delete=models.PROTECT, null=True, blank=True,)
+    application = models.ForeignKey(to=Application, on_delete=models.PROTECT)
     business_unit_1 = models.CharField(
         _('business_unit_1'), max_length=80, null=True, blank=True,)
     business_unit_2 = models.CharField(
@@ -365,3 +378,32 @@ class Scope(AbstractDatahubModel):
         for area in self.application.area_set.all():
             area.filestorage.add_scope(area, self)
         print('-'*80)
+
+
+class Environment(AbstractDatahubModel):
+    class Meta:
+        verbose_name = _("Environment")
+        verbose_name_plural = _("Environments")
+
+    owner = models.ForeignKey(
+        to=Owner, on_delete=models.PROTECT, related_name='+',)
+    key = models.CharField(_('key'), max_length=2,
+                           null=True, blank=True, unique=True,)
+    title = models.CharField(_('title'), max_length=10)
+    hostname = models.CharField(
+        _('hostname'), max_length=64, null=True, blank=True)
+    username = models.CharField(
+        _('username'), max_length=8, null=True, blank=True)
+    password = models.CharField(
+        _('password'), max_length=8, null=True, blank=True)
+    ace_connect = models.CharField(
+        _('ace_connect'), max_length=256, null=True, blank=True, )
+    
+    natproc = models.CharField(
+        _('natproc'), max_length=8, null=True, blank=True, help_text=_(
+        'Used in batch job.'))
+    
+    awlib = models.CharField(
+        _('awlib'), max_length=8, null=True, blank=True, help_text=_(
+        'Used in batch job.'))
+    
