@@ -66,26 +66,15 @@
     {% for application in request.user.owner.application_set.all %}
         {% if application.active %}
         <div class="w3-third">
-            <div class="w3-container w3-theme w3-padding-16">
+            <div class="w3-container w3-theme w3-padding-16" style='min-height:15em'>
                 <!--div class="w3-left"><i class="fa fa-warehouse w3-xxxlarge"></i></div-->
                 <div class="w3-clear"></div>
                 <h4>Application: {{application}} - {{application.desc}}</h4>
-                <br>Business-Units:
-                {% if application.business_unit_1 %}
-                <li>{{application.business_unit_1}}</li>
-                {% endif %}
-                {% if application.business_unit_2 %}
-                <li>{{application.business_unit_2}}</li>
-                {% endif %}
-                {% if application.business_unit_3 %}
-                <li>{{application.business_unit_3}}</li>
-                {% endif %}
-                {% if application.business_unit_4 %}
-                <li>{{application.business_unit_3}}</li>
-                {% endif %}
-                {% if application.business_unit_5 %}
-                <li>{{application.business_unit_5}}</li>
-                {% endif %}
+                <br>Business-Units: {{application.business_unit_1}}
+                {% if application.business_unit_2 %}, {{application.business_unit_2}}{% endif %}
+                {% if application.business_unit_3 %}, {{application.business_unit_3}}{% endif %}
+                {% if application.business_unit_4 %}, {{application.business_unit_3}}{% endif %}
+                {% if application.business_unit_5 %}, {{application.business_unit_5}}{% endif %}
                 <br>Scopes: {{application.scope_set.all|length}}<br>
 
                 {% for area in application.area_set.all %}

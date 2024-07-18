@@ -169,13 +169,48 @@ class UserLoader():
                         owner=Owner.objects.get(key=owner_key)
                         )
             user.save()
+            return user
         create('ABX', 'AXKTO', 'Tamás', 'Kovács',
                is_staff=True, is_superuser=True)
-        create('ABX', 'EXUSC', 'Ulrich', 'Schoppe', is_staff=True)
-        create('IGS', 'IGMSC', 'Matthias', 'Schneider',  is_staff=True)
-        create('SVA-SG', 'SGMSC', 'Marcel', 'Scheiwiller', )
-        create('SVA-ZH', 'ZHDUT', 'Diego', 'Utzinger', is_staff=True)
-        create('SVA-ZH', 'ZHADM', 'Admin', 'Zürich',  is_staff=True)
+        user = create('ABX', 'EXUSC', 'Ulrich', 'Schoppe', is_staff=True)
+        user.groups.add(Group.objects.get(name='Report Ordering'))
+        user.groups.add(Group.objects.get(name='Report Creator'))
+        
+        user = create('IGS', 'IGMSC', 'Matthias', 'Schneider',  is_staff=True)
+        user.groups.add(Group.objects.get(name='User Admin'))
+        user.scopes.add(Scope.objects.get(key='HUB_IGS'))
+        user.scopes.add(Scope.objects.get(key='HUB_SVA-SG'))
+        user.scopes.add(Scope.objects.get(key='HUB_SVA-ZH'))
+
+        user = create('SVA-SG', 'SGMSC', 'Marcel', 'Scheiwiller', )
+        user.groups.add(Group.objects.get(name='Report Ordering'))
+        user.groups.add(Group.objects.get(name='Report Creator'))
+        user.scopes.add(Scope.objects.get(key='HUB_SVA-SG'))
+        user.scopes.add(Scope.objects.get(key='SVA-SG-LZ_MKT_GP1'))
+        user.scopes.add(Scope.objects.get(key='SVA-SG-LZ_MKT_GP2'))
+        user.scopes.add(Scope.objects.get(key='SVA-SG-BZ_*'))
+        
+        user = create('SVA-ZH', 'ZHDUT', 'Diego', 'Utzinger', is_staff=True)
+        user.groups.add(Group.objects.get(name='Application Admin'))
+        user.groups.add(Group.objects.get(name='Direct Access'))
+        user.groups.add(Group.objects.get(name='User Admin'))
+        user.groups.add(Group.objects.get(name='Report Ordering'))
+        user.groups.add(Group.objects.get(name='Report Creator'))
+        user.scopes.add(Scope.objects.get(key='HUB_SVA-ZH'))
+        user.scopes.add(Scope.objects.get(key='SVA-ZH_*'))
+        user.scopes.add(Scope.objects.get(key='SVA-ZH_*/TEST'))
+        user.scopes.add(Scope.objects.get(key='SVA-ZH_*/PROD'))
+
+        user = create('SVA-ZH', 'ZHADM', 'Admin', 'Zürich',  is_staff=True)
+        user.groups.add(Group.objects.get(name='Application Admin'))
+        user.groups.add(Group.objects.get(name='DB Admin'))
+        user.groups.add(Group.objects.get(name='User Admin'))
+        user.scopes.add(Scope.objects.get(key='HUB_SVA-ZH'))
+
+        sys=User.objects.get(username='sys')
+        sys.first_name = 'Super'
+        sys.last_name = 'User'
+        sys.save()
 
         return _('Users successfully loaded')
 
