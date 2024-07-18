@@ -117,7 +117,7 @@
             <h3><a href="{% url 'admin:organization_owner_change' owner.id %}">{{owner}}</a>
                 - {{owner.desc}} / User: {{owner.user_set.all|length}} / Scopes:
                 {{owner.scope_set.all|length}}  
-                <button class="w3-bar-item w3-theme w3-right w3-margin-right"  onclick="show('{{owner}}')"><i class="fa fa-plus fa-fw"></i></button> 
+                <button class="w3-bar-item w3-theme w3-right w3-margin-right"  onclick="show('{{owner}}')"><i class="fa fa-chevron-down fa-fw"></i></button> 
                 <button class="w3-bar-item w3-theme w3-right w3-margin-right"  onclick="window.location.href='{% url "dashboard" owner.id %}';"><i class="fa fa-gauge-high fa-fw"></i></button> 
             </h3>
 

@@ -1,4 +1,4 @@
-Version 0.9.8 of Prototype for Concept Discussions
+Version 0.9.9 of Prototype for Concept Discussions
 
 Supports base functionality for 
 - Standard administration of DATA-Hub objects
@@ -11,10 +11,10 @@ Open Tasks
 Next Stories
 - AWS - Deployment
 - Multi-Language-Support
-- Add Scope 
+- UI for Add Scope 
 
 Steps
-- Datenbank neu aufbauen und laden aller Objekte einbauen: Owner, Application, User, Environments, Rolls
+- Checkliste Laden: Name für User=sys, Rollen und Scopes für User
 - base.html permission for dashboard?
 - Testen von Verhalten ohne Login -> Fehler wg. Hub-Scopes , Login einbauen
 - *-Funktion bei Scopes nutzen

@@ -157,11 +157,12 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = "organization.User"
 
-# Cookie names
-# keys of owner which the user is allowed to maintain
+# Cookie name keys of owner which the user is allowed to maintain
 HUB_ALLOWED_OWNER_KEYS = 'hub_allowed_owner_keys'
 
+HUB_OWNER_KEY = 'ABX'
 
+HUB_APPLICATION_KEY = 'HUB'
 
 
 

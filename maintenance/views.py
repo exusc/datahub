@@ -14,12 +14,12 @@ from datahub.settings import HUB_ALLOWED_OWNER_KEYS
 from . forms import ScopeForm
 from django.contrib.messages import info, error
 from django.contrib.auth.decorators import login_required, permission_required
-from . load import EnvironmentLoader
+from . load import *
 
 
 @login_required(login_url="index")
 def load(request):
-    registered_classes = [Environment, User, Owner, Application]
+    registered_classes = [ Owner, ContainerType, Container, Environment, Application, Area, Scope,  Group, User, ]
 
     if request.POST:
         for registered_class in registered_classes:
@@ -28,7 +28,23 @@ def load(request):
             if action == 'Save':
                 txt = f'{name} not loaded'
                 if registered_class == Environment:
-                    txt = EnvironmentLoader().load(request)
+                    txt = EnvironmentLoader.load(request)
+                if registered_class == Application:
+                    txt = ApplicationLoader().load(request)
+                if registered_class == Area:
+                    txt = AreaLoader().load(request)
+                if registered_class == Scope:
+                    txt = ScopeLoader().load(request)
+                if registered_class == Owner:
+                    txt = OwnerLoader().load(request)
+                if registered_class == Group:
+                    txt = RoleLoader().load(request)
+                if registered_class == User:
+                    txt = UserLoader().load(request)
+                if registered_class == ContainerType:
+                    txt = ContainerTypeLoader().load(request)
+                if registered_class == Container:
+                    txt = ContainerLoader().load(request)
                 info(request, txt)
             if action == 'Delete':
                 info(request, f'{name} not deleted')
@@ -130,8 +146,6 @@ def switch_user(request, user_id):
         if user.use_scope and not user.use_scope.active:
             user.use_scope = None
             request.user.save()
-
-        print('Hub-Application:', Application.hub())
 
     return response
 

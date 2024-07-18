@@ -2,7 +2,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.db import models
 from django.contrib.auth.models import AbstractUser, Group
-from datahub.settings import LANGUAGES
+from datahub.settings import LANGUAGES, HUB_OWNER_KEY, HUB_APPLICATION_KEY
 from django.utils.translation import gettext as _
 import uuid
 
@@ -44,21 +44,21 @@ class Owner(AbstractDatahubModel):
             ("view_dashboard", "Can view Dashboard"),
         ]
 
-    __abx = None
+    __hub = None
 
     owner = models.ForeignKey(
         'Owner', on_delete=models.PROTECT, null=True, blank=True, related_name='+',)
     key = models.CharField(_('key'), max_length=20, unique=True,)
 
     @classmethod
-    def abx(cls):
+    def hub(cls):
         """ Returns the Owner Abraxas - must have the key "ABX"    """
-        if not cls.__abx:
+        if not cls.__hub:
             try:
-                cls.__abx = cls.objects.get(key='ABX')
+                cls.__hub = cls.objects.get(key=HUB_OWNER_KEY)
             except:
-                cls.__abx = None
-        return cls.__abx
+                cls.__hub = None
+        return cls.__hub
 
 
 class ContainerType(AbstractDatahubModel):
@@ -222,7 +222,7 @@ class Application(AbstractDatahubModel):
         """ Returns the Application of the Data_Hub - must have the Key "HUB"    """
         if not cls.__hub:
             try:
-                cls.__hub = cls.objects.get(key='HUB')
+                cls.__hub = cls.objects.get(key=HUB_APPLICATION_KEY)
             except:
                 cls.__hub = None
         return cls.__hub
