@@ -15,6 +15,7 @@ from . forms import ScopeForm
 from django.contrib.messages import info, error
 from django.contrib.auth.decorators import login_required, permission_required
 from . load import *
+from django.db import connections
 
 
 @login_required(login_url="index")
@@ -25,7 +26,7 @@ def load(request):
         for registered_class in registered_classes:
             name = registered_class._meta.verbose_name_plural
             action = request.POST.get(name)
-            if action == 'Save':
+            if action == 'Load':
                 txt = f'{name} not loaded'
                 if registered_class == Environment:
                     txt = EnvironmentLoader.load(request)
@@ -43,11 +44,41 @@ def load(request):
                     txt = UserLoader().load(request)
                 if registered_class == ContainerType:
                     txt = ContainerTypeLoader().load(request)
+
+                    # Connection dynamisch hinzufügen bzw. überschreiben
+                    from datahub import settings 
+                    db = settings.DATABASES['default'].copy()
+                    db['NAME'] = r'C:\en\abx\datahub\db-dynamic.sqlite3'
+                    settings.DATABASES['data'] = db
+
+                        # 'ENGINE': 'django.db.backends.postgresql',
+                        # 'NAME': 'sta_dat',
+                        # 'HOST': 'sta.db.dat.abraxas-apis.ch',
+                        # 'PORT': '5432',
+                        # 'USER': 'exusc01',
+                        # 'PASSWORD': 'xx',
+                        
+                    # https://www2.sqlite.org/cvstrac/wiki?p=InformationSchema
+
+                    with connections["data"].cursor() as cursor:
+                        cursor.execute("SELECT name FROM main.sqlite_schema where type = 'table' ")
+                        rows = cursor.fetchall()
+                        # print('xxxxxxxxxxxxx', rows)
+                        columns = [col[0] for col in cursor.description]
+                        print('xxxxxxxxxxxxx', columns)
+                        d = [dict(zip(columns, row)) for row in rows]
+                        print('xxxxxxxxxxxxx', d)
+
                 if registered_class == Container:
                     txt = ContainerLoader().load(request)
                 info(request, txt)
             if action == 'Delete':
-                info(request, f'{name} not deleted')
+                txt = f'{name} not deleted'
+                if registered_class == Owner:
+                    txt = OwnerLoader().delete(request)
+                if registered_class == Scope:
+                    txt = ScopeLoader().delete(request)
+                info(request, txt)
 
     context = default_context(request)
     classes = {}

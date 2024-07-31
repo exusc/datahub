@@ -49,6 +49,8 @@ class Owner(AbstractDatahubModel):
     owner = models.ForeignKey(
         'Owner', on_delete=models.PROTECT, null=True, blank=True, related_name='+',)
     key = models.CharField(_('key'), max_length=20, unique=True,)
+    kanton = models.CharField(_('kanton'), max_length=2, null=True, blank=True)
+    nr = models.IntegerField(_('kundennr'), null=True, blank=True)
 
     @classmethod
     def hub(cls):
@@ -115,8 +117,8 @@ class Container(AbstractDatahubModel):
     key = models.CharField(_('key'), max_length=20, unique=True,)
     containertype = models.ForeignKey(
         to=ContainerType, on_delete=models.PROTECT)
-    connection = models.TextField(_('Connection'), max_length=200, null=True,
-                                  blank=True, help_text=_("Script to establish connection to container"))
+    connection = models.JSONField(_('Connection'), null=True,
+                                  blank=True, help_text=_("To establish connection to container"))
 
     def add_scope(self, area, scope):
         print(f'Container {str(self):15} : "add_scope"  Area: {area.key:10}  Application: {area.application.key:10}  Scope: {scope.key}  Connection:{self.connection}')
@@ -275,11 +277,13 @@ class Scope(AbstractDatahubModel):
         "S": _("Standard"),
         "O": _("Org scope"),
         "A": _("App scope"),
+        "T": _("Test scope"),
     }
 
     owner = models.ForeignKey(
         to=Owner, on_delete=models.PROTECT, related_name='+',)
     key = models.CharField(_('key'), max_length=80, unique=True, default="tbd")
+    hex = models.CharField(_('hex'), max_length=8, null=True, blank=True, help_text=_("Hex value for AW data"))
     type = models.CharField(_('type'), max_length=1, choices=TYPE, default='S',
                             help_text=_("Defines how scope can be used"))
     application = models.ForeignKey(to=Application, on_delete=models.PROTECT)

@@ -82,7 +82,18 @@ DATABASES = {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
-}
+    }
+    
+"""
+    'data': {
+       'ENGINE': 'django.db.backends.postgresql',
+       'NAME': 'sta_dat',
+       'HOST': 'sta.db.dat.abraxas-apis.ch',
+       'PORT': '5432',
+       'USER': 'exusc01',
+       'PASSWORD': 'xx',
+    }
+"""
 
 
 # Password validation

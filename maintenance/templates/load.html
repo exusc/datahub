@@ -11,12 +11,15 @@
     <form action="" method="POST">
         {% csrf_token %}
         <div class="w3-row-padding w3-margin-bottom w3-third">
-            {% for cls, number in classes.items %}
-            <h3>Number {{cls}} loaded: {{number}}
-                <input class="w3-green w3-right w3-margin-right" type="submit" name="{{cls}}" value="Save">
-                <input class="w3-red w3-right w3-margin-right" type="submit" name="{{cls}}" value="Delete">
-            </h3>
-            {% endfor %}
+        <table>                
+        {% for cls, number in classes.items %}
+            <tr>
+            <td><h3>{{cls}} {{number}} </h3></td>
+            <td><input class="w3-button w3-green w3-right w3-margin-right" type="submit" name="{{cls}}" value="Load"></td>
+            <td><input class="w3-button w3-red w3-right w3-margin-right" type="submit" name="{{cls}}" value="Delete"></td>
+            </tr>
+        {% endfor %}
+        </table>
         </div>
     </form>
 </div>
