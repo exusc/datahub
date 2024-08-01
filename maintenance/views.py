@@ -68,12 +68,30 @@ def load(request):
 @login_required(login_url="index")
 def check(request):
     context = default_context(request)
+
+    health_dbs = {}
     for database in Container.objects.filter(containertype__key='PostGres'):
         try:
-            d = database.exec_sql("select nspname as schema from pg_catalog.pg_namespace where not nspowner = 10")
-            print('Data: --->', d)
+            schemas = database.schemas()
+            health_dbs[database] = 'Access: ok, Schemas: ' + str(schemas)
         except OperationalError as err:
-            error(request, err)
+            health_dbs[database] = 'Access: ' + str(err)
+    context['health_dbs'] = health_dbs
+
+    health_areas = {}
+    for area in Area.objects.all().order_by('application__key'):
+        if (area.database.containertype.key == 'PostGres'):
+            try:
+                if area.schema() in area.database.schemas():
+                    health_areas[area] = f'Schema "{area.schema()}" found'
+                else:
+                    health_areas[area] = f'Schema "{area.schema()}" not in Database "{area.database}"'
+            except OperationalError as err:
+                health_areas[area] = 'No access'
+        else:
+            health_areas[area] = 'No PostGres Database'
+    context['health_areas'] = health_areas
+
     return render(request, 'check.html', context)
 
 

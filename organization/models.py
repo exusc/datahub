@@ -119,6 +119,10 @@ class Container(AbstractDatahubModel):
             ("download_templates", "Is allowed to download report templates"),
         ]
 
+    def __init__(self, *args, **kwargs):
+        self.__schemas = None
+        super().__init__(*args, **kwargs)
+
     owner = models.ForeignKey(
         to=Owner, on_delete=models.PROTECT, related_name='+',)
     key = models.CharField(_('key'), max_length=20, unique=True,)
@@ -172,8 +176,14 @@ class Container(AbstractDatahubModel):
         with connections[self.__name].cursor() as cursor:
             cursor.execute(sql_string)
             rows = cursor.fetchall()
-            columns = [col[0] for col in cursor.description]
-            return [dict(zip(columns, row)) for row in rows]
+            return [row[0] for row in rows]
+            # columns = [col[0] for col in cursor.description]
+            # return [dict(zip(columns, row)) for row in rows]
+
+    def schemas(self):
+        if not self.__schemas:
+            self.__schemas = self.exec_sql("select nspname as schema from pg_catalog.pg_namespace where not nspowner = 10")
+        return self.__schemas
 
 
 class User(AbstractUser):

@@ -7,4 +7,27 @@
 </header>
 <br>
 
+<h1>Databases</h1>
+<table  class="w3-table-all">
+{% for db, msg in health_dbs.items%}
+    <tr>
+        <td>{{db}}</td>
+        <td>{{db.desc}}</td>
+        <td>{{msg}}</td>
+    </tr>
+{% endfor %}
+</table>
+
+<h1>Areas</h1>
+<table  class="w3-table-all">
+{% for area, msg in health_areas.items%}
+    <tr>
+        <td>{{area.application}} ({{area.application.desc}})</td>
+        <td>{{area}} ({{area.desc}})</td>
+        <td>{{area.database}}</td>
+        <td class="w3-red">{{msg}}</td>
+    </tr>
+{% endfor %}
+</table>
+
 {% endblock %}
