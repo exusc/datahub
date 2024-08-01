@@ -1,8 +1,8 @@
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
-from django.db import models
+from django.db import models, connections
 from django.contrib.auth.models import AbstractUser, Group
-from datahub.settings import LANGUAGES, HUB_OWNER_KEY, HUB_APPLICATION_KEY
+from datahub.settings import LANGUAGES, HUB_OWNER_KEY, HUB_APPLICATION_KEY, DATABASES
 from django.utils.translation import gettext as _
 import uuid
 
@@ -83,6 +83,8 @@ class ContainerType(AbstractDatahubModel):
         to=Owner, on_delete=models.PROTECT, related_name='+',)
     key = models.CharField(_('key'), max_length=20, unique=True,)
     type = models.CharField(_('type'), max_length=2, choices=TYPE)
+    connection = models.JSONField(_('Connection'), null=True,
+                                  blank=True, help_text=_("Base information for connection like middleware"))
     area_add = models.TextField(_('area_add'), null=True,
                                 blank=True, help_text=_("Script used to add an area to container"))
     user_add = models.TextField(_('user_add'), null=True,
@@ -102,7 +104,12 @@ class ContainerType(AbstractDatahubModel):
 class Container(AbstractDatahubModel):
     """ Can contain data of multiple areas/application
         But we expect that every client wants to have his own containers
+
+
+
         TODO: implement methods add_scope, delete_scope using scripts from ContainerType
+
+
     """
     class Meta:
         verbose_name = _("Container")
@@ -127,6 +134,46 @@ class Container(AbstractDatahubModel):
     def add_area(self, area):
         print(
             f'Container {str(self):15} : "add_area "  Area: {area.key:10}  Application: {area.application.key:10}  Connection:{self.connection}')
+
+    @property
+    def __name(self):
+        """ Returns a string used as identifier for connection """
+        return str(self.id)
+
+    def __add_to_settings(self):
+        if not self.containertype.type == 'DB':
+            raise Exception(f'This container ({self.key}) is not type database')
+
+        """ Adds the database to the settings.DATABASES, if it not exists
+        """
+        if not DATABASES.get(self.__name):
+            # Create database dynamic based on 'default'
+            db = DATABASES['default'].copy()
+            # db['NAME'] = r'C:\en\abx\datahub\db-dynamic.sqlite3'
+            # https://www2.sqlite.org/cvstrac/wiki?p=InformationSchema
+            # Set defaults dependent of containetype
+            db.update(self.containertype.connection)
+            db.update(self.connection)
+            # Hardcoded Defaults
+            db['USER'] = 'postgres'
+            db['PASSWORD'] = '.Paraolimpia1235'
+            DATABASES[self.__name] = db
+            """
+            db['HOST'] = 'sta.db.dat.abraxas-apis.ch'
+            db['USER'] = 'postgres'
+            db['PASSWORD'] = 'xxx'
+            db['OPTIONS'] = {'sslmode': 'require',}
+            """
+
+    def exec_sql(self,sql_string):
+        if not self.containertype.type == 'DB':
+            raise Exception(f'This container ({self.key}) is not type database')
+        self.__add_to_settings()
+        with connections[self.__name].cursor() as cursor:
+            cursor.execute(sql_string)
+            rows = cursor.fetchall()
+            columns = [col[0] for col in cursor.description]
+            return [dict(zip(columns, row)) for row in rows]
 
 
 class User(AbstractUser):
@@ -237,7 +284,8 @@ class Area(AbstractDatahubModel):
         verbose_name_plural = _("Areas")
         unique_together = ['application', 'key']
 
-    owner = models.ForeignKey(to=Owner, on_delete=models.PROTECT, related_name='+',)
+    owner = models.ForeignKey(
+        to=Owner, on_delete=models.PROTECT, related_name='+',)
     key = models.CharField(_('key'), max_length=20)
     application = models.ForeignKey(to=Application, on_delete=models.PROTECT)
     database = models.ForeignKey(to=Container, on_delete=models.PROTECT,
@@ -283,7 +331,8 @@ class Scope(AbstractDatahubModel):
     owner = models.ForeignKey(
         to=Owner, on_delete=models.PROTECT, related_name='+',)
     key = models.CharField(_('key'), max_length=80, unique=True, default="tbd")
-    hex = models.CharField(_('hex'), max_length=8, null=True, blank=True, help_text=_("Hex value for AW data"))
+    hex = models.CharField(_('hex'), max_length=8, null=True,
+                           blank=True, help_text=_("Hex value for AW data"))
     type = models.CharField(_('type'), max_length=1, choices=TYPE, default='S',
                             help_text=_("Defines how scope can be used"))
     application = models.ForeignKey(to=Application, on_delete=models.PROTECT)
@@ -402,12 +451,11 @@ class Environment(AbstractDatahubModel):
         _('password'), max_length=8, null=True, blank=True)
     ace_connect = models.CharField(
         _('ace_connect'), max_length=256, null=True, blank=True, )
-    
+
     natproc = models.CharField(
         _('natproc'), max_length=8, null=True, blank=True, help_text=_(
-        'Used in batch job.'))
-    
+            'Used in batch job.'))
+
     awlib = models.CharField(
         _('awlib'), max_length=8, null=True, blank=True, help_text=_(
-        'Used in batch job.'))
-    
+            'Used in batch job.'))

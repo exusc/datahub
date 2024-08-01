@@ -259,7 +259,7 @@ class ContainerTypeAdmin(DatahubModelAdmin):
     list_display = ['key', 'desc', 'type', 'owner', 'active']
     list_filter = ['type']
     fieldsets = [
-        (None, {'fields': [('key', 'owner',), 'active', 'desc', 'type'], }),
+        (None, {'fields': [('key', 'owner',), 'active', 'desc', 'type', 'connection'], }),
         ('Scripts', {'fields': [('area_add', 'user_add', 'scope_add'), ], }),
         ('History', {'fields': [('ctime', 'cuser'), ('utime', 'uuser')], },),
     ]

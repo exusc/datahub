@@ -85,7 +85,7 @@
             {% endif %}    
 
             {% if request.user.is_superuser %}    
-            <a href="#" class="w3-bar-item w3-button w3-padding"><i class="fa fa-stethoscope fa-fw"></i> Health Check (TBD)</a>
+            <a href="{% url 'check' %}"  class="w3-bar-item w3-button w3-padding"><i class="fa fa-stethoscope fa-fw"></i> Health Check</a>
             <a href="#" class="w3-bar-item w3-button w3-padding"><i class="fa fa-up-down-left-right fa-fw"></i> Cross Reference (TBD)</a>
             {% endif %}    
             <div class="w3-container w3-theme">
@@ -131,6 +131,9 @@
             <p {% if message.tags %} class="{{ message.tags }}"{% endif %}>
                 {% if message.level == DEFAULT_MESSAGE_LEVELS.INFO %}
                 <h3 class="w3-green">{{ message }}</h3>
+                {% endif %}
+                {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+                <h3 class="w3-red">{{ message }}</h3>
                 {% endif %}
             </p>
             {% endfor %}

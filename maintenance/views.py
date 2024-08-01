@@ -1,26 +1,27 @@
-from organization.models import *
 from django.utils import timezone
-from .forms import SampleForm
+from django import forms
 from django.core.exceptions import ValidationError
 from django.core import validators
-from django import forms
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from organization.models import Owner, User, Application, Area, Container, Scope
 from django.contrib.auth import authenticate, login
+from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.admin.models import LogEntry
+from django.contrib.messages import info, error
 from django.views import View
 from datahub.settings import HUB_ALLOWED_OWNER_KEYS
+from django.db.utils import OperationalError
+from organization.models import *
 from . forms import ScopeForm
-from django.contrib.messages import info, error
-from django.contrib.auth.decorators import login_required, permission_required
 from . load import *
-from django.db import connections
+from . forms import SampleForm
 
 
 @login_required(login_url="index")
 def load(request):
-    registered_classes = [ Owner, ContainerType, Container, Environment, Application, Area, Scope,  Group, User, ]
+    registered_classes = [Owner, ContainerType, Container,
+                          Environment, Application, Area, Scope,  Group, User, ]
 
     if request.POST:
         for registered_class in registered_classes:
@@ -44,31 +45,6 @@ def load(request):
                     txt = UserLoader().load(request)
                 if registered_class == ContainerType:
                     txt = ContainerTypeLoader().load(request)
-
-                    # Connection dynamisch hinzufügen bzw. überschreiben
-                    from datahub import settings 
-                    db = settings.DATABASES['default'].copy()
-                    db['NAME'] = r'C:\en\abx\datahub\db-dynamic.sqlite3'
-                    settings.DATABASES['data'] = db
-
-                        # 'ENGINE': 'django.db.backends.postgresql',
-                        # 'NAME': 'sta_dat',
-                        # 'HOST': 'sta.db.dat.abraxas-apis.ch',
-                        # 'PORT': '5432',
-                        # 'USER': 'exusc01',
-                        # 'PASSWORD': 'xx',
-                        
-                    # https://www2.sqlite.org/cvstrac/wiki?p=InformationSchema
-
-                    with connections["data"].cursor() as cursor:
-                        cursor.execute("SELECT name FROM main.sqlite_schema where type = 'table' ")
-                        rows = cursor.fetchall()
-                        # print('xxxxxxxxxxxxx', rows)
-                        columns = [col[0] for col in cursor.description]
-                        print('xxxxxxxxxxxxx', columns)
-                        d = [dict(zip(columns, row)) for row in rows]
-                        print('xxxxxxxxxxxxx', d)
-
                 if registered_class == Container:
                     txt = ContainerLoader().load(request)
                 info(request, txt)
@@ -89,6 +65,18 @@ def load(request):
     return render(request, 'load.html', context)
 
 
+@login_required(login_url="index")
+def check(request):
+    context = default_context(request)
+    for database in Container.objects.filter(containertype__key='PostGres'):
+        try:
+            d = database.exec_sql("select nspname as schema from pg_catalog.pg_namespace where not nspowner = 10")
+            print('Data: --->', d)
+        except OperationalError as err:
+            error(request, err)
+    return render(request, 'check.html', context)
+
+
 def default_context(request):
     result = {}
     result['all_owners'] = Owner.objects.all().order_by('key')
@@ -101,7 +89,7 @@ def default_context(request):
 
 @login_required(login_url="index")
 @permission_required("organization.view_dashboard", login_url='index')
-#@permission_required("organization.view_owner", login_url='index')
+# @permission_required("organization.view_owner", login_url='index')
 def dashboard(request, owner_id=None):
     context = default_context(request)
     if owner_id:
