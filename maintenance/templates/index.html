@@ -141,7 +141,7 @@
                 {% for area in application.area_set.all %}
                 <h5>Area: <a href="{% url 'admin:organization_area_change' area.id %}">{{area}}</a> - {{area.desc}}  {% if not area.active %}(not active){% endif %}</h5>
                 <li>Database: <a href="{% url 'admin:organization_container_change' area.database.id %}">{{area.database}}</a>
-                     - {{area.database.desc}} - Schema for tables: <b>{{area.schema}}</b>
+                     - {{area.database.desc}} - Schema for tables: <b>{{area.schema_tables}}</b> - Schema for views: <b>{{area.schema_views}}</b>
                 </li>
                 <li>Filestorage: <a
                     href="{% url 'admin:organization_container_change' area.filestorage.id %}">{{area.filestorage}}</a>

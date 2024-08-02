@@ -448,18 +448,21 @@ class RoleLoader():
 class ContainerTypeLoader():
 
     def load(self, request) -> str:
-        def create(key, desc, type):
+        def create(key, desc, type, connection={}):
             obj = ContainerType(
                 owner=Owner.hub(), key=key, desc=desc, type=type,
                 ctime=timezone.now(), cuser=request.user,
+                connection=connection,
             )
             try:
                 obj.save()
             except:
                 pass
 
+
         create('Clickhouse', 'For Testing', ContainerType.DATABASE)
-        create('PostGres', 'Standard DB', ContainerType.DATABASE)
+        create('PostGres', 'Standard DB', ContainerType.DATABASE, {"ENGINE" : "django.db.backends.postgresql"})
+        create('SqlLite', 'Django DB', ContainerType.DATABASE, {"ENGINE": "django.db.backends.sqlite3"})
         create('Filesystem', 'Test', ContainerType.FILESTORAGE)
         create('MinIO', 'Standard for Files', ContainerType.FILESTORAGE)
         return _('ContainerTypes successfully loaded')
@@ -470,7 +473,9 @@ class ContainerLoader():
     def load(self, request) -> str:
         def create(owner_key, key, desc, type, connection={}):
             obj = Container(owner=Owner.objects.get(key=owner_key),
-                            key=key, desc=desc, connection=json.dumps(connection),
+                            key=key, desc=desc, 
+                            connection=connection,
+                            # connection=json.dumps(connection),
                             containertype=ContainerType.objects.get(key=type),
                             ctime=timezone.now(), cuser=request.user,
                             )
@@ -478,11 +483,13 @@ class ContainerLoader():
                 obj.save()
             except:
                 pass
+
         pg_sta = {}
-        pg_sta['ENGINE'] = 'django.db.backends.postgresql'
         pg_sta['NAME'] = 'sta_dat'
         pg_sta['HOST'] = 'sta.db.dat.abraxas-apis.ch'
         pg_sta['PORT'] = '5432'
+        # pg_sta['OPTIONS'] = {'sslmode': 'require',}
+
 
         create('ABX', 'DAT', 'Default DB for multiple Clients',
                'PostGres', pg_sta)
@@ -502,12 +509,8 @@ class ContainerLoader():
 
         minio = {}
         minio['bucket'] = 'xxx.yyy.zzz.abraxas'
-        create('ABX', 'MinIO', 'Standard MinIO for all Clients', 'MinIO',minio)
+        create('ABX', 'MinIO', 'Standard MinIO for all Clients', 'MinIO', minio)
 
-        minio['bucket'] = 'xxx.yyy.zzz.sva-zh'
-        create('SVA-ZH', 'MinIO Zürich', 'Alle Files of Zürich', 'MinIO',minio)
-
-        # dict_a = json.loads(jsonString)
-
+        create('ABX', 'Django', 'Test Lokal', 'SqlLite', {'NAME' : r'C:\en\abx\datahub\data.sqlite3'})
 
         return _('Container successfully loaded')

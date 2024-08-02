@@ -1,9 +1,9 @@
-Version 1.0.3 of Prototype for Concept Discussions
+Version 1.0.4 of Prototype for Concept Discussions
 
 Supports base functionality for 
 - Standard administration of DATA-Hub objects
 - Self service with restriction to owned objects
-- First version of health checks implemented
+- Health checks implemented
 
 Open Tasks
 - connection to secure connect

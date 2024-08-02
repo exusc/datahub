@@ -153,8 +153,6 @@ class Container(AbstractDatahubModel):
         if not DATABASES.get(self.__name):
             # Create database dynamic based on 'default'
             db = DATABASES['default'].copy()
-            # db['NAME'] = r'C:\en\abx\datahub\db-dynamic.sqlite3'
-            # https://www2.sqlite.org/cvstrac/wiki?p=InformationSchema
             # Set defaults dependent of containetype
             db.update(self.containertype.connection)
             db.update(self.connection)
@@ -162,12 +160,6 @@ class Container(AbstractDatahubModel):
             db['USER'] = 'postgres'
             db['PASSWORD'] = '.Paraolimpia1235'
             DATABASES[self.__name] = db
-            """
-            db['HOST'] = 'sta.db.dat.abraxas-apis.ch'
-            db['USER'] = 'postgres'
-            db['PASSWORD'] = 'xxx'
-            db['OPTIONS'] = {'sslmode': 'require',}
-            """
 
     def exec_sql(self,sql_string):
         if not self.containertype.type == 'DB':
@@ -176,18 +168,22 @@ class Container(AbstractDatahubModel):
         with connections[self.__name].cursor() as cursor:
             cursor.execute(sql_string)
             rows = cursor.fetchall()
-            return [row[0] for row in rows]
-            return [col[0] for col in cursor.description]
+            return [row[0] for row in rows]  # Return Col1
+            return [col[0] for col in cursor.description] # Return Header
             columns = [col[0] for col in cursor.description]
-            return [dict(zip(columns, row)) for row in rows]
+            return [dict(zip(columns, row)) for row in rows] # Return complete dict
 
     def schemas(self):
         if not self.__schemas:
+            # PostGres:
             self.__schemas = self.exec_sql("select nspname as schema from pg_catalog.pg_namespace where not nspowner = 10")
 
-            # SqlLite
-            # Access: ok, Schemas: ['type', 'name', 'tbl_name', 'rootpage', 'sql']
-            # self.__schemas = self.exec_sql("select * from sqlite_master")
+            # SqlLite:
+            # https://www2.sqlite.org/cvstrac/wiki?p=InformationSchema
+            # Fields of sqlite_master: ['type', 'name', 'tbl_name', 'rootpage', 'sql']
+            # self.__schemas = self.exec_sql("select tbl_name from sqlite_master where type = 'table'")
+
+            # print(self.__schemas)
 
         return self.__schemas
 
@@ -324,8 +320,11 @@ class Area(AbstractDatahubModel):
 
         super().save(force_insert, force_update, using, update_fields)
 
-    def schema(self):
+    def schema_tables(self):
         return f'{self.application.key}_{self.key}_base'
+
+    def schema_views(self):
+        return f'{self.application.key}_{self.key}'
 
 
 class Scope(AbstractDatahubModel):

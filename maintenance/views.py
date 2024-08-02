@@ -69,36 +69,60 @@ def load(request):
 def check(request):
     context = default_context(request)
 
-    def ok(msg):
-        return {'badge' : '<span class="w3-badge w3-green">O</span>', 'msg' : msg }
-    def info(msg):
-        return {'badge' : '<span class="w3-badge w3-yellow">I</span>', 'msg' : msg }
-    def err(msg):
-        return {'badge' : '<span class="w3-badge w3-red">E</span>', 'msg' : msg }
+    def result(health_dict, health_obj, level, msg, id='x'):
+        """ Creates or updates the message object in health_dict
+        """
+        color = 'yellow'
+        if level == 'O':
+            color = 'green'
+        if level == 'E':
+            color = 'red'
+        if not health_dict.get(health_obj):
+            health_dict[health_obj] = {}
+        obj = health_dict.get(health_obj)
+        obj.update(
+            {'badge_'+id: f'<span class="w3-badge w3-{color}">{level}</span>'})
+        obj.update({'msg_'+id: msg})
 
     health_dbs = {}
-    for database in Container.objects.filter(containertype__key__in=['SqlLite','PostGres']):
+    for database in Container.objects.filter(containertype__key__in=['SqlLite', 'PostGres']):
         try:
             schemas = database.schemas()
-            health_dbs[database] = ok('Access: ok, Schemas: ' + str(schemas))
-            health_dbs[database] = ok('Connection stablished')
+            result(health_dbs,database, 'O', 'Connection established')
         except OperationalError as error:
-            health_dbs[database] = err(str(error))
+            result(health_dbs,database, 'E', str(error))
     context['health_dbs'] = health_dbs
 
     health_areas = {}
     for area in Area.objects.all().order_by('application__key'):
         if (area.database.containertype.key in ['PostGres', 'SqlLite']):
+            # schema_tables
+            schema = 't'
             try:
-                # TODO Add View -Schema
-                if area.schema() in area.database.schemas():
-                    health_areas[area] = ok(f'Schema "{area.schema()}" in database')
+                if area.schema_tables() in area.database.schemas():
+                    result(health_areas, area, 'O',
+                           f'Schema "{area.schema_tables()}" in database', schema)
                 else:
-                    health_areas[area] = err(f'Schema "{area.schema()}" not in database')
+                    result(health_areas, area, 'E',
+                           f'Schema "{area.schema_tables()}" not in database', schema)
             except OperationalError as error:
-                health_areas[area] = info('No access')
+                result(health_areas, area, 'I', 'No access', schema)
+            # schema_views  
+            schema = 'v'
+            try:
+                if area.schema_views() in area.database.schemas():
+                    result(health_areas, area, 'O',
+                           f'Schema "{area.schema_views()}" in database', schema)
+                else:
+                    result(health_areas, area, 'E',
+                           f'Schema "{area.schema_views()}" not in database', schema)
+            except OperationalError as error:
+                result(health_areas, area, 'I', 'No access', schema)
         else:
-            health_areas[area] = info(f'Database type ({area.database.containertype.key}) not suported')
+            result(health_areas, area, 'I',
+                   f'Database type ({area.database.containertype.key}) not suported', 't')
+            result(health_areas, area, 'I',
+                   f'Database type ({area.database.containertype.key}) not suported', 'v')
     context['health_areas'] = health_areas
 
     return render(request, 'check.html', context)
