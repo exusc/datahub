@@ -10,26 +10,26 @@
 <h1>Databases</h1>
 <table  class="w3-table-all">
 <tr><th>Database</th><th>Description</th><th>Container Type</th><th>Information</th></tr>
-{% for db, msg in health_dbs.items%}
+{% for db, x in health_dbs.items%}
     <tr>
         <td><a href="{% url 'admin:organization_container_change' db.id %}">{{db}}</a>
         <td>{{db.desc}}</td>
         <td><a href="{% url 'admin:organization_containertype_change' db.containertype.id %}">{{db.containertype.key}}</a></td>
-        <td><span class="w3-badge w3-red">E</span> - {{msg}}</td>
+        <td>{% autoescape off %}{{x.badge}}{% endautoescape %} - {{x.msg}}</td>
     </tr>
 {% endfor %}
 </table>
 
 <h1>Areas</h1>
 <table  class="w3-table-all">
-<tr><th>Application</th><th>Description</th><th>Area</th><th>Description</th><th>Database</th><th>Table Schema</th><th>View Schema</th></tr>
-{% for area, msg in health_areas.items%}
+<tr><th>Application</th><th>Description</th><th>Area</th><th>Description</th><th>Database</th><th>Table Schema</th><th>View Schema (TBD)</th></tr>
+{% for area, x in health_areas.items%}
     <tr>
         <td><a href="{% url 'admin:organization_application_change' area.application.id %}">{{area.application}}</a></td><td>{{area.application.desc}}</td>
         <td><a href="{% url 'admin:organization_area_change' area.id %}">{{area}}</a></td><td>{{area.desc}}</td>
         <td><a href="{% url 'admin:organization_container_change' area.database.id %}">{{area.database}}</a></td>
-        <td><span class="w3-badge w3-red">E</span> - {{msg}}</td>
-        <td><span class="w3-badge w3-green">O</span> - {{msg}}</td>
+        <td>{% autoescape off %}{{x.badge}}{% endautoescape %} - {{x.msg}}</td>
+        <td>{% autoescape off %}{{x.badge}}{% endautoescape %} - {{x.msg}}</td>
     </tr>
 {% endfor %}
 </table>

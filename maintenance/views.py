@@ -69,27 +69,36 @@ def load(request):
 def check(request):
     context = default_context(request)
 
+    def ok(msg):
+        return {'badge' : '<span class="w3-badge w3-green">O</span>', 'msg' : msg }
+    def info(msg):
+        return {'badge' : '<span class="w3-badge w3-yellow">I</span>', 'msg' : msg }
+    def err(msg):
+        return {'badge' : '<span class="w3-badge w3-red">E</span>', 'msg' : msg }
+
     health_dbs = {}
     for database in Container.objects.filter(containertype__key__in=['SqlLite','PostGres']):
         try:
             schemas = database.schemas()
-            health_dbs[database] = 'Access: ok, Schemas: ' + str(schemas)
-        except OperationalError as err:
-            health_dbs[database] = 'Access: ' + str(err)
+            health_dbs[database] = ok('Access: ok, Schemas: ' + str(schemas))
+            health_dbs[database] = ok('Connection stablished')
+        except OperationalError as error:
+            health_dbs[database] = err(str(error))
     context['health_dbs'] = health_dbs
 
     health_areas = {}
     for area in Area.objects.all().order_by('application__key'):
         if (area.database.containertype.key in ['PostGres', 'SqlLite']):
             try:
+                # TODO Add View -Schema
                 if area.schema() in area.database.schemas():
-                    health_areas[area] = f'Schema "{area.schema()}" found'
+                    health_areas[area] = ok(f'Schema "{area.schema()}" in database')
                 else:
-                    health_areas[area] = f'Schema "{area.schema()}" not in Database "{area.database}"'
-            except OperationalError as err:
-                health_areas[area] = 'No access'
+                    health_areas[area] = err(f'Schema "{area.schema()}" not in database')
+            except OperationalError as error:
+                health_areas[area] = info('No access')
         else:
-            health_areas[area] = 'Database type not suported'
+            health_areas[area] = info(f'Database type ({area.database.containertype.key}) not suported')
     context['health_areas'] = health_areas
 
     return render(request, 'check.html', context)
