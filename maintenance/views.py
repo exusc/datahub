@@ -70,7 +70,7 @@ def check(request):
     context = default_context(request)
 
     health_dbs = {}
-    for database in Container.objects.filter(containertype__key='PostGres'):
+    for database in Container.objects.filter(containertype__key__in=['SqlLite','PostGres']):
         try:
             schemas = database.schemas()
             health_dbs[database] = 'Access: ok, Schemas: ' + str(schemas)
@@ -80,7 +80,7 @@ def check(request):
 
     health_areas = {}
     for area in Area.objects.all().order_by('application__key'):
-        if (area.database.containertype.key == 'PostGres'):
+        if (area.database.containertype.key in ['PostGres', 'SqlLite']):
             try:
                 if area.schema() in area.database.schemas():
                     health_areas[area] = f'Schema "{area.schema()}" found'
@@ -89,7 +89,7 @@ def check(request):
             except OperationalError as err:
                 health_areas[area] = 'No access'
         else:
-            health_areas[area] = 'No PostGres Database'
+            health_areas[area] = 'Database type not suported'
     context['health_areas'] = health_areas
 
     return render(request, 'check.html', context)

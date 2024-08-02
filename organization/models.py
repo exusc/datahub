@@ -177,12 +177,18 @@ class Container(AbstractDatahubModel):
             cursor.execute(sql_string)
             rows = cursor.fetchall()
             return [row[0] for row in rows]
-            # columns = [col[0] for col in cursor.description]
-            # return [dict(zip(columns, row)) for row in rows]
+            return [col[0] for col in cursor.description]
+            columns = [col[0] for col in cursor.description]
+            return [dict(zip(columns, row)) for row in rows]
 
     def schemas(self):
         if not self.__schemas:
             self.__schemas = self.exec_sql("select nspname as schema from pg_catalog.pg_namespace where not nspowner = 10")
+
+            # SqlLite
+            # Access: ok, Schemas: ['type', 'name', 'tbl_name', 'rootpage', 'sql']
+            # self.__schemas = self.exec_sql("select * from sqlite_master")
+
         return self.__schemas
 
 
