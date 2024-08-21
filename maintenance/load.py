@@ -165,11 +165,13 @@ class ApplicationLoader():
                'Kunde', 'Teilnehmer',)
         create('ABX', 'ZB', 'Zugriffsberechtigung', 'Kunde', 'Teilnehmer',)
         create('ABX', 'ZP', 'Züri Primo', 'Kunde', 'Teilnehmer',)
-        create('SVA-SG', 'SVA-SG-LZ',
+        create('ABX', 'dmo', 'Demo', )
+        create('IGS', 'igs-zh', 'Data of SVA Zürich', )
+        create('SVA-SG', 'sva-sg-bz', 'SVA Sankt Gallen System B&Z', 'Tenant',)
+        create('SVA-SG', 'sva-sg-lz',
                'SVA Sankt Gallen System L&Z', 'Team', 'Group',)
-        create('SVA-SG', 'SVA-SG-BZ', 'SVA Sankt Gallen System B&Z', 'Tenant',)
-        create('SVA-ZH', 'SVA-ZH',
-               'Application for all Source Systems', 'Department',)
+        create('SVA-ZH', 'sva-zh-bz', 'SVA Zürich System B&Z', )
+        create('SVA-ZH', 'sva-zh-lz', 'SVA Zürich System L&Z', 'Department',)
         return _('Applications successfully loaded')
 
 
@@ -190,8 +192,11 @@ class AreaLoader():
                 obj.save()
             except:
                 pass
-        create('FD', 'RD', 'Raw Data', db_key='DAT', fs_key='MinIO')
-        create('SN', 'RD', 'Raw Data', db_key='DAT', fs_key='MinIO')
+        create('FD', 'RD', 'Raw Data', db_key='ADABAS', fs_key='MinIO')
+        create('SN', 'RD', 'Raw Data', db_key='ADABAS', fs_key='MinIO')
+        create('dmo', 'rd' , 'Raw Data for Demo', db_key='dat', fs_key='FS-ABX')
+
+        """
         create('SVA-SG-BZ', 'RD', 'Raw Data',
                db_key='STA-SVA-SG', fs_key='FS-ABX')
         create('SVA-SG-LZ', 'RD', 'Raw Data',
@@ -206,6 +211,7 @@ class AreaLoader():
                db_key='STA-SVA-ZH-BZ', fs_key='MinIO Zürich')
         create('SVA-ZH', 'RD_LZ', 'Raw Data LZ',
                db_key='STA-SVA-ZH-LZ', fs_key='MinIO Zürich')
+        """
         return _('Areas successfully loaded')
 
 
@@ -461,8 +467,9 @@ class ContainerTypeLoader():
 
 
         create('Clickhouse', 'For Testing', ContainerType.DATABASE)
-        create('PostGres', 'Standard DB', ContainerType.DATABASE, {"ENGINE" : "django.db.backends.postgresql"})
+        create('PostGreSQL', 'Standard DB', ContainerType.DATABASE, {"ENGINE" : "django.db.backends.postgresql"})
         create('SqlLite', 'Django DB', ContainerType.DATABASE, {"ENGINE": "django.db.backends.sqlite3"})
+        create('ACE_TE', 'ACE Server for MF ADABAS - Test', ContainerType.DATABASE, {"HOST": "cnxJDBC-TEST.systemz.abraxas-its.ch", "PORT": "6000", "cdd": "rte_TEST"})
         create('Filesystem', 'Test', ContainerType.FILESTORAGE)
         create('MinIO', 'Standard for Files', ContainerType.FILESTORAGE)
         return _('ContainerTypes successfully loaded')
@@ -474,9 +481,8 @@ class ContainerLoader():
         def create(owner_key, key, desc, type, connection={}):
             obj = Container(owner=Owner.objects.get(key=owner_key),
                             key=key, desc=desc, 
-                            connection=connection,
-                            # connection=json.dumps(connection),
                             containertype=ContainerType.objects.get(key=type),
+                            connection=connection,
                             ctime=timezone.now(), cuser=request.user,
                             )
             try:
@@ -491,21 +497,30 @@ class ContainerLoader():
         # pg_sta['OPTIONS'] = {'sslmode': 'require',}
 
 
-        create('ABX', 'DAT', 'Default DB for multiple Clients',
-               'PostGres', pg_sta)
+        create('ABX', 'dat', 'Default DB for multiple Clients',
+               'PostGreSQL', pg_sta)
         create('ABX', 'FS-ABX', 'Filesystem for all Clients', 'Filesystem',)
 
+
+        pg_sta['NAME'] = 'sta_igs'
+        create('SVA-SG', 'sta-igs', 'DB for all SVAs',
+               'PostGreSQL', pg_sta)
+
         pg_sta['NAME'] = 'sta_sva_sg'
-        create('SVA-SG', 'STA-SVA-SG', 'DB for all SG data',
-               'PostGres', pg_sta)
+        create('SVA-SG', 'sta-sva-sg', 'DB for all SG data',
+               'PostGreSQL', pg_sta)
 
         pg_sta['NAME'] = 'sta_sva_zh'
-        create('SVA-ZH', 'STA-SVA-ZH-BZ', 'Only BZ data for Zürich',
-               'PostGres', pg_sta)
-        create('SVA-ZH', 'STA-SVA-ZH-LZ', 'Only LZ data for Zürich',
-               'PostGres', pg_sta)
-        create('SVA-ZH', 'STA-SVA-ZH-BD',
+        create('SVA-ZH', 'stasva-zh', 'DB for all SG data',
+               'PostGreSQL', pg_sta)
+        
+        create('SVA-ZH', 'sta-sva-zh-bd',
                'Business Data (BZ and LZ) - High-Performance', 'Clickhouse', )
+
+        adabas = {}
+        adabas['NAME'] = 'ADABAS'
+        create('ABX', 'ADABAS', 'ADABAS via ACE',
+               'ACE_TE', adabas)
 
         minio = {}
         minio['bucket'] = 'xxx.yyy.zzz.abraxas'

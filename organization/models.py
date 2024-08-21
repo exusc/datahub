@@ -39,7 +39,7 @@ class Owner(AbstractDatahubModel):
     class Meta:
         verbose_name = _("Owner")
         verbose_name_plural = _("Owners")
-        ordering = ['-key']
+        ordering = ['key']
         permissions = [
             ("view_dashboard", "Can view Dashboard"),
         ]
@@ -114,6 +114,7 @@ class Container(AbstractDatahubModel):
     class Meta:
         verbose_name = _("Container")
         verbose_name_plural = _("Containers")
+        ordering = ['key']
         permissions = [
             ("upload_templates", "Is allowed to upload report templates"),
             ("download_templates", "Is allowed to download report templates"),
@@ -187,6 +188,10 @@ class Container(AbstractDatahubModel):
 
         return self.__schemas
 
+    def tables(self, schema='dmo_rd_base'):
+        tablenames = self.exec_sql(f"select tablename from pg_catalog.pg_tables where schemaname = '{schema}'")
+        return tablenames
+
 
 class User(AbstractUser):
     """ If a user is assigned to an owner, that person is just allowed to work with owner related objects """
@@ -251,6 +256,8 @@ class Application(AbstractDatahubModel):
     class Meta:
         verbose_name = _("Application")
         verbose_name_plural = _("Applications")
+        ordering = ['key']
+
 
     __hub = None
 
@@ -304,6 +311,8 @@ class Area(AbstractDatahubModel):
                                  related_name='+', help_text=_("To store structured data"))
     filestorage = models.ForeignKey(
         to=Container, on_delete=models.PROTECT, related_name='+', help_text=_("To store files"))
+    schematables = models.CharField(_('schematables'), max_length=40, null=True, blank=True, help_text='Overwrite default (app.key_area.key_base)')
+    schemaviews = models.CharField(_('schemaviews'), max_length=40, null=True, blank=True, help_text='Overwrite default (app.key_area.key)')
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         self.owner = self.application.owner
@@ -321,10 +330,14 @@ class Area(AbstractDatahubModel):
         super().save(force_insert, force_update, using, update_fields)
 
     def schema_tables(self):
-        return f'{self.application.key}_{self.key}_base'
+        if self.schematables:
+            return self.schematables
+        return f'{self.application.key}_{self.key}_base'.lower()
 
     def schema_views(self):
-        return f'{self.application.key}_{self.key}'
+        if self.schemaviews:
+            return self.schemaviews
+        return f'{self.application.key}_{self.key}'.lower()
 
 
 class Scope(AbstractDatahubModel):

@@ -14,7 +14,9 @@ urlpatterns = [
     path('setscope/<str:scope_id>', views.setscope, name='setscope'),
     
     path('load', views.load, name='load'),
+
     path('check', views.check, name='check'),
+    path('check/<str:area_id>', views.check, name='check'),
 
     path('switch_user/<int:user_id>', views.switch_user, name='switch_user'),
 ]

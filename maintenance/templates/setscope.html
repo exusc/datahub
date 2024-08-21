@@ -13,7 +13,7 @@
 {% for application, scopes in applications.items %}
 <div class="w3-container w3-theme-l3 w3-padding-16">
     <h3>{{application}} - {{application.desc}} 
-        <button class="w3-bar-item w3-theme w3-right w3-margin-right"  onclick="show('{{application}}')"><i class="fa fa-plus fa-fw"></i></button> 
+        <button class="w3-bar-item w3-theme w3-right w3-margin-right"  onclick="show('{{application}}')"><i class="fa fa-chevron-down fa-fw"></i></button> 
     </h3>
 
     <div id="{{application}}" style="display:none">

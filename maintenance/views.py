@@ -66,7 +66,7 @@ def load(request):
 
 
 @login_required(login_url="index")
-def check(request):
+def check(request, area_id=None):
     context = default_context(request)
 
     def result(health_dict, health_obj, level, msg, id='x'):
@@ -82,12 +82,14 @@ def check(request):
         obj = health_dict.get(health_obj)
         obj.update(
             {'badge_'+id: f'<span class="w3-badge w3-{color}">{level}</span>'})
+        if level == 'O':
+            obj.update({'ok': True})
         obj.update({'msg_'+id: msg})
 
     health_dbs = {}
-    for database in Container.objects.filter(containertype__key__in=['SqlLite', 'PostGres']):
+    for database in Container.objects.filter(containertype__key__in=['SqlLite', 'PostGreSQL', ]):
         try:
-            schemas = database.schemas()
+            database.schemas()  # Test Access to db
             result(health_dbs,database, 'O', 'Connection established')
         except OperationalError as error:
             result(health_dbs,database, 'E', str(error))
@@ -95,7 +97,7 @@ def check(request):
 
     health_areas = {}
     for area in Area.objects.all().order_by('application__key'):
-        if (area.database.containertype.key in ['PostGres', 'SqlLite']):
+        if (area.database.containertype.key in ['PostGreSQL', ]):
             # schema_tables
             schema = 't'
             try:
@@ -120,18 +122,27 @@ def check(request):
                 result(health_areas, area, 'I', 'No access', schema)
         else:
             result(health_areas, area, 'I',
-                   f'Database type ({area.database.containertype.key}) not suported', 't')
+                   f'Container type ({area.database.containertype.key}) not suported', 't')
             result(health_areas, area, 'I',
-                   f'Database type ({area.database.containertype.key}) not suported', 'v')
+                   f'Container type ({area.database.containertype.key}) not suported', 'v')
     context['health_areas'] = health_areas
+
+    if area_id:
+        area = Area.objects.get(id=area_id)
+        info = {}
+        info['area'] = area
+        info['schema'] = area.schema_tables()
+        info['number'] = len(area.database.tables(area.schema_tables()))
+        context['health_schemas'] = info
+        
 
     return render(request, 'check.html', context)
 
 
 def default_context(request):
     result = {}
-    result['all_owners'] = Owner.objects.all().order_by('key')
-    result['all_users'] = User.objects.all().order_by('first_name')
+    result['all_owners'] = Owner.objects.filter(active=True).order_by('key')
+    result['all_users'] = User.objects.all().order_by('first_name').filter(is_active=True)
     result['all_scopes'] = request.user.get_scopes(separate_application=False)
     result['all_containers'] = Container.objects.all().order_by(
         'containertype', 'key')
@@ -153,8 +164,8 @@ def dashboard(request, owner_id=None):
         owner = request.user.owner
     context['owner'] = owner
     # context = default_context(request)
-    context['number_areas'] = len(Area.objects.filter(owner=owner))
-    context['number_scopes'] = len(Scope.objects.filter(owner=owner))
+    context['number_areas'] = len(Area.objects.filter(owner=owner).filter(active=True))
+    context['number_scopes'] = len(Scope.objects.filter(owner=owner).filter(active=True))
     return render(request, 'dashboard.html', context)
 
 

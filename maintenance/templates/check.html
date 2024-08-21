@@ -7,31 +7,50 @@
 </header>
 <br>
 
-<h1>Databases</h1>
+<h1>Databases - Connections</h1>
 <table  class="w3-table-all">
 <tr><th>Database</th><th>Description</th><th>Container Type</th><th>Information</th></tr>
-{% for db, x in health_dbs.items%}
+{% for db, x in health_dbs.items %}
+{% if db.active %}
     <tr>
         <td><a href="{% url 'admin:organization_container_change' db.id %}">{{db}}</a>
         <td>{{db.desc}}</td>
         <td><a href="{% url 'admin:organization_containertype_change' db.containertype.id %}">{{db.containertype.key}}</a></td>
+        <td>{{db.connection}}</td>
         <td>{% autoescape off %}{{x.badge_x}}{% endautoescape %} - {{x.msg_x}}</td>
     </tr>
+{% endif %}
 {% endfor %}
 </table>
 
-<h1>Areas</h1>
+<h1>Areas - Schemas</h1>
 <table  class="w3-table-all">
 <tr><th>Application</th><th>Description</th><th>Area</th><th>Description</th><th>Database</th><th>Table Schema</th><th>View Schema</th></tr>
 {% for area, x in health_areas.items%}
+{% if area.application.active %}
+{% if area.active %}
     <tr>
         <td><a href="{% url 'admin:organization_application_change' area.application.id %}">{{area.application}}</a></td><td>{{area.application.desc}}</td>
         <td><a href="{% url 'admin:organization_area_change' area.id %}">{{area}}</a></td><td>{{area.desc}}</td>
         <td><a href="{% url 'admin:organization_container_change' area.database.id %}">{{area.database}}</a></td>
-        <td>{% autoescape off %}{{x.badge_t}}{% endautoescape %} - {{x.msg_t}}</td>
+        {% if x.ok %}
+            <td>{% autoescape off %}{{x.badge_t}}{% endautoescape %} - <a href="{% url 'check' area.id %}">{{x.msg_t}}</a></td>
+        {% else %}
+            <td>{% autoescape off %}{{x.badge_t}}{% endautoescape %} - {{x.msg_t}}</td>
+        {% endif %}
         <td>{% autoescape off %}{{x.badge_v}}{% endautoescape %} - {{x.msg_v}}</td>
     </tr>
+{% endif %}
+{% endif %}
 {% endfor %}
 </table>
+{% if health_schemas %}
+    <h1>Number of Tables of Schema "{{health_schemas.schema}}" in Area "{{health_schemas.area.application}} {{health_schemas.area}}": 
+    {{health_schemas.number}}</h1>
+    Check table if they have columns of the business unit types 
+    {{health_schemas.area.application.business_unit_1}}  
+    {{health_schemas.area.application.business_unit_2}}
+    {{health_schemas.area.application.business_unit_3}}
+{% endif %}
 
 {% endblock %}

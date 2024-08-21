@@ -76,11 +76,17 @@ class DatahubModelAdmin(admin.ModelAdmin):
         list_display.remove("owner")
         return list_display
 
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "owner":
+            kwargs["queryset"] = allowed(
+                request, Owner.objects.all()).order_by('key')
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
 
 class DataHubUserAdmin(UserAdmin):
     """ User must not give other users more rights then they have themselves """
 
-    list_filter = ['groups']
+    list_filter = ['groups', 'is_superuser', 'is_staff', 'is_active']
     list_display = ['username', 'first_name', 'last_name', 'language',
                     'is_staff', 'is_superuser', 'owner', 'is_active', ]
     # list_editable = ("is_active",)
@@ -112,13 +118,14 @@ class DataHubUserAdmin(UserAdmin):
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         """ Reduce list of selectable owner to owner of users scopes """
         if db_field.name == "owner":
-            kwargs["queryset"] = allowed(request, Owner.objects.all())
+            kwargs["queryset"] = allowed(request, Owner.objects.all().order_by('key'))
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
         """ Reduce list of selectable scopes """
         if db_field.name == "scopes":
-            kwargs["queryset"] = allowed(request, Scope.objects.all().order_by('key'))
+            kwargs["queryset"] = allowed(
+                request, Scope.objects.all().order_by('key'))
         """ Reduce list of selectable groups """
         if db_field.name == "groups":
             if request.user.is_superuser or '*' in request.session[HUB_ALLOWED_OWNER_KEYS]:
@@ -139,15 +146,23 @@ class DataHubGroupAdmin(GroupAdmin):
     def get_list_display(self, request):
         return DatahubModelAdmin.get_list_display(self, request)
 
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        """ Reduce list of selectable owner to owner of users scopes """
+        if db_field.name == "owner":
+            kwargs["queryset"] = allowed(request, Owner.objects.all())
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
 
 class OwnerAdmin(DatahubModelAdmin):
-    search_fields = ['key', 'desc']
+    search_fields = ['key', 'desc', 'cuser']
     ordering = ['key',]
     date_hierarchy = 'ctime'
-    list_display = ['key', 'desc', 'kanton', 'nr', 'owner', 'ctime', 'cuser', 'active', ]
-    list_filter = ['cuser', 'kanton']
+    list_display = ['key', 'desc', 'kanton', 'nr',
+                    'ctime', 'cuser', 'owner', 'active', ]
+    list_filter = ['cuser', 'kanton', 'active']
     fieldsets = [
-        (None, {'fields': [('key', 'owner',), 'active', 'desc', 'text', 'kanton', 'nr'], }),
+        (None, {'fields': [('key', 'owner',),
+         'active', 'desc', 'text', 'kanton', 'nr'], }),
         ('History', {'fields': [('ctime', 'cuser'), ('utime', 'uuser')], },),
     ]
 
@@ -156,7 +171,7 @@ class ApplicationAdmin(DatahubModelAdmin):
     search_fields = ['key', 'desc', ]
     list_display = ['key', 'desc',
                     'business_unit_1', 'business_unit_2', 'business_unit_3', 'owner', 'active']
-    # list_filter = ['owner']
+    list_filter = ['active']
     fieldsets = [
         (None, {'fields': [('key', 'owner'), 'active', 'desc', 'text', ], }),
         ('Business Units', {'fields': [('business_unit_1', 'regex_1',),
@@ -166,11 +181,6 @@ class ApplicationAdmin(DatahubModelAdmin):
                                        ('business_unit_5', 'regex_5',),], }),
         ('History', {'fields': [('ctime', 'cuser'), ('utime', 'uuser')], },),
     ]
-
-    def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        if db_field.name == "owner":
-            kwargs["queryset"] = allowed(request, Owner.objects.all()).order_by('key')
-        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
 class ScopeAdmin(DatahubModelAdmin):
@@ -197,12 +207,12 @@ class ScopeAdmin(DatahubModelAdmin):
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     save_as = True
-    search_fields = ['key', 'application__key', 'desc', 'hex', ]
+    search_fields = ['key', 'application__key', 'desc', 'hex', 'cuser']
     ordering = ['application__key', 'key',]
-    list_filter = ['application', 'type']
+    list_filter = ['application', 'type', 'active']
     date_hierarchy = 'ctime'
     list_display = ['key', 'application',
-                    'type', 'desc', 'org_scope', 'app_scope', 'owner', 'hex', 'ctime', 'cuser', 'active']
+                    'type', 'desc', 'org_scope', 'app_scope', 'hex', 'ctime', 'cuser', 'owner', 'active']
     fieldsets = [
         ('Combination', {'fields': [('application', 'type', 'hex', ),  'business_unit_1', 'business_unit_2',
          'business_unit_3', 'business_unit_4', 'business_unit_5', 'team', 'active'], }),
@@ -229,14 +239,14 @@ class AreaAdmin(DatahubModelAdmin):
 
     search_fields = ['key', 'application__key', 'desc']
     list_display = ['application', 'key', 'desc',
-                    'database', 'filestorage', 'owner', 'active']
+                    'database', 'schematables', 'schemaviews', 'filestorage', 'owner', 'active']
     list_display_links = ['key']
     ordering = ['application__key', 'key',]
-    list_filter = ['application']
+    list_filter = ['application', 'active']
     fieldsets = [
         (None, {'fields': [('application', 'key', ),
          'active', 'desc', 'text', ], }),
-        ('Container', {'fields': ['database', 'filestorage'], }),
+        ('Container', {'fields': [('database','schematables', 'schemaviews', ), 'filestorage'], }),
         ('History', {'fields': [('ctime', 'cuser'), ('utime', 'uuser')], },),
     ]
 
@@ -259,7 +269,8 @@ class ContainerTypeAdmin(DatahubModelAdmin):
     list_display = ['key', 'desc', 'type', 'owner', 'active']
     list_filter = ['type']
     fieldsets = [
-        (None, {'fields': [('key', 'owner',), 'active', 'desc', 'type', 'connection'], }),
+        (None, {'fields': [('key', 'owner',),
+         'active', 'desc', 'type', 'connection'], }),
         ('Scripts', {'fields': [('area_add', 'user_add', 'scope_add'), ], }),
         ('History', {'fields': [('ctime', 'cuser'), ('utime', 'uuser')], },),
     ]
@@ -267,11 +278,13 @@ class ContainerTypeAdmin(DatahubModelAdmin):
 
 class EnvironmentAdmin(DatahubModelAdmin):
     ordering = ['key',]
-    search_fields = ['key', 'title', 'desc']
-    list_display = ['key', 'title', 'desc', 'hostname', 'natproc', 'awlib', 'owner', 'active']
+    search_fields = ['key', 'title', 'desc', 'natproc', ]
+    list_display = ['key', 'title', 'desc', 'hostname',
+                    'natproc', 'awlib', 'owner', 'active']
     list_filter = ['active']
     fieldsets = [
-        (None, {'fields': [('key', 'owner',), 'active', ('title', 'desc',), ], }),
+        (None, {'fields': [('key', 'owner',),
+         'active', ('title', 'desc',), ], }),
         ('Host', {'fields': [('hostname', 'username', 'password'), ], }),
         ('AW', {'fields': ['ace_connect', ('natproc', 'awlib'), ], }),
         ('History', {'fields': [('ctime', 'cuser'), ('utime', 'uuser')], },),
