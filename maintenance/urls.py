@@ -17,6 +17,7 @@ urlpatterns = [
 
     path('check', views.check, name='check'),
     path('check/<str:area_id>', views.check, name='check'),
+    path('checkowner/<str:owner_id>', views.checkowner, name='checkowner'),
 
     path('switch_user/<int:user_id>', views.switch_user, name='switch_user'),
 ]

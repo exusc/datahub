@@ -66,8 +66,9 @@ def load(request):
 
 
 @login_required(login_url="index")
-def check(request, area_id=None):
+def check(request, area_id=None, owner=None):
     context = default_context(request)
+    context['owner'] = owner
 
     def result(health_dict, health_obj, level, msg, id='x'):
         """ Creates or updates the message object in health_dict
@@ -87,7 +88,17 @@ def check(request, area_id=None):
         obj.update({'msg_'+id: msg})
 
     health_dbs = {}
-    for database in Container.objects.filter(containertype__key__in=['SqlLite', 'PostGreSQL', ]):
+    databases = Container.objects.filter(containertype__key__in=['SqlLite', 'PostGreSQL', ])
+    if owner:
+        xx = []
+        for area in Area.objects.all():
+            if area.owner == owner and area.database in databases:
+                print(area, area.application)
+                print ('TREFFER')
+                xx.append(area.database)
+        databases = xx
+        
+    for database in databases:
         try:
             database.schemas()  # Test Access to db
             result(health_dbs,database, 'O', 'Connection established')
@@ -96,7 +107,10 @@ def check(request, area_id=None):
     context['health_dbs'] = health_dbs
 
     health_areas = {}
-    for area in Area.objects.all().order_by('application__key'):
+    areas = Area.objects.all().order_by('application__key')
+    if owner:
+        areas = areas.filter(owner=owner)
+    for area in areas:
         if (area.database.containertype.key in ['PostGreSQL', ]):
             # schema_tables
             schema = 't'
@@ -137,6 +151,12 @@ def check(request, area_id=None):
         
 
     return render(request, 'check.html', context)
+
+
+@login_required(login_url="index")
+def checkowner(request, owner_id):
+    owner = Owner.objects.get(id=owner_id)
+    return check(request, owner=owner)
 
 
 def default_context(request):

@@ -3,11 +3,13 @@
 {% block body %}
 
 <header class="w3-container" style="padding-top:22px">
-    <h2><i class="fa fa-stethoscope fa-fw"></i> Health Check</h2>
+    <h2><i class="fa fa-stethoscope fa-fw"></i> Health Check
+        {% if owner %}of {{owner.desc}} ({{owner}}) {% endif %}
+    </h2>
 </header>
 <br>
 
-<h1>Databases - Connections</h1>
+<h3>Databases - Connections</h3>
 <table  class="w3-table-all">
 <tr><th>Database</th><th>Description</th><th>Container Type</th><th>Information</th></tr>
 {% for db, x in health_dbs.items %}
@@ -23,7 +25,7 @@
 {% endfor %}
 </table>
 
-<h1>Areas - Schemas</h1>
+<h3>Areas - Schemas</h3>
 <table  class="w3-table-all">
 <tr><th>Application</th><th>Description</th><th>Area</th><th>Description</th><th>Database</th><th>Table Schema</th><th>View Schema</th></tr>
 {% for area, x in health_areas.items%}

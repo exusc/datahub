@@ -1,4 +1,4 @@
-Version 1.0.6 of Prototype for Concept Discussions
+Version 1.0.7 of Prototype for Concept Discussions
 
 Supports base functionality for 
 - Standard administration of DATA-Hub objects
