@@ -1,4 +1,4 @@
-Version 1.0.7 of Prototype for Concept Discussions
+Version 1.0.7.1 of Prototype for Concept Discussions
 
 Supports base functionality for 
 - Standard administration of DATA-Hub objects
@@ -13,9 +13,6 @@ Next Stories
 - usage of *-functionality with scopes
 - UI for add scope 
 - multi-language-support
-
-------------------------------------------------------------------------------------------
-Fix Data load to existing system - Under Construction
 
 ------------------------------------------------------------------------------------------
 Infos

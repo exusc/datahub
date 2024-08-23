@@ -135,7 +135,7 @@ class OwnerLoader():
 class ApplicationLoader():
     def load(self, request) -> str:
         """ Laden der Standard-Applikationen """
-        def create(owner_key, key, desc, l1, l2=None, l3=None, l4=None):
+        def create(owner_key, key, desc, l1=None, l2=None, l3=None, l4=None, active=True):
 
             obj = Application(key=key,
                               owner=Owner.objects.get(key=owner_key),
@@ -146,6 +146,7 @@ class ApplicationLoader():
                               business_unit_4=l4,
                               ctime=timezone.now(),
                               cuser=request.user,
+                              active=active
                               # pds_vorlauf=f'TEST.US.JOBFRAMES.{key}.VORLAUF',
                               # pds_nachlauf=f'TEST.US.JOBFRAMES.{key}.NACHLAUF',
                               )
@@ -153,20 +154,20 @@ class ApplicationLoader():
                 obj.save()
             except:
                 pass
-        create('ABX', 'HUB', 'Steuerung der DATA-Hub-Security', 'Owner',)
+        create('ABX', 'HUB', 'Steuerung der DATA-Hub-Security', 'Owner')
         create('ABX', 'SVA', 'Applikation für alle SVAs', 'Owner',)
         create('ABX', 'AW', 'Auswertung', 'Level_1',
-               'Level_2', 'Level_3', 'Level_4',)
-        create('ABX', 'EK', 'Einwohnerkontrolle', 'Kunde', 'Teilnehmer',)
+               'Level_2', 'Level_3', 'Level_4', active=False)
+        create('ABX', 'EK', 'Einwohnerkontrolle', 'Kunde', 'Teilnehmer', active=False)
         create('ABX', 'FD', 'Fakturierung Debitoren',
-               'Kunde', 'Teilnehmer', 'Fakturastelle',)
-        create('ABX', 'SN', 'Steuern', 'Kunde', 'Teilnehmer',)
+               'Kunde', 'Teilnehmer', 'Fakturastelle', active=False)
+        create('ABX', 'SN', 'Steuern', 'Kunde', 'Teilnehmer', active=False)
         create('ABX', 'WE', 'Wasser, Elektrizität und Gas',
-               'Kunde', 'Teilnehmer',)
-        create('ABX', 'ZB', 'Zugriffsberechtigung', 'Kunde', 'Teilnehmer',)
-        create('ABX', 'ZP', 'Züri Primo', 'Kunde', 'Teilnehmer',)
+               'Kunde', 'Teilnehmer', active=False)
+        create('ABX', 'ZB', 'Zugriffsberechtigung', 'Kunde', 'Teilnehmer', active=False)
+        create('ABX', 'ZP', 'Züri Primo', 'Kunde', 'Teilnehmer', active=False)
         create('ABX', 'dmo', 'Demo', )
-        create('IGS', 'igs-zh', 'Data of SVA Zürich', )
+        create('IGS', 'igs', 'Data of SVA Zürich', )
         create('SVA-SG', 'sva-sg-bz', 'SVA Sankt Gallen System B&Z', 'Tenant',)
         create('SVA-SG', 'sva-sg-lz',
                'SVA Sankt Gallen System L&Z', 'Team', 'Group',)
@@ -178,13 +179,15 @@ class ApplicationLoader():
 class AreaLoader():
     def load(self, request) -> str:
         """ Laden der Sample Areas """
-        def create(app_key, key, desc, db_key, fs_key):
+        def create(app_key, key, desc, db_key, fs_key,st=''):
             application = Application.objects.get(key=app_key)
             database = Container.objects.get(key=db_key)
             filestorage = Container.objects.get(key=fs_key)
+
             obj = Area(key=key, owner=application.owner,
                        application=application,
                        desc=desc, database=database, filestorage=filestorage,
+                       schematables=st,
                        ctime=timezone.now(),
                        cuser=request.user,
                        )
@@ -192,26 +195,18 @@ class AreaLoader():
                 obj.save()
             except:
                 pass
-        create('FD', 'RD', 'Raw Data', db_key='ADABAS', fs_key='MinIO')
-        create('SN', 'RD', 'Raw Data', db_key='ADABAS', fs_key='MinIO')
-        create('dmo', 'rd' , 'Raw Data for Demo', db_key='dat', fs_key='FS-ABX')
 
-        """
-        create('SVA-SG-BZ', 'RD', 'Raw Data',
-               db_key='STA-SVA-SG', fs_key='FS-ABX')
-        create('SVA-SG-LZ', 'RD', 'Raw Data',
-               db_key='STA-SVA-SG', fs_key='FS-ABX')
-        create('SVA-SG-LZ', 'BD', 'Business Data',
-               db_key='STA-SVA-SG', fs_key='MinIO')
-        create('SVA-SG-LZ', 'TEST', 'Test Environment',
-               db_key='DAT', fs_key='FS-ABX')
-        create('SVA-ZH', 'BD', 'BZ und LZ are joined here',
-               db_key='STA-SVA-ZH-BD', fs_key='MinIO Zürich')
-        create('SVA-ZH', 'RD_BZ', 'Raw Data BZ',
-               db_key='STA-SVA-ZH-BZ', fs_key='MinIO Zürich')
-        create('SVA-ZH', 'RD_LZ', 'Raw Data LZ',
-               db_key='STA-SVA-ZH-LZ', fs_key='MinIO Zürich')
-        """
+        create('FD', 'rd', 'Raw Data', db_key='ADABAS', fs_key='MinIO')
+        create('SN', 'rd', 'Raw Data', db_key='ADABAS', fs_key='FS-ABX')
+        create('dmo', 'rd' , 'Raw Data for Demo', db_key='dat', fs_key='MinIO')
+        create('igs', 'rd-zh', 'Raw Data',db_key='sta-igs', fs_key='MinIO Zürich', st='igs_zh_rd')
+        create('sva-sg-bz', 'rd', 'Raw Data',db_key='sta-sva-sg', fs_key='MinIO', st='bz_bzcore_rd')
+        create('sva-sg-lz', 'ipv-rd', 'Raw Data of IPV',db_key='sta-sva-sg', fs_key='MinIO', st='lz_ipv_rd')
+        create('sva-sg-lz', 'vista-rd', 'Raw Data of Vista',db_key='sta-sva-sg', fs_key='MinIO', st='lz_vista_rd')
+        create('sva-zh-bz', 'rd', 'Raw Data',db_key='sta-sva-zh', fs_key='MinIO Zürich', st='bz_bzcore_rd')
+        create('sva-zh-lz', 'ipv-rd', 'Raw Data of IPV',db_key='sta-sva-zh', fs_key='MinIO Zürich', st='lz_ipv_rd')
+        create('sva-zh-lz', 'vista-rd', 'Raw Data of Vista',db_key='sta-sva-zh', fs_key='MinIO Zürich', st='lz_vista_rd')
+
         return _('Areas successfully loaded')
 
 
@@ -245,25 +240,27 @@ class ScopeLoader():
         create('HUB', 'IGS')
         create('HUB', 'SVA-SG')
         create('HUB', 'SVA-ZH')
-        app_scope = create('SVA', '*', team='PROD',
+        app_scope = create('igs', '*', team='PROD',
                            desc='Standard Templates for all SVAs', type='A')
-        org_scope = create('SVA-ZH', '*', team='PROD',
+        org_scope = create('igs', '*', team='PROD',
                            desc='Productive Templates for all Departments', type='O')
-        create('SVA-ZH', '*', team='TEST',
+        create('sva-zh-lz', '*', team='TEST',
                desc='Used to test Reports', app_scope=app_scope)
-        create('SVA-ZH', '*', desc='Access to all Data',
+        create('sva-zh-lz', '*', team='PROD',
+               desc='Productive Reports', app_scope=app_scope)
+        create('sva-zh-lz', '*', desc='Access to all Data',
                org_scope=org_scope, app_scope=app_scope)
-        create('SVA-ZH', 'EK', desc='Team Einkauf',
+        create('sva-zh-lz', 'EK', desc='Team Einkauf',
                org_scope=org_scope, app_scope=app_scope)
-        org_scope = create('SVA-SG-LZ', 'MKT', '*', team='TEMPLATES',
+        org_scope = create('sva-zh-lz', 'MKT', '*', team='TEMPLATES',
                            desc='Templates for all marketing groups', type='O')
-        create('SVA-SG-LZ', 'MKT', 'GP1', desc='Team Marketing - Group 1',
+        create('sva-zh-lz', 'MKT', 'GP1', desc='Team Marketing - Group 1',
                org_scope=org_scope, app_scope=app_scope)
-        create('SVA-SG-LZ', 'MKT', 'GP2', desc='Team Marketing - Group 2',
+        create('sva-zh-lz', 'MKT', 'GP2', desc='Team Marketing - Group 2',
                org_scope=org_scope, app_scope=app_scope)
-        create('SVA-SG-BZ', '*', desc='All Tenants', app_scope=app_scope)
-        create('SVA-SG-BZ', 'T001', desc='Tenant 001', app_scope=app_scope)
-        create('SVA-SG-BZ', 'T002', desc='Tenant 002', app_scope=app_scope)
+        create('sva-zh-bz', '*', desc='All Tenants', app_scope=app_scope)
+        create('sva-zh-bz', 'T001', desc='Tenant 001', app_scope=app_scope)
+        create('sva-zh-bz', 'T002', desc='Tenant 002', app_scope=app_scope)
 
         txt = _('Scopes successfully loaded')
         txt = self.load_aw()
@@ -402,9 +399,9 @@ class UserLoader():
             user.groups.add(Group.objects.get(name='Report Ordering'))
             user.groups.add(Group.objects.get(name='Report Creator'))
             user.scopes.add(Scope.objects.get(key='HUB_SVA-ZH'))
-            user.scopes.add(Scope.objects.get(key='SVA-ZH_*'))
-            user.scopes.add(Scope.objects.get(key='SVA-ZH_*/TEST'))
-            user.scopes.add(Scope.objects.get(key='SVA-ZH_*/PROD'))
+            user.scopes.add(Scope.objects.get(key='SVA-ZH-BZ_*'))
+            user.scopes.add(Scope.objects.get(key='SVA-ZH-LZ_*/TEST'))
+            user.scopes.add(Scope.objects.get(key='SVA-ZH-LZ_*/PROD'))
 
         user = create('SVA-ZH', 'ZHADM', 'Admin', 'Zürich',  is_staff=True)
         if user:
@@ -511,7 +508,7 @@ class ContainerLoader():
                'PostGreSQL', pg_sta)
 
         pg_sta['NAME'] = 'sta_sva_zh'
-        create('SVA-ZH', 'stasva-zh', 'DB for all SG data',
+        create('SVA-ZH', 'sta-sva-zh', 'DB for all SG data',
                'PostGreSQL', pg_sta)
         
         create('SVA-ZH', 'sta-sva-zh-bd',
@@ -525,6 +522,9 @@ class ContainerLoader():
         minio = {}
         minio['bucket'] = 'xxx.yyy.zzz.abraxas'
         create('ABX', 'MinIO', 'Standard MinIO for all Clients', 'MinIO', minio)
+
+        minio['bucket'] = 'xxx.yyy.zzz.sva-zh'
+        create('SVA-ZH', 'MinIO Zürich', 'Standard MinIO for SVA Zürich', 'MinIO', minio)
 
         create('ABX', 'Django', 'Test Lokal', 'SqlLite', {'NAME' : r'C:\en\abx\datahub\data.sqlite3'})
 
