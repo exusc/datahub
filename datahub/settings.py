@@ -80,12 +80,13 @@ WSGI_APPLICATION = 'datahub.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': BASE_DIR / 'datahub-control.sqlite3',
     }
     }
     
 """
-    'data': {
+    For real usage the database should be PostGres
+    'default': {
        'ENGINE': 'django.db.backends.postgresql',
        'NAME': 'sta_dat',
        'HOST': 'sta.db.dat.abraxas-apis.ch',
@@ -162,9 +163,61 @@ STATIC_URL = '/static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Log settings added to suppress consol messages of http requests
+# https://docs.djangoproject.com/en/5.0/topics/logging/
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{'
+        },
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d}'
+                '{thread:d} {message}',
+            'style': '{'
+        }
+    },
+    'filters': {
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        }
+    },
+    'handlers': {
+        'file': {
+            'class': 'logging.FileHandler',
+            'formatter': 'verbose',
+            'filename': 'logging.log'
+        },
+        'console': {
+            # 'level': 'INFO',
+            'filters': ['require_debug_true'],
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple'
+        }
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file', 'console'],
+            'level': 'ERROR',
+            'propagate': False
+        },
+        'django.request': {
+            'handlers': ['file', 'console'],
+            'level': 'ERROR',
+            'propagate': False,
+        }
+    },
+    'root': {
+        'handlers': ['file', 'console'],
+        'level': 'INFO',
+    }
+}
 
 # Datahub is defining an own AUTH_USER-MODEL
-# https://docs.djangoproject.com/en/dev/topics/auth/customizing/#substituting-a-custom-user-model
+# https://docs.djangoproject.com/en/5.0/topics/auth/customizing/#substituting-a-custom-user-model
 
 AUTH_USER_MODEL = "organization.User"
 
@@ -174,6 +227,3 @@ HUB_ALLOWED_OWNER_KEYS = 'hub_allowed_owner_keys'
 HUB_OWNER_KEY = 'ABX'
 
 HUB_APPLICATION_KEY = 'HUB'
-
-
-

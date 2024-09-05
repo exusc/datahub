@@ -36,7 +36,7 @@
         <td><a href="{% url 'admin:organization_area_change' area.id %}">{{area}}</a></td><td>{{area.desc}}</td>
         <td><a href="{% url 'admin:organization_container_change' area.database.id %}">{{area.database}}</a></td>
         {% if x.ok %}
-            <td>{% autoescape off %}{{x.badge_t}}{% endautoescape %} - <a href="{% url 'check' area.id %}">{{x.msg_t}}</a></td>
+            <td>{% autoescape off %}{{x.badge_t}}{% endautoescape %} - <a href="{% url 'checkarea' area.id %}">{{x.msg_t}}</a></td>
         {% else %}
             <td>{% autoescape off %}{{x.badge_t}}{% endautoescape %} - {{x.msg_t}}</td>
         {% endif %}

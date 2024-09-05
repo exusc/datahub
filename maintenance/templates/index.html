@@ -46,7 +46,7 @@
             <div class="w3-clear"></div>
             <h4>Last 5 Activities:</h4>
             {% for logentry in LogEntrys %}
-            <li>{{logentry}}</li>
+            <li>{{logentry.content_type}} - {{logentry}} </li>
             {% endfor %}
         </div>
     </div>

@@ -169,6 +169,7 @@ class ApplicationLoader():
         create('ABX', 'dmo', 'Demo', )
         create('IGS', 'igs', 'Data of SVA Zürich', )
         create('SVA-SG', 'sva-sg-bz', 'SVA Sankt Gallen System B&Z', 'Tenant',)
+        create('SVA-SG', 'sva-sg-elar', 'Elar Data for Use Cases')
         create('SVA-SG', 'sva-sg-lz',
                'SVA Sankt Gallen System L&Z', 'Team', 'Group',)
         create('SVA-ZH', 'sva-zh-bz', 'SVA Zürich System B&Z', )
@@ -201,6 +202,7 @@ class AreaLoader():
         create('dmo', 'rd' , 'Raw Data for Demo', db_key='dat', fs_key='MinIO')
         create('igs', 'rd-zh', 'Raw Data',db_key='sta-igs', fs_key='MinIO Zürich', st='igs_zh_rd')
         create('sva-sg-bz', 'rd', 'Raw Data',db_key='sta-sva-sg', fs_key='MinIO', st='bz_bzcore_rd')
+        create('sva-sg-elar', 'rd', 'Raw Data',db_key='sta-sva-sg', fs_key='MinIO', st='elar_rd')
         create('sva-sg-lz', 'ipv-rd', 'Raw Data of IPV',db_key='sta-sva-sg', fs_key='MinIO', st='lz_ipv_rd')
         create('sva-sg-lz', 'vista-rd', 'Raw Data of Vista',db_key='sta-sva-sg', fs_key='MinIO', st='lz_vista_rd')
         create('sva-zh-bz', 'rd', 'Raw Data',db_key='sta-sva-zh', fs_key='MinIO Zürich', st='bz_bzcore_rd')
@@ -504,11 +506,11 @@ class ContainerLoader():
                'PostGreSQL', pg_sta)
 
         pg_sta['NAME'] = 'sta_sva_sg'
-        create('SVA-SG', 'sta-sva-sg', 'DB for all SG data',
+        create('SVA-SG', 'sta-sva-sg', 'DB for all St.Gallen Data',
                'PostGreSQL', pg_sta)
 
         pg_sta['NAME'] = 'sta_sva_zh'
-        create('SVA-ZH', 'sta-sva-zh', 'DB for all SG data',
+        create('SVA-ZH', 'sta-sva-zh', 'DB for all Zürich Data',
                'PostGreSQL', pg_sta)
         
         create('SVA-ZH', 'sta-sva-zh-bd',

@@ -66,7 +66,7 @@ def load(request):
 
 
 @login_required(login_url="index")
-def check(request, area_id=None, owner=None):
+def check(request, owner=None):
     context = default_context(request)
     context['owner'] = owner
 
@@ -141,16 +141,17 @@ def check(request, area_id=None, owner=None):
                    f'Container type ({area.database.containertype.key}) not suported', 'v')
     context['health_areas'] = health_areas
 
-    if area_id:
-        area = Area.objects.get(id=area_id)
-        info = {}
-        info['area'] = area
-        info['schema'] = area.schema_tables()
-        info['number'] = len(area.database.tables(area.schema_tables()))
-        context['health_schemas'] = info
-        
-
     return render(request, 'check.html', context)
+
+@login_required(login_url="index")
+def checkarea(request, area_id):
+    area = Area.objects.get(id=area_id)
+    context = default_context(request)
+    context['area'] = area 
+    context['tablenames'] = area.database.tablenames(area.schema_tables())
+    for t in context['tablenames']:
+        print('TABELLE', t)
+    return render(request, 'checkarea.html', context)
 
 
 @login_required(login_url="index")

@@ -163,12 +163,20 @@ class Container(AbstractDatahubModel):
             DATABASES[self.__name] = db
 
     def exec_sql(self,sql_string):
+
+        # Raw Queries
+        # https://docs.djangoproject.com/en/5.0/topics/db/sql/
+        # direkt: https://docs.djangoproject.com/en/5.0/topics/db/sql/#executing-custom-sql-directly
+        # https://docs.djangoproject.com/en/5.0/ref/models/querysets/
+
         if not self.containertype.type == 'DB':
             raise Exception(f'This container ({self.key}) is not type database')
         self.__add_to_settings()
         with connections[self.__name].cursor() as cursor:
             cursor.execute(sql_string)
             rows = cursor.fetchall()
+            return rows
+        
             return [row[0] for row in rows]  # Return Col1
             return [col[0] for col in cursor.description] # Return Header
             columns = [col[0] for col in cursor.description]
@@ -177,7 +185,11 @@ class Container(AbstractDatahubModel):
     def schemas(self):
         if not self.__schemas:
             # PostGres:
-            self.__schemas = self.exec_sql("select nspname as schema from pg_catalog.pg_namespace where not nspowner = 10")
+            # rows = self.exec_sql("select nspname as schema from pg_catalog.pg_namespace where not nspowner = 10")
+            # https://www.postgresql.org/docs/current/information-schema.html
+            rows = self.exec_sql("select schema_name from information_schema.schemata")
+            self.__schemas = [row[0] for row in rows]
+            # self.__schemas = self.exec_sql("select nspname as schema from pg_catalog.pg_namespace where not nspowner = 10")
 
             # SqlLite:
             # https://www2.sqlite.org/cvstrac/wiki?p=InformationSchema
@@ -188,8 +200,11 @@ class Container(AbstractDatahubModel):
 
         return self.__schemas
 
-    def tables(self, schema='dmo_rd_base'):
-        tablenames = self.exec_sql(f"select tablename from pg_catalog.pg_tables where schemaname = '{schema}'")
+    def tablenames(self, schema='dmo_rd_base'):
+        # rows = self.exec_sql(f"select tablename from pg_catalog.pg_tables where schemaname = '{schema}' order by tablename")
+        # https://www.postgresql.org/docs/current/information-schema.html
+        rows = self.exec_sql(f"select table_name from information_schema.tables where table_schema = '{schema}' order by 1")
+        tablenames = [row[0] for row in rows]
         return tablenames
 
 

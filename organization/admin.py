@@ -256,7 +256,7 @@ class ContainerAdmin(DatahubModelAdmin):
     ordering = ['key',]
     list_display = ['key', 'desc', 'containertype',
                     'connection', 'owner', 'active']
-    list_filter = ['containertype']
+    list_filter = ['containertype', 'active']
     fieldsets = [
         (None, {'fields': [('key', 'owner',), 'active', 'desc',
          'containertype', 'connection', ], }),
@@ -267,7 +267,7 @@ class ContainerAdmin(DatahubModelAdmin):
 class ContainerTypeAdmin(DatahubModelAdmin):
     ordering = ['key',]
     list_display = ['key', 'desc', 'type', 'owner', 'active']
-    list_filter = ['type']
+    list_filter = ['type', 'active']
     fieldsets = [
         (None, {'fields': [('key', 'owner',),
          'active', 'desc', 'type', 'connection'], }),
@@ -294,7 +294,8 @@ class EnvironmentAdmin(DatahubModelAdmin):
 class LogEntryAdmin(admin.ModelAdmin):
     # https://docs.djangoproject.com/en/5.0/ref/contrib/admin/#django.contrib.admin.models.LogEntry.action_flag
     list_per_page = 15
-    list_filter = ['user', 'content_type', 'action_flag']
+    list_filter = ['content_type', 'action_flag']
+    search_fields = ['user__username', 'object_repr']
     list_display = ['action_time', 'user',
                     'content_type', 'object_repr', 'action_flag']
 
