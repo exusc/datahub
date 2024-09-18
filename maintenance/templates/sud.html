@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block body %}
+<link rel="stylesheet" href="https://www.w3schools.com/lib/w3-colors-flat.css">
+<style>
+    .w3-button {
+        width: 3em;
+        aspect-ratio: 1;
+    }
+</style>
+
+<header class="w3-container" style="padding-top:22px">
+    <h2> Sample UI Test</h2>
+</header>
+<br>
+
+<h1 class="w3-theme-d3">Sample</h1>
+
+<div class="w3-container w3-row">
+
+<div class="w3-container w3-half ">
+    {% for row in sud.grid %}
+    <div class="w3-row">
+        {% for col in row %}
+        <button class="w3-button w3-third w3-border 
+            {% if col.id == mark_id %}
+                w3-flat-wisteria
+            {% else %}
+                {% if col.value == mark_value %}
+                    w3-flat-orange
+                {% else %}
+                    {% if col.gray == 1 %}
+                        w3-theme-l4
+                    {% else %}
+                        w3-theme-l5
+                    {% endif %}
+                {% endif %}
+            {% endif %}
+            " 
+            onclick="window.location.href='{% url "sud" col.id %}';"
+            >
+            {% if col.value != 0 %}
+                <b>{{col.value}}</b>
+            {% endif %}
+        </button>
+        {% endfor %}
+    </div>
+    {% endfor %}
+</div>
+
+<div class="w3-container w3-half ">
+    {% for row in res.grid %}
+    <div class="w3-row">
+        {% for col in row %}
+        <button class="w3-button w3-third w3-border {% if col.gray == 1 %}w3-theme-l4{% else %}w3-theme-l5{% endif %}">
+            {{col.value}}
+        </button>
+        {% endfor %}
+    </div>
+    {% endfor %}
+</div>
+
+</div>
+
+<h1 class="w3-theme-d3">Colors</h1>
+
+<p>
+<div class="w3-container">
+    <div class="w3-row">
+        <button class="w3-button w3-third w3-border w3-red">7</button>
+        <button class="w3-button w3-third w3-border w3-flat-wisteria">8</button>
+        <button class="w3-button w3-third w3-border w3-flat-orange">9</button>
+        <button class="w3-button w3-third w3-border w3-flat-carrot">7</button>
+        <button class="w3-button w3-third w3-border w3-theme-l5">8</button>
+        <button class="w3-button w3-third w3-border w3-theme-l5" disabled>9</button>
+        <button class="w3-button w3-third w3-border w3-theme-l4">7</button>
+        <button class="w3-button w3-third w3-border w3-theme-l4">8</button>
+        <button class="w3-button w3-third w3-border w3-theme-l4">9</button>
+    </div>
+
+</div>
+
+</p>
+
+{% endblock %}

@@ -18,4 +18,7 @@ Next Stories
 - Multi-language-support
 
 ------------------------------------------------------------------------------------------
+Tipp:
+  https://docs.djangoproject.com/en/5.1/ref/templates/builtins/#include
+  {% include "pagination.html" with obj="page_obj"  %}
 

@@ -16,12 +16,15 @@
 </header>
 <br>
 
+{% include "pagination.html" %}
+<br>
 <table class="w3-table-all">
-{% for table in tablenames %}
+{% for table in page_obj %}
     <tr>
-        <td>{{table}}</td>
+        <td>{{ table|upper }}</td>
     </tr>
 {% endfor %}
 </table>
+
 
 {% endblock %}

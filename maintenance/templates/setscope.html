@@ -16,7 +16,7 @@
         <button class="w3-bar-item w3-theme w3-right w3-margin-right"  onclick="show('{{application}}')"><i class="fa fa-chevron-down fa-fw"></i></button> 
     </h3>
 
-    <div id="{{application}}" style="display:none">
+    <div id="{{application}}" style="display:initial">
         {% for scope in scopes %}
             <a href='{% url "setscope" scope.id %}'>{{scope}}</a> {% if scope.desc %} - {{scope.desc}} {% endif %}
             <br>

@@ -1,3 +1,4 @@
+from django.core.paginator import Paginator
 from django.utils import timezone
 from django import forms
 from django.core.exceptions import ValidationError
@@ -16,6 +17,120 @@ from organization.models import *
 from . forms import ScopeForm
 from . load import *
 from . forms import SampleForm
+
+
+M = 9
+number_calls = 0
+
+
+class Field():
+    def __init__(self, value):
+        self.value = value
+        self.id = -1
+        self.row = -1
+        self.col = -1
+        self.quad = -1
+        self.opts = {}  # Möglichkeiten
+        self.org = value != 0 # Original-Feld
+
+
+class Sud():
+    def __init__(self, values):
+        # Aufbau Tabelle mit den Werten aus dem Grid
+        self.grid = [[Field(col) for col in row] for row in values]
+        # Grundeinstellung der Tabelle
+        for row in range(9):
+            for col in range(9):
+                field = self.grid[row][col]
+                field.id = row * 9 + col
+                field.row = row
+                field.col = col
+                field.quad = 3 * (row // 3) + (col // 3)
+                field.gray = field.quad % 2
+
+    def field(self, id):
+        if id < 0 or id > 80:
+            return False
+        return self.grid[id // 9][id % 9]
+
+
+    def solve(self):
+        values = [[col.value for col in row] for row in self.grid]
+        if self._solve_part(values):
+            return Sud(values)
+
+    def _check_number(self, grid, row, col, num):
+        """ Prüft, ob die Nummer an der Stelle erlaubt ist """
+        # gibt es die Nummer schon in der row?
+        for x in range(9):
+            if grid[row][x] == num:
+                return False
+        # gibt es die Nummer schon in der col?
+        for x in range(9):
+            if grid[x][col] == num:
+                return False
+        # gibt es die Nummer schon in dem Quad?
+        startRow = row - row % 3
+        startCol = col - col % 3
+        for i in range(3):
+            for j in range(3):
+                if grid[i + startRow][j + startCol] == num:
+                    return False
+        return True
+
+    def _solve_part(self, grid, row=0, col=0) -> bool:
+        """ Prüft, ob das Sudoku ab hier lösbar ist und setzt die Lösung im grid """
+        global number_calls
+        number_calls += 1
+        # Wenn wir zu weit sind -> Ende
+        if (row == M - 1 and col == M):
+            return True
+        # wenn col aus neuer Zeile ist, neue Zeile anfangen
+        if col == M:
+            row += 1
+            col = 0
+        # Wenn hier schon eine Zahl ist, löse das nächste Feld
+        if grid[row][col] > 0:
+            return self._solve_part(grid, row, col + 1)
+        # Wenn das Feld unbekannt ist, probiere alle Zahlen aus
+        for num in range(1, M + 1, 1):
+            # Nimm nur Zahlen, die passen können
+            if self._check_number(grid, row, col, num):
+                grid[row][col] = num
+                # Setz die Zahl rein
+                # Wenn das Sudoku col1 dann lösbar ist -> ok
+                if self._solve_part(grid, row, col + 1):
+                    return True
+            # sonst: Feld wieder zurücksetzen, nächste Zahl versuchen
+            grid[row][col] = 0
+        # Keine passende Zahl gefunden -> Sudoku ist nicht lösbar
+        return False
+
+
+def sud(request, field_id=-1):
+    # field_id = Nummer des Feldes, das geklickt wurde
+    # Soll allgemeiner die Knopf-Id werden
+    context = default_context(request)
+    values = [
+        [0, 5, 6, 0, 4, 0, 0, 0, 0],
+        [0, 0, 1, 5, 0, 0, 8, 0, 0],
+        [8, 0, 0, 7, 3, 0, 0, 0, 0],
+        [0, 8, 0, 0, 0, 0, 1, 9, 0],
+        [0, 0, 3, 9, 0, 2, 7, 0, 0],
+        [0, 1, 9, 0, 0, 0, 0, 6, 0],
+        [0, 0, 0, 0, 9, 7, 0, 0, 1],
+        [0, 0, 4, 0, 0, 5, 3, 0, 0],
+        [0, 0, 0, 0, 2, 0, 6, 8, 0]
+    ]
+    sud = Sud(values)
+    context['sud'] = sud
+    if field_id > -1:
+        context['mark_id'] = field_id
+        mark_value = sud.field(field_id).value
+        if mark_value > 0:
+            context['mark_value'] = mark_value
+    context['res'] = sud.solve()
+    return render(request, 'sud.html', context)
 
 
 @login_required(login_url="index")
@@ -88,22 +203,21 @@ def check(request, owner=None):
         obj.update({'msg_'+id: msg})
 
     health_dbs = {}
-    databases = Container.objects.filter(containertype__key__in=['SqlLite', 'PostGreSQL', ])
+    databases = Container.objects.filter(
+        containertype__key__in=['SqlLite', 'PostGreSQL', ])
     if owner:
-        xx = []
+        owner_databases = []
         for area in Area.objects.all():
             if area.owner == owner and area.database in databases:
-                print(area, area.application)
-                print ('TREFFER')
-                xx.append(area.database)
-        databases = xx
-        
+                owner_databases.append(area.database)
+        databases = owner_databases
+
     for database in databases:
         try:
             database.schemas()  # Test Access to db
-            result(health_dbs,database, 'O', 'Connection established')
+            result(health_dbs, database, 'O', 'Connection established')
         except OperationalError as error:
-            result(health_dbs,database, 'E', str(error))
+            result(health_dbs, database, 'E', str(error))
     context['health_dbs'] = health_dbs
 
     health_areas = {}
@@ -123,7 +237,7 @@ def check(request, owner=None):
                            f'Schema "{area.schema_tables()}" not in database', schema)
             except OperationalError as error:
                 result(health_areas, area, 'I', 'No access', schema)
-            # schema_views  
+            # schema_views
             schema = 'v'
             try:
                 if area.schema_views() in area.database.schemas():
@@ -143,14 +257,20 @@ def check(request, owner=None):
 
     return render(request, 'check.html', context)
 
+
 @login_required(login_url="index")
 def checkarea(request, area_id):
     area = Area.objects.get(id=area_id)
     context = default_context(request)
-    context['area'] = area 
-    context['tablenames'] = area.database.tablenames(area.schema_tables())
-    for t in context['tablenames']:
-        print('TABELLE', t)
+    context['area'] = area
+
+    # Paginated list of tables
+    tablenames = area.database.tablenames(area.schema_tables())
+    paginator = Paginator(tablenames, 15)  # Show 15 tables per page.
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+    context['page_obj'] = page_obj
+
     return render(request, 'checkarea.html', context)
 
 
@@ -163,7 +283,8 @@ def checkowner(request, owner_id):
 def default_context(request):
     result = {}
     result['all_owners'] = Owner.objects.filter(active=True).order_by('key')
-    result['all_users'] = User.objects.all().order_by('first_name').filter(is_active=True)
+    result['all_users'] = User.objects.all().order_by(
+        'first_name').filter(is_active=True)
     result['all_scopes'] = request.user.get_scopes(separate_application=False)
     result['all_containers'] = Container.objects.all().order_by(
         'containertype', 'key')
@@ -185,8 +306,10 @@ def dashboard(request, owner_id=None):
         owner = request.user.owner
     context['owner'] = owner
     # context = default_context(request)
-    context['number_areas'] = len(Area.objects.filter(owner=owner).filter(active=True))
-    context['number_scopes'] = len(Scope.objects.filter(owner=owner).filter(active=True))
+    context['number_areas'] = len(
+        Area.objects.filter(owner=owner).filter(active=True))
+    context['number_scopes'] = len(
+        Scope.objects.filter(owner=owner).filter(active=True))
     return render(request, 'dashboard.html', context)
 
 
