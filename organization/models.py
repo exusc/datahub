@@ -5,6 +5,9 @@ from django.contrib.auth.models import AbstractUser, Group
 from datahub.settings import LANGUAGES, HUB_OWNER_KEY, HUB_APPLICATION_KEY, DATABASES
 from django.utils.translation import gettext as _
 import uuid
+import logging
+
+db_logger = logging.getLogger('data')
 
 
 class AbstractDatahubModel(models.Model):
@@ -105,11 +108,7 @@ class Container(AbstractDatahubModel):
     """ Can contain data of multiple areas/application
         But we expect that every client wants to have his own containers
 
-
-
         TODO: implement methods add_scope, delete_scope using scripts from ContainerType
-
-
     """
     class Meta:
         verbose_name = _("Container")
@@ -133,8 +132,10 @@ class Container(AbstractDatahubModel):
                                   blank=True, help_text=_("To establish connection to container"))
 
     def add_scope(self, area, scope):
-        print(f'Container {str(self):15} : "add_scope"  Area: {area.key:10}  Application: {area.application.key:10}  Scope: {scope.key}  Connection:{self.connection}')
-        print(self.containertype.scope_add)
+        if self.containertype.type == ContainerType.DATABASE:
+            db_logger.info(f"DB: {str(self):8} - Action: {self.containertype}.add_scope '{scope.key}' for '{area.application.key}/{area.key}'")
+        else:
+            db_logger.info(f"FS: {str(self):8} - Action:'{self.containertype}.add_scope' '{scope.key}' for '{area.application.key}/{area.key}'")
 
     def add_area(self, area):
         print(
@@ -145,7 +146,7 @@ class Container(AbstractDatahubModel):
         """ Returns a string used as identifier for connection """
         return str(self.id)
 
-    def __add_to_settings(self):
+    def __connect(self):
         if not self.containertype.type == 'DB':
             raise Exception(f'This container ({self.key}) is not type database')
 
@@ -171,7 +172,10 @@ class Container(AbstractDatahubModel):
 
         if not self.containertype.type == 'DB':
             raise Exception(f'This container ({self.key}) is not type database')
-        self.__add_to_settings()
+        
+        # Connection aufbauen, falls sie noch nicht existiert
+        self.__connect()
+        
         with connections[self.__name].cursor() as cursor:
             cursor.execute(sql_string)
             rows = cursor.fetchall()
@@ -331,8 +335,9 @@ class Area(AbstractDatahubModel):
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         self.owner = self.application.owner
+        db_logger.info(f"DB: {str(self.database):8} - Action:'{self.database.containertype}.add_area' '{self.schema_tables()}' for '{self.application.key}/{self.key}' tables")
+        db_logger.info(f"DB: {str(self.database):8} - Action:'{self.database.containertype}.add_area' '{self.schema_views()}' for '{self.application.key}/{self.key}' views")
 
-        print('-'*80)
         # Implement Area and Scopes in Container
         self.database.add_area(self)
         for scope in self.application.scope_set.all():
@@ -340,8 +345,6 @@ class Area(AbstractDatahubModel):
         self.filestorage.add_area(self)
         for scope in self.application.scope_set.all():
             self.filestorage.add_scope(self, scope)
-        print('-'*80)
-
         super().save(force_insert, force_update, using, update_fields)
 
     def schema_tables(self):
@@ -468,12 +471,10 @@ class Scope(AbstractDatahubModel):
         super().save(force_insert=force_insert, force_update=force_update,
                      using=using, update_fields=update_fields)
         """ While saving a scope, the scope has to be added to the container"""
-        print('-'*80)
         for area in self.application.area_set.all():
             area.database.add_scope(area, self)
         for area in self.application.area_set.all():
             area.filestorage.add_scope(area, self)
-        print('-'*80)
 
 
 class Environment(AbstractDatahubModel):

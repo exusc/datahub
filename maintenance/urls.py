@@ -20,7 +20,4 @@ urlpatterns = [
     path('checkarea/<str:area_id>', views.checkarea, name='checkarea'),
 
     path('switch_user/<int:user_id>', views.switch_user, name='switch_user'),
-    
-    path('sud', views.sud, name='sud'),
-    path('sud/<int:field_id>', views.sud, name='sud'),
 ]

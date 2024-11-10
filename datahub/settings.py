@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 from django.utils.translation import gettext_lazy as _
+from datetime import datetime
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -78,23 +79,25 @@ WSGI_APPLICATION = 'datahub.wsgi.application'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 DATABASES = {
+    
+    #'default': {
+    #   'ENGINE': 'django.db.backends.postgresql',
+    #   'NAME': 'sta_usc',
+    #   'HOST': 'sta.db.dat.abraxas-apis.ch',
+    #   'PORT': '5432',
+    #   'USER': 'postgres',
+    #   'PASSWORD': '???',
+    #},
+
+    # Connections to DATA-Databases will be established in 
+    # Container.__connect
+
+
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'datahub-control.sqlite3',
+    }    
     }
-    }
-    
-"""
-    For real usage the database should be PostGres
-    'default': {
-       'ENGINE': 'django.db.backends.postgresql',
-       'NAME': 'sta_dat',
-       'HOST': 'sta.db.dat.abraxas-apis.ch',
-       'PORT': '5432',
-       'USER': 'exusc01',
-       'PASSWORD': 'xx',
-    }
-"""
 
 
 # Password validation
@@ -166,6 +169,13 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Log settings added to suppress consol messages of http requests
 # https://docs.djangoproject.com/en/5.0/topics/logging/
 
+
+# Problmes are logged to log_filename
+# Changes in databases are logged in data_filename
+
+# log_filename = datetime.now().strftime("log/logstart-%Y-%m-%d-%H-%M.log")
+log_filename = datetime.now().strftime("log/log-%Y-%m-%d.log")
+data_filename = datetime.now().strftime("log/dbchanges-%Y-%m-%d.log")
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -174,9 +184,12 @@ LOGGING = {
             'format': '{levelname} {message}',
             'style': '{'
         },
+        
         'verbose': {
-            'format': '{levelname} {asctime} {module} {process:d}'
-                '{thread:d} {message}',
+#            'format': '{levelname:10} {asctime} {module} {process:d}'
+#                '{thread:d} {message}',
+            'format': '{levelname:8} {asctime} {message}',
+            'datefmt' : "%H:%M:%S",
             'style': '{'
         }
     },
@@ -189,7 +202,12 @@ LOGGING = {
         'file': {
             'class': 'logging.FileHandler',
             'formatter': 'verbose',
-            'filename': 'logging.log'
+            'filename': log_filename
+        },
+        'datafile': {
+            'class': 'logging.FileHandler',
+            'formatter': 'verbose',
+            'filename': data_filename
         },
         'console': {
             # 'level': 'INFO',
@@ -208,7 +226,12 @@ LOGGING = {
             'handlers': ['file', 'console'],
             'level': 'ERROR',
             'propagate': False,
-        }
+        },
+        'data': {
+            'handlers': ['datafile'],
+            'level': 'INFO',
+            'propagate': False
+        },
     },
     'root': {
         'handlers': ['file', 'console'],
