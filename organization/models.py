@@ -4,10 +4,17 @@ from django.db import models, connections
 from django.contrib.auth.models import AbstractUser, Group
 from datahub.settings import LANGUAGES, HUB_OWNER_KEY, HUB_APPLICATION_KEY, DATABASES
 from django.utils.translation import gettext as _
+from django.db.models.signals import post_save, post_delete, m2m_changed
+from django.dispatch import receiver
 import uuid
 import logging
 
 db_logger = logging.getLogger('data')
+
+
+PERMISSION_DIRECT_ACCESS = "db_read_access"
+PERMISSION_UPLOAD_TEMPLATES = "upload_templates"
+PERMISSION_DOWNLOAD_TEMPLATES = "download_templates"
 
 
 class AbstractDatahubModel(models.Model):
@@ -30,7 +37,7 @@ class AbstractDatahubModel(models.Model):
     uuser = models.CharField(_('uuser'), max_length=8, null=True, blank=True, )
 
     def __str__(self):
-        """ Field 'Key' has to be defined in derived class       
+        """ Field 'Key' has to be defined in derived class
         """
         return f'{self.key}'
 
@@ -110,13 +117,16 @@ class Container(AbstractDatahubModel):
 
         TODO: implement methods add_scope, delete_scope using scripts from ContainerType
     """
+
     class Meta:
         verbose_name = _("Container")
         verbose_name_plural = _("Containers")
         ordering = ['key']
         permissions = [
-            ("upload_templates", "Is allowed to upload report templates"),
-            ("download_templates", "Is allowed to download report templates"),
+            (PERMISSION_UPLOAD_TEMPLATES, "Is allowed to upload report templates"),
+            (PERMISSION_DOWNLOAD_TEMPLATES,
+             "Is allowed to download report templates"),
+            (PERMISSION_DIRECT_ACCESS, "Is allowed connect to db and read data"),
         ]
 
     def __init__(self, *args, **kwargs):
@@ -131,15 +141,33 @@ class Container(AbstractDatahubModel):
     connection = models.JSONField(_('Connection'), null=True,
                                   blank=True, help_text=_("To establish connection to container"))
 
-    def add_scope(self, area, scope):
-        if self.containertype.type == ContainerType.DATABASE:
-            db_logger.info(f"DB: {str(self):8} - Action: {self.containertype}.add_scope '{scope.key}' for '{area.application.key}/{area.key}'")
-        else:
-            db_logger.info(f"FS: {str(self):8} - Action:'{self.containertype}.add_scope' '{scope.key}' for '{area.application.key}/{area.key}'")
+    def add_scope(self, area, scope_key):
+        parms = {'app': area.application.key,
+                 'area': area.key, 'scope': scope_key}
+        db_logger.info(
+            f"{str(self):10} - Action:'{self.containertype}.Scope_add' - Parms: {parms}")
 
-    def add_area(self, area):
-        print(
-            f'Container {str(self):15} : "add_area "  Area: {area.key:10}  Application: {area.application.key:10}  Connection:{self.connection}')
+    def delete_scope(self, area, scope_key):
+        parms = {'app': area.application.key,
+                 'area': area.key, 'scope': scope_key}
+        db_logger.info(
+            f"{str(self):10} - Action:'{self.containertype}.delete_scope' - Parms: {parms}")
+
+    def add_area(self, area, schemaname):
+        parms = {'app': area.application.key,
+                 'area': area.key, 'schema': schemaname}
+        db_logger.info(
+            f"{str(self):10} - Action:'{self.containertype}.Area_add' - Parms: {parms}")
+
+    def add_user(self, user):
+        parms = {'user': user.username}
+        db_logger.info(
+            f"{str(self):10} - Action:'{self.containertype}.User_add' - Parms: {parms}")
+
+    def delete_user(self, user):
+        parms = {'user': user.username}
+        db_logger.info(
+            f"{str(self):10} - Action:'{self.containertype}.User_delete' - Parms: {parms}")
 
     @property
     def __name(self):
@@ -148,7 +176,8 @@ class Container(AbstractDatahubModel):
 
     def __connect(self):
         if not self.containertype.type == 'DB':
-            raise Exception(f'This container ({self.key}) is not type database')
+            raise Exception(
+                f'This container ({self.key}) is not type database')
 
         """ Adds the database to the settings.DATABASES, if it not exists
         """
@@ -159,11 +188,11 @@ class Container(AbstractDatahubModel):
             db.update(self.containertype.connection)
             db.update(self.connection)
             # Hardcoded Defaults
-            db['USER'] = 'postgres'
-            db['PASSWORD'] = '.Paraolimpia1235'
+            db['USER'] = 'axusc03' # 'postgres'
+            db['PASSWORD'] = 'password' # '.Paraolimpia1235'
             DATABASES[self.__name] = db
 
-    def exec_sql(self,sql_string):
+    def exec_sql(self, sql_string):
 
         # Raw Queries
         # https://docs.djangoproject.com/en/5.0/topics/db/sql/
@@ -171,27 +200,30 @@ class Container(AbstractDatahubModel):
         # https://docs.djangoproject.com/en/5.0/ref/models/querysets/
 
         if not self.containertype.type == 'DB':
-            raise Exception(f'This container ({self.key}) is not type database')
-        
+            raise Exception(
+                f'This container ({self.key}) is not type database')
+
         # Connection aufbauen, falls sie noch nicht existiert
         self.__connect()
-        
+
         with connections[self.__name].cursor() as cursor:
             cursor.execute(sql_string)
             rows = cursor.fetchall()
             return rows
-        
+
             return [row[0] for row in rows]  # Return Col1
-            return [col[0] for col in cursor.description] # Return Header
+            return [col[0] for col in cursor.description]  # Return Header
             columns = [col[0] for col in cursor.description]
-            return [dict(zip(columns, row)) for row in rows] # Return complete dict
+            # Return complete dict
+            return [dict(zip(columns, row)) for row in rows]
 
     def schemas(self):
         if not self.__schemas:
             # PostGres:
             # rows = self.exec_sql("select nspname as schema from pg_catalog.pg_namespace where not nspowner = 10")
             # https://www.postgresql.org/docs/current/information-schema.html
-            rows = self.exec_sql("select schema_name from information_schema.schemata")
+            rows = self.exec_sql(
+                "select schema_name from information_schema.schemata")
             self.__schemas = [row[0] for row in rows]
             # self.__schemas = self.exec_sql("select nspname as schema from pg_catalog.pg_namespace where not nspowner = 10")
 
@@ -207,7 +239,8 @@ class Container(AbstractDatahubModel):
     def tablenames(self, schema='dmo_rd_base'):
         # rows = self.exec_sql(f"select tablename from pg_catalog.pg_tables where schemaname = '{schema}' order by tablename")
         # https://www.postgresql.org/docs/current/information-schema.html
-        rows = self.exec_sql(f"select table_name from information_schema.tables where table_schema = '{schema}' order by 1")
+        rows = self.exec_sql(
+            f"select table_name from information_schema.tables where table_schema = '{schema}' order by 1")
         tablenames = [row[0] for row in rows]
         return tablenames
 
@@ -225,6 +258,11 @@ class User(AbstractUser):
         'Scope', on_delete=models.PROTECT, null=True, blank=True, related_name='+',)
     language = models.CharField(_('language'), max_length=5, choices=LANGUAGES, default='en',
                                 help_text=_("Language used for DATA-Hub UI"))
+
+#    def __init__(self, *args, **kwargs) -> None:
+#        """ Used to cache permissions to detect changes of permissions """
+#        super().__init__(*args, **kwargs)
+#        self.cached_permission_direct_access = self.has_permission(PERMISSION_DIRECT_ACCESS) if len(args) > 0 else False
 
     def get_scopes(self, detailed=False, separate_application=True):
         """ Returns a dict of all active Scopes the user can choose
@@ -258,6 +296,13 @@ class User(AbstractUser):
                 pass
         return ownerlist
 
+    def has_permission(self, permission: str):
+        """ Checks permissions of user linked by groups, not directly to user """
+        for group in self.groups.all():
+            if len(group.permissions.filter(codename=permission)) > 0:
+                return True
+        return False
+
 
 class Group(Group):
     class Meta:
@@ -276,7 +321,6 @@ class Application(AbstractDatahubModel):
         verbose_name = _("Application")
         verbose_name_plural = _("Applications")
         ordering = ['key']
-
 
     __hub = None
 
@@ -330,36 +374,30 @@ class Area(AbstractDatahubModel):
                                  related_name='+', help_text=_("To store structured data"))
     filestorage = models.ForeignKey(
         to=Container, on_delete=models.PROTECT, related_name='+', help_text=_("To store files"))
-    schematables = models.CharField(_('schematables'), max_length=40, null=True, blank=True, help_text='Overwrite default (app.key_area.key_base)')
-    schemaviews = models.CharField(_('schemaviews'), max_length=40, null=True, blank=True, help_text='Overwrite default (app.key_area.key)')
+    schematables = models.CharField(_('schematables'), max_length=40, null=True,
+                                    blank=True, help_text='Overwrite default (app.key_area.key_base)')
+    schemaviews = models.CharField(_('schemaviews'), max_length=40, null=True,
+                                   blank=True, help_text='Overwrite default (app.key_area.key)')
+
+    def __init__(self, *args, **kwargs) -> None:
+        """ Used to cache original schema values to detect changes within signal method. Set to blank if object is new """
+        super().__init__(*args, **kwargs)
+        self.cached_schema_tables = self.schema_tables() if len(args) > 0 else ''
+        self.cached_schema_views = self.schema_views() if len(args) > 0 else ''
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         self.owner = self.application.owner
-        db_logger.info(f"DB: {str(self.database):8} - Action:'{self.database.containertype}.add_area' '{self.schema_tables()}' for '{self.application.key}/{self.key}' tables")
-        db_logger.info(f"DB: {str(self.database):8} - Action:'{self.database.containertype}.add_area' '{self.schema_views()}' for '{self.application.key}/{self.key}' views")
-
-        # Implement Area and Scopes in Container
-        self.database.add_area(self)
-        for scope in self.application.scope_set.all():
-            self.database.add_scope(self, scope)
-        self.filestorage.add_area(self)
-        for scope in self.application.scope_set.all():
-            self.filestorage.add_scope(self, scope)
         super().save(force_insert, force_update, using, update_fields)
 
     def schema_tables(self):
-        if self.schematables:
-            return self.schematables
-        return f'{self.application.key}_{self.key}_base'.lower()
+        return self.schematables if self.schematables else f'{self.application.key}_{self.key}_base'.lower()
 
     def schema_views(self):
-        if self.schemaviews:
-            return self.schemaviews
-        return f'{self.application.key}_{self.key}'.lower()
+        return self.schemaviews if self.schemaviews else f'{self.application.key}_{self.key}'.lower()
 
 
 class Scope(AbstractDatahubModel):
-    """ Scopes are linked to application and used from all areas within these application 
+    """ Scopes are linked to application and used from all areas within these application
         BUs will be checked by validator
         https://docs.djangoproject.com/en/5.0/ref/validators/
     """
@@ -397,6 +435,11 @@ class Scope(AbstractDatahubModel):
                                   help_text=_("Here are the standard templates created by the client"))
     app_scope = models.ForeignKey('Scope', on_delete=models.PROTECT, null=True, blank=True, related_name='+',
                                   help_text=_("Here are the standard templates created by Abraxas or other provider"))
+
+    def __init__(self, *args, **kwargs) -> None:
+        """ Used to cache original key to detect changes within signal method. Set to blank if object is new """
+        super().__init__(*args, **kwargs)
+        self.cached_key = self.key if len(args) > 0 else ''
 
     def full_clean(self, exclude=None, validate_unique=True, validate_constraints=True):
         """ Before the data is cleaned a validator for Business-Units will be added / replaced
@@ -464,18 +507,6 @@ class Scope(AbstractDatahubModel):
                 params={"value": self.key},
             )
 
-    def save(
-        self, force_insert=False, force_update=False, using=None, update_fields=None
-    ):
-
-        super().save(force_insert=force_insert, force_update=force_update,
-                     using=using, update_fields=update_fields)
-        """ While saving a scope, the scope has to be added to the container"""
-        for area in self.application.area_set.all():
-            area.database.add_scope(area, self)
-        for area in self.application.area_set.all():
-            area.filestorage.add_scope(area, self)
-
 
 class Environment(AbstractDatahubModel):
     class Meta:
@@ -503,3 +534,107 @@ class Environment(AbstractDatahubModel):
     awlib = models.CharField(
         _('awlib'), max_length=8, null=True, blank=True, help_text=_(
             'Used in batch job.'))
+
+
+"""
+   Methods save_* are triggered by changes of DATA-Hub objects and will implement actions on db
+"""
+
+
+@receiver(post_save, sender=Area)
+def receive_save_area(sender, instance: Area, created, **kwargs):
+    """ Only changes of schema names are relevant 
+        Trigger actions: add new schema to database, no actions in filestorage
+    """
+
+    if instance.schema_tables() != instance.cached_schema_tables:
+        instance.database.add_area(instance, instance.schema_tables())
+    if instance.schema_views() != instance.cached_schema_views:
+        instance.database.add_area(instance, instance.schema_views())
+
+    if created:
+        for scope in instance.application.scope_set.all():
+            instance.database.add_scope(instance, scope.key)
+            instance.filestorage.add_scope(instance, scope.key)
+
+
+@receiver(post_save, sender=Scope)
+def receive_save_scope(sender, instance: Scope, created, **kwargs):
+    """ Changes of business units are relevant 
+        Triggers actions: deletion of old scope and adding new scope
+    """
+
+    def info_all_areas(scope: Scope, scope_key, delete=False):
+        for area in scope.application.area_set.all():
+            if delete:
+                area.database.delete_scope(area, scope_key)
+                area.filestorage.delete_scope(area, scope_key)
+            else:
+                area.database.add_scope(area, scope_key)
+                area.filestorage.add_scope(area, scope_key)
+
+    # Only changes of key are relevant
+    if (instance.key != instance.cached_key):
+        if instance.cached_key:
+            info_all_areas(instance, instance.cached_key, delete=True)
+        info_all_areas(instance, instance.key)
+
+
+@receiver(post_delete, sender=Scope)
+def receive_delete_scope(sender, instance: Scope, **kwargs):
+    """ Deletion of scopes will be executed in containers """
+    for area in instance.application.area_set.all():
+        area.database.delete_scope(area, instance.key)
+        area.filestorage.delete_scope(area, instance.key)
+
+
+@receiver(signal=m2m_changed, sender=User.groups.through)
+def receive_group_assignments(instance: User, action, reverse, model, pk_set, using, *args, **kwargs):
+    """ Falls beim User Gruppen hinzugefügt oder geändert wurden, ist zu prüfen:
+        Remove von Gruppen:
+        1. hat eine der Gruppen direct access?
+        2. hat der User jetzt kein direkt access mehr -> direct access entfernen
+        Add von Gruppen:
+        1. hat eine der Gruppen direct access? -> direct access beim User eintragen, falls noch nicht da        
+    """
+    def info_all_dbs():
+        for db in Container.objects.filter(containertype__type=ContainerType.DATABASE).filter(owner=instance.owner):
+            if action == 'post_remove':
+                db.delete_user(instance)
+            else:
+                db.add_user(instance)
+
+    if action == 'post_remove':
+        for pk in pk_set:
+            group = Group.objects.get(pk=pk)
+            if len(group.permissions.filter(codename=PERMISSION_DIRECT_ACCESS)) > 0:
+                #               print(instance.username, action, group, PERMISSION_DIRECT_ACCESS)
+                if not instance.has_permission(PERMISSION_DIRECT_ACCESS):
+                    #                   db_logger.info(f"User {instance} - remove {PERMISSION_DIRECT_ACCESS}")
+                    info_all_dbs()
+                break
+    elif action == 'post_add':
+        for pk in pk_set:
+            group = Group.objects.get(pk=pk)
+            if len(group.permissions.filter(codename=PERMISSION_DIRECT_ACCESS)) > 0:
+                #               print(instance.username, action, group, PERMISSION_DIRECT_ACCESS)
+                #               db_logger.info(f"User {instance} - add {PERMISSION_DIRECT_ACCESS}")
+                info_all_dbs()
+                break
+
+
+"""
+Tipp für Filter
+
+from django.contrib.auth.models import User
+from django.db.models import Q
+
+def users_with_perm(perm_name):
+    return User.objects.filter(
+        Q(is_superuser=True) |
+        Q(user_permissions__codename=perm_name) |
+        Q(groups__permissions__codename=perm_name)).distinct()
+
+
+queryset = users_with_perm('blogger')
+"""

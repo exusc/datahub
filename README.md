@@ -1,17 +1,16 @@
-Version 1.0.7.3 of Prototype for Concept Discussions
+Version 1.0.7.5 of Prototype for Concept Discussions
 
 Supports base functionality for 
 - Standard administration of DATA-Hub objects
 - Self service with restriction to owned objects
+- db actions logged but not executed
 - Initial health checks implemented
 
 Open Tasks
 - connection to secure connect
-- implementation of actions within data container (add area with existing scopes, add scope, ...)
 
 Next Stories
-- Improve container actions (only logging)
-- Test first action to data container (add area)
+- Execution of container actions in db and filestorage
 - Implement health check for tables
 - Usage of *-functionality with scopes
 - Scops with from to for Schutzstufen 

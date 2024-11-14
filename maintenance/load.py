@@ -423,7 +423,7 @@ class UserLoader():
 class RoleLoader():
     # https://testdriven.io/blog/django-permissions/
     def load(self, request) -> str:
-        def create(name, maintain=[], view_only=[]):
+        def create(name, maintain=[], view_only=[], permissions=[]):
             group = Group(name=name, owner=Owner.objects.get(key='ABX'))
             try:
                 group.save()
@@ -437,14 +437,19 @@ class RoleLoader():
                     for perm in Permission.objects.filter(content_type=content_type):
                         if perm.codename.startswith('view_'):
                             group.permissions.add(perm)
+                for permission in permissions:
+                    perm = Permission.objects.get(codename=permission)
+                    if perm:
+                        group.permissions.add(perm)
                 group.save()
             except:
                 pass
+                
         create('Application Admin', maintain=[
                Application, Area, Scope], view_only=[Owner])
         create('DB Admin', maintain=[ContainerType, Container])
-        create('Direct Access')
-        create('Report Ordering')
+        create('Direct Access', permissions=[PERMISSION_DIRECT_ACCESS])
+        create('Report Ordering', permissions=[PERMISSION_UPLOAD_TEMPLATES, PERMISSION_DOWNLOAD_TEMPLATES])
         create('Report Creator', maintain=[Container])
         create('User Admin', maintain=[User], view_only=[Owner, Group])
         return _('Groups successfully loaded')
