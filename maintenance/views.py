@@ -21,7 +21,7 @@ from . forms import SampleForm
 
 @login_required(login_url="index")
 def load(request):
-    registered_classes = [Owner, ContainerType, Container,
+    registered_classes = [Owner, ContainerSystem, Container,
                           Environment, Application, Area, Scope,  Group, User, ]
 
     if request.POST:
@@ -44,8 +44,8 @@ def load(request):
                     txt = RoleLoader().load(request)
                 if registered_class == User:
                     txt = UserLoader().load(request)
-                if registered_class == ContainerType:
-                    txt = ContainerTypeLoader().load(request)
+                if registered_class == ContainerSystem:
+                    txt = ContainerSystemLoader().load(request)
                 if registered_class == Container:
                     txt = ContainerLoader().load(request)
                 info(request, txt)
@@ -90,7 +90,7 @@ def check(request, owner=None):
 
     health_dbs = {}
     databases = Container.objects.filter(
-        containertype__key__in=['SqlLite', 'PostGreSQL', ])
+        containersystem__key__in=['SqlLite', 'PostGreSQL', ])
     if owner:
         owner_databases = []
         for area in Area.objects.all():
@@ -111,7 +111,7 @@ def check(request, owner=None):
     if owner:
         areas = areas.filter(owner=owner)
     for area in areas:
-        if (area.database.containertype.key in ['PostGreSQL', ]):
+        if (area.database.containersystem.key in ['PostGreSQL', ]):
             # schema_tables
             schema = 't'
             try:
@@ -136,9 +136,9 @@ def check(request, owner=None):
                 result(health_areas, area, 'I', 'No access', schema)
         else:
             result(health_areas, area, 'I',
-                   f'Container type ({area.database.containertype.key}) not suported', 't')
+                   f'Container type ({area.database.containersystem.key}) not suported', 't')
             result(health_areas, area, 'I',
-                   f'Container type ({area.database.containertype.key}) not suported', 'v')
+                   f'Container type ({area.database.containersystem.key}) not suported', 'v')
     context['health_areas'] = health_areas
 
     return render(request, 'check.html', context)
@@ -173,7 +173,7 @@ def default_context(request):
         'first_name').filter(is_active=True)
     result['all_scopes'] = request.user.get_scopes(separate_application=False)
     result['all_containers'] = Container.objects.all().order_by(
-        'containertype', 'key')
+        'containersystem', 'key')
     return result
 
 

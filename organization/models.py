@@ -73,13 +73,13 @@ class Owner(AbstractDatahubModel):
         return cls.__hub
 
 
-class ContainerType(AbstractDatahubModel):
+class ContainerSystem(AbstractDatahubModel):
     """ ContainerType defines how the hub handels different activities like
         adding an area, adding an user, ...
     """
     class Meta:
-        verbose_name = _("ContainerType")
-        verbose_name_plural = _("ContainerTypes")
+        verbose_name = _("ContainerSystem")
+        verbose_name_plural = _("ContainerSystems")
 
     DATABASE = 'DB'
     FILESTORAGE = 'FS'
@@ -136,38 +136,70 @@ class Container(AbstractDatahubModel):
     owner = models.ForeignKey(
         to=Owner, on_delete=models.PROTECT, related_name='+',)
     key = models.CharField(_('key'), max_length=20, unique=True,)
-    containertype = models.ForeignKey(
-        to=ContainerType, on_delete=models.PROTECT)
+    containersystem = models.ForeignKey(
+        to=ContainerSystem, on_delete=models.PROTECT)
     connection = models.JSONField(_('Connection'), null=True,
                                   blank=True, help_text=_("To establish connection to container"))
+    execute_scripts = models.BooleanField(_('execute_scripts'), null=False, default=False,
+                                 help_text=_("Only if activated scripts will be executed"))
+
+
+    def exec_filestorage(self, code, parms):
+        """ Ausführen von Code im File Storage"""
+        test = """
+import os
+# Create app path if not exists
+app_path = os.path.join('{path}', '{app}')
+if not os.path.exists(app_path):
+    os.mkdir(app_path)
+# Create area path if not exists
+area_path = os.path.join(app_path, '{area}')
+if not os.path.exists(area_path):
+    os.mkdir(area_path)
+# Create scope path if not exists
+scope_path = os.path.join(area_path, '{scope}')
+if not os.path.exists(scope_path):
+    os.mkdir(scope_path)
+    
+# print(len(os.listdir(fn)))
+#  os.rmdir(fn)
+                """
+
+
+        formatted_code = code.format(**parms).strip()
+        exec(formatted_code)
+        # print('--- formated code:\n', formated_code)
+
 
     def add_scope(self, area, scope_key):
-        parms = {'app': area.application.key,
-                 'area': area.key, 'scope': scope_key}
-        db_logger.info(
-            f"{str(self):10} - Action:'{self.containertype}.Scope_add' - Parms: {parms}")
+        parms = {'app': area.application.key, 'area': area.key, 'scope': scope_key,}
+        parms.update(self.connection)
+        db_logger.info (
+            f"{str(self):10} - Action:'{self.containersystem}.scope_add' - Parms: {parms}")
+        if self.containersystem.type == ContainerSystem.FILESTORAGE:
+            self.exec_filestorage(self.containersystem.scope_add, parms)
 
     def delete_scope(self, area, scope_key):
         parms = {'app': area.application.key,
                  'area': area.key, 'scope': scope_key}
         db_logger.info(
-            f"{str(self):10} - Action:'{self.containertype}.delete_scope' - Parms: {parms}")
+            f"{str(self):10} - Action:'{self.containersystem}.scope_delete' - Parms: {parms}")
 
     def add_area(self, area, schemaname):
         parms = {'app': area.application.key,
                  'area': area.key, 'schema': schemaname}
         db_logger.info(
-            f"{str(self):10} - Action:'{self.containertype}.Area_add' - Parms: {parms}")
+            f"{str(self):10} - Action:'{self.containersystem}.area_add' - Parms: {parms}")
 
     def add_user(self, user):
         parms = {'user': user.username}
         db_logger.info(
-            f"{str(self):10} - Action:'{self.containertype}.User_add' - Parms: {parms}")
+            f"{str(self):10} - Action:'{self.containersystem}.user_add' - Parms: {parms}")
 
     def delete_user(self, user):
         parms = {'user': user.username}
         db_logger.info(
-            f"{str(self):10} - Action:'{self.containertype}.User_delete' - Parms: {parms}")
+            f"{str(self):10} - Action:'{self.containersystem}.user_delete' - Parms: {parms}")
 
     @property
     def __name(self):
@@ -175,7 +207,7 @@ class Container(AbstractDatahubModel):
         return str(self.id)
 
     def __connect(self):
-        if not self.containertype.type == 'DB':
+        if not self.containersystem.type == 'DB':
             raise Exception(
                 f'This container ({self.key}) is not type database')
 
@@ -185,11 +217,11 @@ class Container(AbstractDatahubModel):
             # Create database dynamic based on 'default'
             db = DATABASES['default'].copy()
             # Set defaults dependent of containetype
-            db.update(self.containertype.connection)
+            db.update(self.containersystem.connection)
             db.update(self.connection)
             # Hardcoded Defaults
-            db['USER'] = 'axusc03' # 'postgres'
-            db['PASSWORD'] = 'password' # '.Paraolimpia1235'
+            db['USER'] = 'postgres'
+            db['PASSWORD'] = '.Paraolimpia1235'
             DATABASES[self.__name] = db
 
     def exec_sql(self, sql_string):
@@ -199,7 +231,7 @@ class Container(AbstractDatahubModel):
         # direkt: https://docs.djangoproject.com/en/5.0/topics/db/sql/#executing-custom-sql-directly
         # https://docs.djangoproject.com/en/5.0/ref/models/querysets/
 
-        if not self.containertype.type == 'DB':
+        if not self.containersystem.type == 'DB':
             raise Exception(
                 f'This container ({self.key}) is not type database')
 
@@ -598,7 +630,7 @@ def receive_group_assignments(instance: User, action, reverse, model, pk_set, us
         1. hat eine der Gruppen direct access? -> direct access beim User eintragen, falls noch nicht da        
     """
     def info_all_dbs():
-        for db in Container.objects.filter(containertype__type=ContainerType.DATABASE).filter(owner=instance.owner):
+        for db in Container.objects.filter(containertype__type=ContainerSystem.DATABASE).filter(owner=instance.owner):
             if action == 'post_remove':
                 db.delete_user(instance)
             else:

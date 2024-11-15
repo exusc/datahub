@@ -17,7 +17,7 @@
     <tr>
         <td><a href="{% url 'admin:organization_container_change' db.id %}">{{db}}</a>
         <td>{{db.desc}}</td>
-        <td><a href="{% url 'admin:organization_containertype_change' db.containertype.id %}">{{db.containertype.key}}</a></td>
+        <td><a href="{% url 'admin:organization_containersystem_change' db.containersystem.id %}">{{db.containertype.key}}</a></td>
         <td>{{db.connection}}</td>
         <td>{% autoescape off %}{{x.badge_x}}{% endautoescape %} - {{x.msg_x}}</td>
     </tr>

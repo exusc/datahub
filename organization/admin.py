@@ -37,7 +37,7 @@ class DatahubAdminSite(admin.AdminSite):
             "Group": 23,
             "Owner": 24,
             "Container": 31,
-            "ContainerType": 32,
+            "ContainerSystem": 32,
             "LogEntry": 0,
         }
         app_dict = self._build_app_dict(request, app_label)
@@ -231,10 +231,10 @@ class AreaAdmin(DatahubModelAdmin):
             kwargs["queryset"] = allowed(request, Application.objects.all())
         if db_field.name == "database":
             kwargs["queryset"] = allowed(
-                request, Container.objects.all()).filter(containertype__type=ContainerType.DATABASE)
+                request, Container.objects.all()).filter(containersystem__type=ContainerSystem.DATABASE)
         if db_field.name == "filestorage":
             kwargs["queryset"] = allowed(
-                request, Container.objects.all()).filter(containertype__type=ContainerType.FILESTORAGE)
+                request, Container.objects.all()).filter(containersystem__type=ContainerSystem.FILESTORAGE)
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     search_fields = ['key', 'application__key', 'desc']
@@ -254,19 +254,19 @@ class AreaAdmin(DatahubModelAdmin):
 class ContainerAdmin(DatahubModelAdmin):
     search_fields = ['key', 'desc', ]
     ordering = ['key',]
-    list_display = ['key', 'desc', 'containertype',
-                    'connection', 'owner', 'active']
-    list_filter = ['containertype', 'active']
+    list_display = ['key', 'desc', 'containersystem',
+                    'connection', 'owner', 'execute_scripts', 'active']
+    list_filter = ['containersystem', 'active']
     fieldsets = [
         (None, {'fields': [('key', 'owner',), 'active', 'desc',
-         'containertype', 'connection', ], }),
+         'containersystem', 'connection', 'execute_scripts', ], }),
         ('History', {'fields': [('ctime', 'cuser'), ('utime', 'uuser')], },),
     ]
 
 
-class ContainerTypeAdmin(DatahubModelAdmin):
+class ContainerSystemAdmin(DatahubModelAdmin):
     ordering = ['key',]
-    list_display = ['key', 'desc', 'type', 'owner', 'active']
+    list_display = ['key', 'desc', 'type', 'connection', 'owner', 'active']
     list_filter = ['type', 'active']
     fieldsets = [
         (None, {'fields': [('key', 'owner',),
@@ -308,6 +308,6 @@ datahub_admin_site.register(Owner, OwnerAdmin)
 datahub_admin_site.register(Application, ApplicationAdmin)
 datahub_admin_site.register(Area, AreaAdmin)
 datahub_admin_site.register(Container, ContainerAdmin)
-datahub_admin_site.register(ContainerType, ContainerTypeAdmin)
+datahub_admin_site.register(ContainerSystem, ContainerSystemAdmin)
 datahub_admin_site.register(Scope, ScopeAdmin)
 datahub_admin_site.register(LogEntry, LogEntryAdmin)

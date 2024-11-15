@@ -447,7 +447,7 @@ class RoleLoader():
                 
         create('Application Admin', maintain=[
                Application, Area, Scope], view_only=[Owner])
-        create('DB Admin', maintain=[ContainerType, Container])
+        create('DB Admin', maintain=[ContainerSystem, Container])
         create('Direct Access', permissions=[PERMISSION_DIRECT_ACCESS])
         create('Report Ordering', permissions=[PERMISSION_UPLOAD_TEMPLATES, PERMISSION_DOWNLOAD_TEMPLATES])
         create('Report Creator', maintain=[Container])
@@ -455,11 +455,11 @@ class RoleLoader():
         return _('Groups successfully loaded')
 
 
-class ContainerTypeLoader():
+class ContainerSystemLoader():
 
     def load(self, request) -> str:
         def create(key, desc, type, connection={}):
-            obj = ContainerType(
+            obj = ContainerSystem(
                 owner=Owner.hub(), key=key, desc=desc, type=type,
                 ctime=timezone.now(), cuser=request.user,
                 connection=connection,
@@ -470,12 +470,12 @@ class ContainerTypeLoader():
                 pass
 
 
-        create('Clickhouse', 'For Testing', ContainerType.DATABASE)
-        create('PostGreSQL', 'Standard DB', ContainerType.DATABASE, {"ENGINE" : "django.db.backends.postgresql"})
-        create('SqlLite', 'Django DB', ContainerType.DATABASE, {"ENGINE": "django.db.backends.sqlite3"})
-        create('ACE_TE', 'ACE Server for MF ADABAS - Test', ContainerType.DATABASE, {"HOST": "cnxJDBC-TEST.systemz.abraxas-its.ch", "PORT": "6000", "cdd": "rte_TEST"})
-        create('Filesystem', 'Test', ContainerType.FILESTORAGE)
-        create('MinIO', 'Standard for Files', ContainerType.FILESTORAGE)
+        create('Clickhouse', 'For Testing', ContainerSystem.DATABASE)
+        create('PostGreSQL', 'Standard DB', ContainerSystem.DATABASE, {"ENGINE" : "django.db.backends.postgresql"})
+        create('SqlLite', 'Django DB', ContainerSystem.DATABASE, {"ENGINE": "django.db.backends.sqlite3"})
+        create('ACE_TE', 'ACE Server for MF ADABAS - Test', ContainerSystem.DATABASE, {"HOST": "cnxJDBC-TEST.systemz.abraxas-its.ch", "PORT": "6000", "cdd": "rte_TEST"})
+        create('Filesystem', 'Test', ContainerSystem.FILESTORAGE)
+        create('MinIO', 'Standard for Files', ContainerSystem.FILESTORAGE)
         return _('ContainerTypes successfully loaded')
 
 
@@ -485,7 +485,7 @@ class ContainerLoader():
         def create(owner_key, key, desc, type, connection={}):
             obj = Container(owner=Owner.objects.get(key=owner_key),
                             key=key, desc=desc, 
-                            containertype=ContainerType.objects.get(key=type),
+                            containertype=ContainerSystem.objects.get(key=type),
                             connection=connection,
                             ctime=timezone.now(), cuser=request.user,
                             )
