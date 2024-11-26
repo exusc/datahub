@@ -74,7 +74,7 @@ class Owner(AbstractDatahubModel):
 
 
 class ContainerSystem(AbstractDatahubModel):
-    """ ContainerType defines how the hub handels different activities like
+    """ ContainerSystem defines how the hub handels different activities like
         adding an area, adding an user, ...
     """
     class Meta:
@@ -115,7 +115,7 @@ class Container(AbstractDatahubModel):
     """ Can contain data of multiple areas/application
         But we expect that every client wants to have his own containers
 
-        TODO: implement methods add_scope, delete_scope using scripts from ContainerType
+        TODO: implement methods add_scope, delete_scope using scripts from ContainerSystem
     """
 
     class Meta:
@@ -160,9 +160,10 @@ if not os.path.exists(area_path):
 scope_path = os.path.join(area_path, '{scope}')
 if not os.path.exists(scope_path):
     os.mkdir(scope_path)
-"""
-        formatted_code = code.format(**parms).strip()
-        exec(formatted_code)
+"""     
+        if code:
+            formatted_code = code.format(**parms).strip()
+            exec(formatted_code)
 
     def add_scope(self, area, scope_key):
         parms = {'app': area.application.key, 'area': area.key, 'scope': scope_key,}
@@ -638,7 +639,7 @@ def receive_group_assignments(instance: User, action, reverse, model, pk_set, us
         1. hat eine der Gruppen direct access? -> direct access beim User eintragen, falls noch nicht da        
     """
     def info_all_dbs():
-        for db in Container.objects.filter(containertype__type=ContainerSystem.DATABASE).filter(owner=instance.owner):
+        for db in Container.objects.filter(containersystem__type=ContainerSystem.DATABASE).filter(owner=instance.owner):
             if action == 'post_remove':
                 db.delete_user(instance)
             else:

@@ -1,4 +1,5 @@
-Version 1.0.7.7 of Prototype for Concept Discussions
+Version 1.1.0 of Prototype for Concept Discussions
+   ContainerSystem in use, test cases including Taxa PoC complete
 
 Supports base functionality for 
 - Standard administration of DATA-Hub objects

@@ -164,7 +164,7 @@ def checkapplication(request, application_id):
     context = default_context(request)
     application = Application.objects.get(id=application_id)
 
-    # Check of databases
+    # Check of databases 
     databases = {}
     for area in application.area_set.all():
         if not area.database in databases:
@@ -174,7 +174,6 @@ def checkapplication(request, application_id):
                 db_health.update({'connected' : True})
                 if 'login_hook' in schemas:
                     db_health.update({'schema_login_hook' : True})
-                print(f'{application.key}_rd')
                 if f'{application.key}_rd' in schemas:
                     db_health.update({'schema_app_rd' : True})
 
@@ -182,8 +181,20 @@ def checkapplication(request, application_id):
                 db_health.update({'error' : error})
             databases.update({area.database:db_health})
 
+    # Check of areas
+    areas = {}
+    for area in application.area_set.all():
+        try:
+            schemas = area.database.schemas()  # Test Access to db
+            views = area.schema_views() in schemas
+            tables = area.schema_tables() in schemas
+            areas.update({area:{'views':views, 'tables':tables}})
+        except :
+            pass
+
     context['application'] = application
     context['databases'] = databases
+    context['areas'] = areas
 
     return render(request, 'checkapplication.html', context)
 

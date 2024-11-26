@@ -27,7 +27,7 @@
         {% endif %}
     </h5>
 
-    <h5>Scopes: {{application.scope_set.all|length}}</h5>
+    <h5><a href="/admin/organization/scope">Scopes: {{application.scope_set.all|length}} </a>    </h5>
 
     </div>
 
@@ -62,15 +62,19 @@
     {% endfor %}
 
 
-    {% for area in application.area_set.all %}
+    {% for area, info in areas.items %}
     <div class="w3-container w3-theme-l2 w3-padding-16 w3-margin-top">
     {% if area.active %}
     <h5>Area: <a href="{% url 'admin:organization_area_change' area.id %}">{{area}}</a> - {{area.desc}}  {% if not area.active %}(not active){% endif %}</h5>
     <li>Database: <a href="{% url 'admin:organization_container_change' area.database.id %}">{{area.database}}</a>
-         - Schema for Tables: <b>{{area.schema_tables}} exists? - </b><span class="w3-gray">Not checked </span> 
+         - Schema for Tables: <b>{{area.schema_tables}} exists? - </b><span class="w3-gray">
+        {% if info.tables %} <span class="w3-green"> Yes </span> {% else %} <span class="w3-red"> No</span>{% endif %} 
+        </span> 
     </li>
     <li>Database: <a href="{% url 'admin:organization_container_change' area.database.id %}">{{area.database}}</a>
-        - Schema for views: <b>{{area.schema_views}} exists? - </b><span class="w3-gray">Not checked </span> 
+        - Schema for views: <b>{{area.schema_views}} exists? - </b><span class="w3-gray">
+        {% if info.views %} <span class="w3-green"> Yes </span> {% else %} <span class="w3-red"> No</span>{% endif %} 
+        </span> 
    </li>
     <li>Filestorage: <a
         href="{% url 'admin:organization_container_change' area.filestorage.id %}">{{area.filestorage}}</a>

@@ -154,6 +154,7 @@ class ApplicationLoader():
                 obj.save()
             except:
                 pass
+        create('ABX', 'taxa', 'Taxa (PoC)', 'context_key')
         create('ABX', 'HUB', 'Steuerung der DATA-Hub-Security', 'Owner')
         create('ABX', 'SVA', 'Applikation für alle SVAs', 'Owner',)
         create('ABX', 'AW', 'Auswertung', 'Level_1',
@@ -180,7 +181,7 @@ class ApplicationLoader():
 class AreaLoader():
     def load(self, request) -> str:
         """ Laden der Sample Areas """
-        def create(app_key, key, desc, db_key, fs_key,st=''):
+        def create(app_key, key, desc, db_key, fs_key,st='',sv=''):
             application = Application.objects.get(key=app_key)
             database = Container.objects.get(key=db_key)
             filestorage = Container.objects.get(key=fs_key)
@@ -189,6 +190,7 @@ class AreaLoader():
                        application=application,
                        desc=desc, database=database, filestorage=filestorage,
                        schematables=st,
+                       schemaviews=sv,
                        ctime=timezone.now(),
                        cuser=request.user,
                        )
@@ -200,6 +202,8 @@ class AreaLoader():
         create('FD', 'rd', 'Raw Data', db_key='ADABAS', fs_key='MinIO')
         create('SN', 'rd', 'Raw Data', db_key='ADABAS', fs_key='FS-ABX')
         create('dmo', 'rd' , 'Raw Data for Demo', db_key='dat', fs_key='MinIO')
+        create('taxa', 'poc_rd' , 'Raw Data for Taxa PoC', db_key='dat', fs_key='MinIO')
+        create('taxa', 'poc_dv' , 'Data Vault for Taxa PoC', db_key='dat', fs_key='MinIO', st='tax_rd_base', sv='tax_rd')
         create('igs', 'rd-zh', 'Raw Data',db_key='sta-igs', fs_key='MinIO Zürich', st='igs_zh_rd')
         create('sva-sg-bz', 'rd', 'Raw Data',db_key='sta-sva-sg', fs_key='MinIO', st='bz_bzcore_rd')
         create('sva-sg-elar', 'rd', 'Raw Data',db_key='sta-sva-sg', fs_key='MinIO', st='elar_rd')
@@ -237,11 +241,23 @@ class ScopeLoader():
                 pass
             return obj
         # create('FD', 'KT', 'FD', '302')
+        
         create('HUB', '*', desc='Berechtigung für alle Owner im DATA-Hub')
         create('HUB', 'ABX')
         create('HUB', 'IGS')
         create('HUB', 'SVA-SG')
         create('HUB', 'SVA-ZH')
+
+        app_scope = create('taxa', '*', team='STD',
+                           desc='Standard Templates / Abraxas', type='A')
+        create('taxa', 'GEMEINDE_STEURION', 
+               desc='Steurion', app_scope=app_scope)
+        create('taxa', 'GEMEINDE_STEURION', team='test', 
+               desc='Steurion', app_scope=app_scope)
+        create('taxa', 'GEMEINDE_ABRAXIEN', 
+               desc='Abraxien', app_scope=app_scope)
+
+
         app_scope = create('igs', '*', team='PROD',
                            desc='Standard Templates for all SVAs', type='A')
         org_scope = create('igs', '*', team='PROD',
@@ -269,6 +285,7 @@ class ScopeLoader():
         return txt
 
     def load_aw(self):
+        return 'nix'
         applications = {}
         for application in Application.objects.all():
             applications[application.key] = application
@@ -372,10 +389,13 @@ class UserLoader():
             return user
         create('ABX', 'AXKTO', 'Tamás', 'Kovács',
                is_staff=True, is_superuser=True)
-        user = create('ABX', 'EXUSC', 'Ulrich', 'Schoppe', is_staff=True)
+        user = create('ABX', 'AXUSC03', 'Ulrich', 'Schoppe', is_staff=True)
         if user:
             user.groups.add(Group.objects.get(name='Report Ordering'))
             user.groups.add(Group.objects.get(name='Report Creator'))
+            user.scopes.add(Scope.objects.get(key='TAXA_GEMEINDE_ABRAXIEN'))
+            user.scopes.add(Scope.objects.get(key='TAXA_GEMEINDE_STEURION'))
+            user.scopes.add(Scope.objects.get(key='TAXA_GEMEINDE_STEURION/TEST'))
 
         user = create('IGS', 'IGMSC', 'Matthias', 'Schneider',  is_staff=True)
         if user:
@@ -389,9 +409,9 @@ class UserLoader():
             user.groups.add(Group.objects.get(name='Report Ordering'))
             user.groups.add(Group.objects.get(name='Report Creator'))
             user.scopes.add(Scope.objects.get(key='HUB_SVA-SG'))
-            user.scopes.add(Scope.objects.get(key='SVA-SG-LZ_MKT_GP1'))
-            user.scopes.add(Scope.objects.get(key='SVA-SG-LZ_MKT_GP2'))
-            user.scopes.add(Scope.objects.get(key='SVA-SG-BZ_*'))
+            #user.scopes.add(Scope.objects.get(key='SVA-SG-LZ_MKT_GP1'))
+            #user.scopes.add(Scope.objects.get(key='SVA-SG-LZ_MKT_GP2'))
+            #user.scopes.add(Scope.objects.get(key='SVA-SG-BZ_*'))
 
         user = create('SVA-ZH', 'ZHDUT', 'Diego', 'Utzinger', is_staff=True)
         if user:
@@ -401,9 +421,9 @@ class UserLoader():
             user.groups.add(Group.objects.get(name='Report Ordering'))
             user.groups.add(Group.objects.get(name='Report Creator'))
             user.scopes.add(Scope.objects.get(key='HUB_SVA-ZH'))
-            user.scopes.add(Scope.objects.get(key='SVA-ZH-BZ_*'))
-            user.scopes.add(Scope.objects.get(key='SVA-ZH-LZ_*/TEST'))
-            user.scopes.add(Scope.objects.get(key='SVA-ZH-LZ_*/PROD'))
+            #user.scopes.add(Scope.objects.get(key='SVA-ZH-BZ_*'))
+            #user.scopes.add(Scope.objects.get(key='SVA-ZH-LZ_*/TEST'))
+            #user.scopes.add(Scope.objects.get(key='SVA-ZH-LZ_*/PROD'))
 
         user = create('SVA-ZH', 'ZHADM', 'Admin', 'Zürich',  is_staff=True)
         if user:
@@ -449,8 +469,8 @@ class RoleLoader():
                Application, Area, Scope], view_only=[Owner])
         create('DB Admin', maintain=[ContainerSystem, Container])
         create('Direct Access', permissions=[PERMISSION_DIRECT_ACCESS])
-        create('Report Ordering', permissions=[PERMISSION_UPLOAD_TEMPLATES, PERMISSION_DOWNLOAD_TEMPLATES])
-        create('Report Creator', maintain=[Container])
+        create('Report Ordering', permissions=[])
+        create('Report Creator', permissions=[PERMISSION_UPLOAD_TEMPLATES, PERMISSION_DOWNLOAD_TEMPLATES])
         create('User Admin', maintain=[User], view_only=[Owner, Group])
         return _('Groups successfully loaded')
 
@@ -476,7 +496,7 @@ class ContainerSystemLoader():
         create('ACE_TE', 'ACE Server for MF ADABAS - Test', ContainerSystem.DATABASE, {"HOST": "cnxJDBC-TEST.systemz.abraxas-its.ch", "PORT": "6000", "cdd": "rte_TEST"})
         create('Filesystem', 'Test', ContainerSystem.FILESTORAGE)
         create('MinIO', 'Standard for Files', ContainerSystem.FILESTORAGE)
-        return _('ContainerTypes successfully loaded')
+        return _('ContainerSystems successfully loaded')
 
 
 class ContainerLoader():
@@ -485,7 +505,7 @@ class ContainerLoader():
         def create(owner_key, key, desc, type, connection={}):
             obj = Container(owner=Owner.objects.get(key=owner_key),
                             key=key, desc=desc, 
-                            containertype=ContainerSystem.objects.get(key=type),
+                            containersystem=ContainerSystem.objects.get(key=type),
                             connection=connection,
                             ctime=timezone.now(), cuser=request.user,
                             )
