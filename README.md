@@ -1,5 +1,6 @@
-Version 1.1.0 of Prototype for Concept Discussions
-   ContainerSystem in use, test cases including Taxa PoC complete
+Version 1.1.0.1 of Prototype for Concept Discussions
+  ContainerSystem in use, test cases including Taxa PoC complete
+  Work on AreaScopes started
 
 Supports base functionality for 
 - Standard administration of DATA-Hub objects
@@ -7,13 +8,13 @@ Supports base functionality for
 - db actions logged but not executed
 - Initial health checks implemented
 
-Open Tasks
+Open Stories
 - Connection to secure connect
 - UI should use Abraxas Base Components
-- Support of Min-IO
-- Scope must be connected to areas instead of applications
+- Support of MinIo
 
 Next Tasks
+- Switch to AreaScopes 
 - Health-Check auf Applikationsebene 
   - Informationen zu Applikation (Business-Units, Anzahl Scopes) siehe DashBoard
   - keine Gesamtübersicht: Applikations-DBs alle Datenbanken / Login-Hook

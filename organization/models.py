@@ -31,10 +31,10 @@ class AbstractDatahubModel(models.Model):
     desc = models.CharField(_('desc'), max_length=80, null=True, blank=True)
     text = models.TextField(_('text'), null=True, blank=True)
 
-    ctime = models.DateTimeField(_('ctime'), null=True, blank=True,)
-    cuser = models.CharField(_('cuser'), max_length=8, null=True, blank=True,)
-    utime = models.DateTimeField(_('utime'), null=True, blank=True, )
-    uuser = models.CharField(_('uuser'), max_length=8, null=True, blank=True, )
+    ctime = models.DateTimeField(_('Create Time'), null=True, blank=True, )
+    cuser = models.CharField(_('Create User'), max_length=8, null=True, blank=True,)
+    utime = models.DateTimeField(_('Update Time'), null=True, blank=True, )
+    uuser = models.CharField(_('Update User'), max_length=8, null=True, blank=True, )
 
     def __str__(self):
         """ Field 'Key' has to be defined in derived class
@@ -435,6 +435,123 @@ class Area(AbstractDatahubModel):
 
     def schema_views(self):
         return self.schemaviews if self.schemaviews else f'{self.application.key}_{self.key}'.lower()
+
+    def __str__(self):
+        return f'{self.application}_{self.key}'
+
+
+class Areascope(AbstractDatahubModel):
+    """ Areascopes are linked to areas and use the BU-definition of the application
+        BUs will be checked by validator
+        https://docs.djangoproject.com/en/5.0/ref/validators/
+    """
+    class Meta:
+        verbose_name = _("Areascope")
+        verbose_name_plural = _("Areascopes")
+
+    TYPE = {
+        "S": _("Standard"),
+        "O": _("Org scope"),
+        "A": _("App scope"),
+        "T": _("Test scope"),
+    }
+
+    owner = models.ForeignKey(
+        to=Owner, on_delete=models.PROTECT, related_name='+',)
+    key = models.CharField(_('key'), max_length=80, unique=True, default="tbd")
+    hex = models.CharField(_('hex'), max_length=8, null=True,
+                           blank=True, help_text=_("Hex value for AW data"))
+    type = models.CharField(_('type'), max_length=1, choices=TYPE, default='S',
+                            help_text=_("Defines how scope can be used"))
+    area = models.ForeignKey(to=Area, on_delete=models.PROTECT)
+    bu1_value = models.CharField(_('bu1_value'), max_length=80, null=True, blank=True,)
+    bu2_value = models.CharField(_('bu2_value'), max_length=80, null=True, blank=True,)
+    bu3_value = models.CharField(_('bu3_value'), max_length=80, null=True, blank=True,)
+    bu4_value = models.CharField(_('bu4_value'), max_length=80, null=True, blank=True,)
+    bu5_value = models.CharField(_('bu5_value'), max_length=80, null=True, blank=True,)
+    bu1_title = models.CharField(_('bu1_title'), max_length=80, null=True, blank=True,)
+    bu2_title = models.CharField(_('bu2_title'), max_length=80, null=True, blank=True,)
+    bu3_title = models.CharField(_('bu3_title'), max_length=80, null=True, blank=True,)
+    bu4_title = models.CharField(_('bu4_title'), max_length=80, null=True, blank=True,)
+    bu5_title = models.CharField(_('bu5_title'), max_length=80, null=True, blank=True,)
+    team = models.CharField(_('team'), max_length=80, null=True, blank=True)
+    org_scope = models.ForeignKey('Areascope', on_delete=models.PROTECT, null=True, blank=True, related_name='+',
+                                  help_text=_("Here are the standard templates created by the client"))
+    app_scope = models.ForeignKey('Areascope', on_delete=models.PROTECT, null=True, blank=True, related_name='+',
+                                  help_text=_("Here are the standard templates created by Abraxas or other provider"))
+
+    def __init__(self, *args, **kwargs) -> None:
+        """ Used to cache original key to detect changes within signal method. Set to blank if object is new """
+        super().__init__(*args, **kwargs)
+        self.cached_key = self.key if len(args) > 0 else ''
+
+    def full_clean(self, exclude=None, validate_unique=True, validate_constraints=True):
+        """ Before the data is cleaned a validator for Business-Units will be added / replaced
+            https://docs.djangoproject.com/en/5.0/ref/forms/validation/
+        """
+        for f in self._meta.fields:
+            if f.name == 'bu1_value' and self.area.application.regex_1:
+                for vali in f.validators:
+                    if type(vali) == RegexValidator:
+                        f.validators.remove(vali)
+                f.validators.append(RegexValidator(
+                    regex=self.area.application.regex_1))
+            if f.name == 'bu2_value' and self.area.application.regex_2:
+                for vali in f.validators:
+                    if type(vali) == RegexValidator:
+                        f.validators.remove(vali)
+                f.validators.append(RegexValidator(
+                    regex=self.area.application.regex_2))
+            if f.name == 'bu3_value' and self.area.application.regex_3:
+                for vali in f.validators:
+                    if type(vali) == RegexValidator:
+                        f.validators.remove(vali)
+                f.validators.append(RegexValidator(
+                    regex=self.area.application.regex_3))
+            if f.name == 'bu4_value' and self.area.application.regex_4:
+                for vali in f.validators:
+                    if type(vali) == RegexValidator:
+                        f.validators.remove(vali)
+                f.validators.append(RegexValidator(
+                    regex=self.area.application.regex_4))
+            if f.name == 'bu5_value' and self.area.application.regex_5:
+                for vali in f.validators:
+                    if type(vali) == RegexValidator:
+                        f.validators.remove(vali)
+                f.validators.append(RegexValidator(
+                    regex=self.area.application.regex_5))
+
+        super().full_clean(exclude=exclude, validate_unique=validate_unique,
+                           validate_constraints=validate_constraints)
+
+    def clean(self):
+
+        def append(delimiter,value, title):
+            if title:
+                self.key += f'{delimiter}{title.lower()}'
+            elif value:
+                self.key += f'{delimiter}{value.lower()}'
+
+        self.owner = self.area.owner
+        """ Creates the key based on the BUs
+        """
+
+        self.key = f'{self.area}'
+        append('/',self.bu1_value, self.bu1_title)
+        append('_',self.bu2_value, self.bu2_title)
+        append('_',self.bu3_value, self.bu3_title)
+        append('_',self.bu4_value, self.bu4_title)
+        append('_',self.bu5_value, self.bu5_title)
+        if self.team:
+            self.key += f'/{self.team.lower()}'
+
+        """ Check if scope already exists """
+        if self._state.adding and Scope.objects.filter(key=self.key):
+            raise ValidationError(
+                _("Scope: %(value)s already exists."),
+                code="invalid",
+                params={"value": self.key},
+            )
 
 
 class Scope(AbstractDatahubModel):

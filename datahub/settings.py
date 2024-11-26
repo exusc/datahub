@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 from django.utils.translation import gettext_lazy as _
+from django.conf.locale.en import formats as en_formats
 from datetime import datetime
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -151,6 +152,9 @@ TIME_ZONE = 'MET'
 USE_I18N = False
 
 USE_TZ = True
+
+en_formats.DATETIME_FORMAT = "d.m.Y H:i:s"
+en_formats.DATE_FORMAT = "d.m.Y"
 
 
 # Static files (CSS, JavaScript, Images)

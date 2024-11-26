@@ -38,6 +38,7 @@ class DatahubAdminSite(admin.AdminSite):
             "Owner": 24,
             "Container": 31,
             "ContainerSystem": 32,
+            "Areascope": 33,
             "LogEntry": 0,
         }
         app_dict = self._build_app_dict(request, app_label)
@@ -118,7 +119,8 @@ class DataHubUserAdmin(UserAdmin):
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         """ Reduce list of selectable owner to owner of users scopes """
         if db_field.name == "owner":
-            kwargs["queryset"] = allowed(request, Owner.objects.all().order_by('key'))
+            kwargs["queryset"] = allowed(
+                request, Owner.objects.all().order_by('key'))
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
@@ -222,6 +224,47 @@ class ScopeAdmin(DatahubModelAdmin):
     ]
 
 
+class AreascopeAdmin(DatahubModelAdmin):
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        """ Reduce list of owner dependent from superuser status """
+        if db_field.name == "area":
+            if request.user.is_superuser:
+                kwargs["queryset"] = Area.objects.all()
+            else:
+                kwargs["queryset"] = Area.objects.filter(
+                    owner=request.user.owner)
+        """ Reduce list of selectable scopes to according type """
+        if db_field.name == "org_scope":
+            scopes = Areascope.objects.filter(type='O')
+            if not request.user.is_superuser:
+                scopes = scopes.filter(area__owner=request.user.owner)
+            kwargs["queryset"] = scopes
+        if db_field.name == "app_scope":
+            scopes = Areascope.objects.filter(type='A')
+            if not request.user.is_superuser:
+                scopes = scopes.filter(area__owner=request.user.owner)
+            kwargs["queryset"] = scopes
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+    save_as = True
+    search_fields = ['key', 'area__key', 'desc', 'hex', 'cuser']
+    ordering = ['area__key', 'key',]
+    list_filter = ['area', 'type', 'active']
+    date_hierarchy = 'ctime'
+    list_display = ['key', 
+                    'type', 'desc', 'org_scope', 'app_scope', 'hex', 'ctime', 'cuser', 'owner', 'active']
+    fieldsets = [
+        ('Combination', {'fields': [
+         ('area', 'type', 'hex', ), 'active'], }),
+        ('Business Units', {'fields': [('bu1_value', 'bu1_title'), ('bu2_value', 'bu2_title'), (
+            'bu3_value', 'bu3_title'), ('bu4_value', 'bu4_title'), ('bu5_value', 'bu5_title'), 'team']}),
+        ('Documentation', {'fields': ['desc'], }),
+        ('Central Scopes', {'fields': ['org_scope', 'app_scope'], }),
+        ('History', {'fields': [('ctime', 'cuser'), ('utime', 'uuser')], },),
+    ]
+
+
 class AreaAdmin(DatahubModelAdmin):
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
@@ -246,7 +289,8 @@ class AreaAdmin(DatahubModelAdmin):
     fieldsets = [
         (None, {'fields': [('application', 'key', ),
          'active', 'desc', 'text', ], }),
-        ('Container', {'fields': [('database','schematables', 'schemaviews', ), 'filestorage'], }),
+        ('Container', {'fields': [
+         ('database', 'schematables', 'schemaviews', ), 'filestorage'], }),
         ('History', {'fields': [('ctime', 'cuser'), ('utime', 'uuser')], },),
     ]
 
@@ -312,4 +356,5 @@ datahub_admin_site.register(Area, AreaAdmin)
 datahub_admin_site.register(Container, ContainerAdmin)
 datahub_admin_site.register(ContainerSystem, ContainerSystemAdmin)
 datahub_admin_site.register(Scope, ScopeAdmin)
+datahub_admin_site.register(Areascope, AreascopeAdmin)
 datahub_admin_site.register(LogEntry, LogEntryAdmin)
