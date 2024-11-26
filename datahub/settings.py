@@ -80,18 +80,15 @@ WSGI_APPLICATION = 'datahub.wsgi.application'
 
 DATABASES = {
     
-    #'default': {
-    #   'ENGINE': 'django.db.backends.postgresql',
-    #   'NAME': 'sta_usc',
-    #   'HOST': 'sta.db.dat.abraxas-apis.ch',
-    #   'PORT': '5432',
-    #   'USER': 'postgres',
-    #   'PASSWORD': '???',
-    #},
-
-    # Connections to DATA-Databases will be established in 
-    # Container.__connect
-
+    # 'data_template' is used as template in Container.__connect
+    'data_template': {
+       'ENGINE': 'django.db.backends.postgresql',
+        # 'NAME': 'sta_usc',
+        # 'HOST': 'sta.db.dat.abraxas-apis.ch',
+       'PORT': '5432',
+       'USER': 'postgres',
+       'PASSWORD': '.Paraolimpia1235',
+    },
 
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -175,7 +172,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # log_filename = datetime.now().strftime("log/logstart-%Y-%m-%d-%H-%M.log")
 log_filename = datetime.now().strftime("log/log-%Y-%m-%d.log")
-data_filename = datetime.now().strftime("log/dbchanges-%Y-%m-%d.log")
+data_filename = datetime.now().strftime("log/dbc-%Y-%m-%d.log")
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,

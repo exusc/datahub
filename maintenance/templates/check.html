@@ -55,4 +55,56 @@
     {{health_schemas.area.application.business_unit_3}}
 {% endif %}
 
+<h3>Checks - to be implemented</h3>
+<h4>Database</h4>
+<ul>
+    <li><a href="https://github.com/splendiddata/login_hook">Login Hook</a> must be installed</li>
+    <li>Schema login_hook</li>
+    <li>Function get_login_hook_version, login, login_core, is_executing_login_hook</li>
+    <li>Information about session ID should be provided</li>
+</ul>
+<h4>Application</h4>
+<ul>
+    <li>Schema APP_rd is needed for scope function </li>
+    <li>Function APP_rd.tax_scope is needed</li>
+    <li>login_hook.login_core must contain PERFORM APP_rd.APP_scope</li>
+    <li>Table APP_rd.APP_scopes_filter is needed</li>
+</ul>
+Issues: 
+    <li>Schema APP_rd is needed (hardcoded name).</li>
+    <li>login_core is selecting just one scope of the user - unknown which one - should be default-defined by user</li>
+    <li>Selected scope should be printed</li>
+    <li>Table APP_scopes_filter contains old sesssions - will grow</li>
+<h4>Area</h4>
+<ul>
+    <li>Schema APP_AREA is needed</li>
+    <li>Schema APP_AREA_base is needed</li>
+</ul>
+<h4>Table</h4>
+<ul>
+    <li>Views for each table needed</li>
+    <li>View must contain all fields of tables</li>
+    <li>RLS Policy needd</li>
+    <li>Information about RLS columns helpfull</li>
+    <li>RLS Policy should be reduced to group/role tax_direct_access - to be discussed</li>
+</ul>
+<h4>Scope</h4>
+<ul>
+    <li>Does buckest exists</li>
+    <li>Is bucket empty</li>
+</ul>
+<h4>User</h4>
+<ul>
+    <li>Direct access?</li>
+    <li>Direct access but not defined in datahub!!</li>
+    <li>Which scopes assigend?</li>
+    <li>Which sessions?</li>
+</ul>
+<h4>Session</h4>
+<ul>
+    <li>Overview about outdated sessions</li>
+</ul>
+
+
+
 {% endblock %}

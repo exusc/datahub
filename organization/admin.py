@@ -271,7 +271,9 @@ class ContainerSystemAdmin(DatahubModelAdmin):
     fieldsets = [
         (None, {'fields': [('key', 'owner',),
          'active', 'desc', 'type', 'connection'], }),
-        ('Scripts', {'fields': [('area_add', 'user_add', 'scope_add'), ], }),
+        ('App Scripts', {'fields': [('area_add', ), ], }),
+        ('Scope Scripts', {'fields': [('scope_add', 'scope_del'), ], }),
+        ('User Scripts', {'fields': [('user_add', ), ], }),
         ('History', {'fields': [('ctime', 'cuser'), ('utime', 'uuser')], },),
     ]
 

@@ -7,18 +7,29 @@ Supports base functionality for
 - Initial health checks implemented
 
 Open Tasks
-- connection to secure connect
+- Connection to secure connect
+- UI should use Abraxas Base Components
+- Support of Min-IO
+- Scope must be connected to areas instead of applications
 
 Next Tasks
-- FileStorage im Filesystem: scope_add implemented - next steps open
+- Health-Check auf Applikationsebene 
+  - Informationen zu Applikation (Business-Units, Anzahl Scopes) siehe DashBoard
+  - keine Gesamtübersicht: Applikations-DBs alle Datenbanken / Login-Hook
+  - Areas mit ihren Checks
+- MyDataHUB (Index) verkürzen - Liste der Applikationen -> Health-Check
+- FileStorage im Filesystem fertigmachen:
+  Scripttype einbauen 
+  scope_delete if not empty
+  scope_exists, scope is_empty()
 - Alle Scopes anlegen als Funktion auf den Containern
 
 Next Stories
+- Implement health checks
 - Execution of container actions in db and filestorage
 - Active References - Container->Area->Application
-- Implement health check for tables
 - Usage of *-functionality with scopes
-- Scops with from to for Schutzstufen 
+- Scopes with from to for Schutzstufen 
 - UI for scope adding
 - Multi-language-support
 

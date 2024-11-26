@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block body %}
+
+<header class="w3-container" style="padding-top:22px">
+    <h2><i class="fa fa-stethoscope fa-fw"></i> Health Check of Application '{{application}}'
+        - {{application.desc}}  {% if not application.active %}(not active){% endif %}
+    </h2>
+
+    <div class="w3-container w3-theme-l2 w3-padding-16">
+
+    <h5>Business-Units:
+        {% if application.business_unit_1 %}
+        {{application.business_unit_1}}
+        {% endif %}
+        {% if application.business_unit_2 %}
+        , {{application.business_unit_2}}
+        {% endif %}
+        {% if application.business_unit_3 %}
+        , {{application.business_unit_3}}
+        {% endif %}
+        {% if application.business_unit_4 %}
+        , {{application.business_unit_3}}
+        {% endif %}
+        {% if application.business_unit_5 %}
+        , {{application.business_unit_5}}
+        {% endif %}
+    </h5>
+
+    <h5>Scopes: {{application.scope_set.all|length}}</h5>
+
+    </div>
+
+    {% for db, health in databases.items %}
+    <div class="w3-container w3-theme-l2 w3-padding-16 w3-margin-top">
+        <h5>Database: <a href="{% url 'admin:organization_container_change' db.id %}">{{db}}</a> ({{db.containersystem}}) - {{db.desc}}
+        </h5>
+        Connection: {{db.connection}}
+        <br>Status: {% if db.active %} active {% else %} not active {% endif %} 
+        , Scripts: {% if db.execute_scripts %} execute {% else %} no execution {% endif %} 
+        <br>
+
+        <br>To be checked:
+        <li>Connection established? - 
+            {% if health.connected %} <span class="w3-green"> Yes </span> {% else %} <span class="w3-red"> No</span> - Info: {{health.error}}{% endif %} 
+        </li>
+        <li>RLS: Schema login_hook exists? - 
+            {% if health.schema_login_hook %} <span class="w3-green"> Yes </span> {% else %} <span class="w3-red"> No </span>{% endif %} 
+        </li>
+        <li>RLS: Functions get_login_hook_version, login, login_core, is_executing_login_hook exists? - 
+            <span class="w3-gray">Not checked </span>
+        </li>
+        <br>
+        <li>APP: Schema {{application}}_rd for scope function exists? -
+            {% if health.schema_app_rd %} <span class="w3-green"> Yes </span> {% else %} <span class="w3-red"> No </span>{% endif %} 
+        </li>
+
+        <li>APP: Function {{application}}_rd.tax_scope exists? - <span class="w3-gray">Not checked </span> </li>
+        <li>APP: login_hook.login_core contains PERFORM APP_rd.APP_scope? - <span class="w3-gray">Not checked </span> </li>
+        <li>APP: Table {{application}}_rd.{{application}}_scopes_filter exists? - <span class="w3-gray">Not checked </span></li> 
+    </div>
+    {% endfor %}
+
+
+    {% for area in application.area_set.all %}
+    <div class="w3-container w3-theme-l2 w3-padding-16 w3-margin-top">
+    {% if area.active %}
+    <h5>Area: <a href="{% url 'admin:organization_area_change' area.id %}">{{area}}</a> - {{area.desc}}  {% if not area.active %}(not active){% endif %}</h5>
+    <li>Database: <a href="{% url 'admin:organization_container_change' area.database.id %}">{{area.database}}</a>
+         - Schema for Tables: <b>{{area.schema_tables}} exists? - </b><span class="w3-gray">Not checked </span> 
+    </li>
+    <li>Database: <a href="{% url 'admin:organization_container_change' area.database.id %}">{{area.database}}</a>
+        - Schema for views: <b>{{area.schema_views}} exists? - </b><span class="w3-gray">Not checked </span> 
+   </li>
+    <li>Filestorage: <a
+        href="{% url 'admin:organization_container_change' area.filestorage.id %}">{{area.filestorage}}</a>
+         - {{area.filestorage.desc}}</li>
+    {% endif %}
+    </div>
+    {% endfor %}
+
+    <div class="w3-container w3-theme-l2 w3-padding-16 w3-margin-top">
+        <h5>User with direct access</h5>
+    </div>
+
+</header>
+<br>
+
+
+
+{% endblock %}

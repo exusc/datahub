@@ -106,12 +106,13 @@
         {% if owner.application_set.all|length > 0 %}
 
         <div class="w3-container w3-theme-l3 w3-padding-16">
-            <h3><a href="{% url 'admin:organization_owner_change' owner.id %}">{{owner}}</a>
+            <h3>
+                <button class="w3-bar-item w3-theme w3-left w3-margin-right"  onclick="show('{{owner}}')"><i class="fa fa-chevron-down fa-fw"></i></button> 
+                <a href="{% url 'admin:organization_owner_change' owner.id %}">{{owner}}</a>
                 - {{owner.desc}} / User: {{owner.user_set.all|length}} / Applications:
                 {{owner.application_set.all|length}}  
-                <button class="w3-bar-item w3-theme w3-right w3-margin-right"  onclick="show('{{owner}}')"><i class="fa fa-chevron-down fa-fw"></i></button> 
-                <button class="w3-bar-item w3-theme w3-right w3-margin-right"  onclick="window.location.href='{% url "dashboard" owner.id %}';"><i class="fa fa-gauge-high fa-fw"></i></button> 
-                <button class="w3-bar-item w3-theme w3-right w3-margin-right"  onclick="window.location.href='{% url "checkowner" owner.id %}';"><i class="fa fa-stethoscope fa-fw"></i></button> 
+                <!--button class="w3-bar-item w3-theme w3-right w3-margin-right"  onclick="window.location.href='{% url "dashboard" owner.id %}';"><i class="fa fa-gauge-high fa-fw"></i></button--> 
+                <!--button class="w3-bar-item w3-theme w3-right w3-margin-right"  onclick="window.location.href='{% url "checkowner" owner.id %}';"><i class="fa fa-stethoscope fa-fw"></i></button-->
             </h3>
 
             <div id="{{owner}}" style="display:none">
@@ -121,7 +122,10 @@
 
             <div class="w3-container w3-theme-l2 w3-padding-16">
 
-                <h4>Application: <a href="{% url 'admin:organization_application_change' application.id %}">{{application}}</a> - {{application.desc}}  {% if not application.active %}(not active){% endif %}</h4>
+                <h4>
+                    <button class="w3-bar-item w3-theme w3-margin-right"  onclick="window.location.href='{% url "checkapplication" application.id %}';"><i class="fa fa-stethoscope fa-fw"></i></button> 
+                    Application: <a href="{% url 'admin:organization_application_change' application.id %}">{{application}}</a> - {{application.desc}}  {% if not application.active %}(not active){% endif %}
+                </h4>
                 <h5>Business-Units:
                     {% if application.business_unit_1 %}
                     {{application.business_unit_1}}

@@ -160,16 +160,9 @@ if not os.path.exists(area_path):
 scope_path = os.path.join(area_path, '{scope}')
 if not os.path.exists(scope_path):
     os.mkdir(scope_path)
-    
-# print(len(os.listdir(fn)))
-#  os.rmdir(fn)
-                """
-
-
+"""
         formatted_code = code.format(**parms).strip()
         exec(formatted_code)
-        # print('--- formated code:\n', formated_code)
-
 
     def add_scope(self, area, scope_key):
         parms = {'app': area.application.key, 'area': area.key, 'scope': scope_key,}
@@ -182,8 +175,23 @@ if not os.path.exists(scope_path):
     def delete_scope(self, area, scope_key):
         parms = {'app': area.application.key,
                  'area': area.key, 'scope': scope_key}
+        parms.update(self.connection)
         db_logger.info(
             f"{str(self):10} - Action:'{self.containersystem}.scope_delete' - Parms: {parms}")
+        code = """
+import os
+# Create app path if not exists
+app_path = os.path.join('{path}', '{app}')
+area_path = os.path.join(app_path, '{area}')
+scope_path = os.path.join(area_path, '{scope}')
+if os.path.exists(scope_path):
+    print('exists:', scope_path)
+    if len(os.listdir(scope_path)) == 0:
+        os.rmdir(scope_path)
+"""
+
+        if self.containersystem.type == ContainerSystem.FILESTORAGE:
+            self.exec_filestorage(self.containersystem.scope_del, parms)
 
     def add_area(self, area, schemaname):
         parms = {'app': area.application.key,
@@ -214,14 +222,14 @@ if not os.path.exists(scope_path):
         """ Adds the database to the settings.DATABASES, if it not exists
         """
         if not DATABASES.get(self.__name):
-            # Create database dynamic based on 'default'
-            db = DATABASES['default'].copy()
+            # Create database dynamic based on 'data_template'
+            db = DATABASES['data_template'].copy()
             # Set defaults dependent of containetype
             db.update(self.containersystem.connection)
             db.update(self.connection)
             # Hardcoded Defaults
-            db['USER'] = 'postgres'
-            db['PASSWORD'] = '.Paraolimpia1235'
+            # db['USER'] = 'u...'
+            # db['PASSWORD'] = 'p...'
             DATABASES[self.__name] = db
 
     def exec_sql(self, sql_string):

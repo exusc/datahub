@@ -159,6 +159,34 @@ def checkarea(request, area_id):
 
     return render(request, 'checkarea.html', context)
 
+@login_required(login_url="index")
+def checkapplication(request, application_id):
+    context = default_context(request)
+    application = Application.objects.get(id=application_id)
+
+    # Check of databases
+    databases = {}
+    for area in application.area_set.all():
+        if not area.database in databases:
+            db_health = {'connected' : False, 'error': '', 'schema_login_hook' : False, 'schema_app_rd' : False}
+            try:
+                schemas = area.database.schemas()  # Test Access to db
+                db_health.update({'connected' : True})
+                if 'login_hook' in schemas:
+                    db_health.update({'schema_login_hook' : True})
+                print(f'{application.key}_rd')
+                if f'{application.key}_rd' in schemas:
+                    db_health.update({'schema_app_rd' : True})
+
+            except OperationalError as error:
+                db_health.update({'error' : error})
+            databases.update({area.database:db_health})
+
+    context['application'] = application
+    context['databases'] = databases
+
+    return render(request, 'checkapplication.html', context)
+
 
 @login_required(login_url="index")
 def checkowner(request, owner_id):
