@@ -145,21 +145,6 @@ def check(request, owner=None):
 
 
 @login_required(login_url="index")
-def checkarea(request, area_id):
-    area = Area.objects.get(id=area_id)
-    context = default_context(request)
-    context['area'] = area
-
-    # Paginated list of tables
-    tablenames = area.database.tablenames(area.schema_tables())
-    paginator = Paginator(tablenames, 15)  # Show 15 tables per page.
-    page_number = request.GET.get("page")
-    page_obj = paginator.get_page(page_number)
-    context['page_obj'] = page_obj
-
-    return render(request, 'checkarea.html', context)
-
-@login_required(login_url="index")
 def checkapplication(request, application_id):
     context = default_context(request)
     application = Application.objects.get(id=application_id)

@@ -528,9 +528,9 @@ class Areascope(AbstractDatahubModel):
 
         def append(delimiter,value, title):
             if title:
-                self.key += f'{delimiter}{title.lower()}'
+                self.key += f'{delimiter}{title}'
             elif value:
-                self.key += f'{delimiter}{value.lower()}'
+                self.key += f'{delimiter}{value}'
 
         self.owner = self.area.owner
         """ Creates the key based on the BUs
@@ -543,7 +543,7 @@ class Areascope(AbstractDatahubModel):
         append('_',self.bu4_value, self.bu4_title)
         append('_',self.bu5_value, self.bu5_title)
         if self.team:
-            self.key += f'/{self.team.lower()}'
+            self.key += f'/{self.team}'
 
         """ Check if scope already exists """
         if self._state.adding and Scope.objects.filter(key=self.key):

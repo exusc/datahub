@@ -230,7 +230,7 @@ class AreascopeAdmin(DatahubModelAdmin):
         """ Reduce list of owner dependent from superuser status """
         if db_field.name == "area":
             if request.user.is_superuser:
-                kwargs["queryset"] = Area.objects.all()
+                kwargs["queryset"] = Area.objects.all().order_by('key')
             else:
                 kwargs["queryset"] = Area.objects.filter(
                     owner=request.user.owner)
