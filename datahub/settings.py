@@ -27,7 +27,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-*jewy(+r67@$v7u7q)s#she6hxiwmri-#*qp3%_l)1hab#rvn8'
-PASSWORD = '.Paraolimpia1235'
+DB_USER = 'postgres'
+DB_PASSWORD = '.Paraolimpia1235'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -86,17 +87,23 @@ DATABASES = {
     
     # 'data_template' is used as template in Container.__connect
     'data_template': {
-       'ENGINE': 'django.db.backends.postgresql',
+        'ENGINE': 'django.db.backends.postgresql',
         # 'NAME': 'sta_usc',
         # 'HOST': 'sta.db.dat.abraxas-apis.ch',
-       'PORT': '5432',
-       'USER': 'postgres',
-       'PASSWORD': PASSWORD,
+        'PORT': '5432',
+        'USER': DB_USER,
+        'PASSWORD': DB_PASSWORD,
     },
 
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'datahub-control.sqlite3',
+        'NAME': BASE_DIR / 'datahub-sample.sqlite3',
+#        'ENGINE': 'django.db.backends.postgresql',
+#        'NAME': 'usc_control',
+        'HOST': 'sta.db.dat.abraxas-apis.ch',
+        'PORT': '5432',
+        'USER': DB_USER,
+        'PASSWORD': DB_PASSWORD,
     }    
     }
 

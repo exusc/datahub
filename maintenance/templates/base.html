@@ -43,7 +43,7 @@
             <div class="w3-col s8 w3-bar ">
                 Welcome, 
                 <br>{{request.user.first_name}} {{request.user.last_name}}
-                <br>{% if request.user.use_scope %}{{request.user.use_scope}} {% endif %}
+                <br>{% if request.user.use_areascope %}{{request.user.use_areascope}} {% endif %}
                 <br>
                 <div class="w3-dropdown-hover">
                     <a href="#" class="w3-bar-item w3-button"><i class="fa fa-user"></i></a>
@@ -54,7 +54,7 @@
                     </div>
                 </div>
             
-                <a href="{% url 'setscope' %}" class="w3-bar-item w3-button"><i class="fa fa-cog"></i></a>
+                <a href="{% url 'setareascope' %}" class="w3-bar-item w3-button"><i class="fa fa-cog"></i></a>
             </div>
         </div>
         <hr>
@@ -98,8 +98,8 @@
             {% if perms.organization.add_area %}     
             <a href="{% url 'admin:organization_area_changelist' %}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-building fa-fw"></i>  Areas</a>
             {% endif %}
-            {% if perms.organization.add_scope %}            
-                <a href="{% url 'admin:organization_scope_changelist' %}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-solid fa-layer-group"></i> Scopes</a>
+            {% if perms.organization.add_areascope %}            
+                <a href="{% url 'admin:organization_areascope_changelist' %}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-solid fa-layer-group"></i> Areascopes</a>
             {% endif %}
             {% if perms.organization.add_user %}            
                 <a href="{% url 'admin:organization_user_changelist' %}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-users fa-fw"></i> Users</a>

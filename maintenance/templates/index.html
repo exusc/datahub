@@ -31,11 +31,11 @@
         <div class="w3-container w3-theme w3-padding-16" style="min-height:15em">
             <!--div class="w3-left"><i class="fa fa-warehouse w3-xxxlarge"></i></div-->
             <div class="w3-clear"></div>
-            <button class="w3-bar-item w3-theme w3-right w3-margin-right"  onclick="window.location.href='{% url "setscope" %}';"><i class="fa fa-cog fa-fw"></i></button> 
+            <button class="w3-bar-item w3-theme w3-right w3-margin-right"  onclick="window.location.href='{% url "setareascope" %}';"><i class="fa fa-cog fa-fw"></i></button> 
 
-            <h4>Scopes:</h4>
-            {% for scope in all_scopes.all %}
-            <li>{{scope}} - {{scope.desc}}</li>
+            <h4>Areascopes:</h4>
+            {% for areascope in all_areascopes.all %}
+            <li>{{areascope}} - {{areascope.desc}}</li>
             {% endfor %}
         </div>
     </div>
@@ -70,12 +70,11 @@
                 <!--div class="w3-left"><i class="fa fa-warehouse w3-xxxlarge"></i></div-->
                 <div class="w3-clear"></div>
                 <h4>Application: {{application}} - {{application.desc}}</h4>
-                <br>Business-Units: {{application.business_unit_1}}
+                <br>Business-Unit-Types: {{application.business_unit_1}}
                 {% if application.business_unit_2 %}, {{application.business_unit_2}}{% endif %}
                 {% if application.business_unit_3 %}, {{application.business_unit_3}}{% endif %}
                 {% if application.business_unit_4 %}, {{application.business_unit_3}}{% endif %}
                 {% if application.business_unit_5 %}, {{application.business_unit_5}}{% endif %}
-                <br>Scopes: {{application.scope_set.all|length}}<br>
 
                 {% for area in application.area_set.all %}
                     {% if area.active %}
@@ -86,8 +85,8 @@
                         <li>Schema Views: {{area.application.key.lower}}_{{area.key.lower}}</li>
                         <li>Schema Tables: {{area.application.key.lower}}_{{area.key.lower}}_base</li>
                     </ul>
-                    <li>Filestorage: {{area.filestorage}}
-                        ({{area.filestorage.desc}})</li>
+                    <li>Filestorage: {{area.filestorage}} ({{area.filestorage.desc}})</li>
+                    <li>Number of Areascopes: {{area.areascope_set.all|length}}</li>
                     {% endif %}
                 {% endfor area %}
 
@@ -126,7 +125,7 @@
                     <button class="w3-bar-item w3-theme w3-margin-right"  onclick="window.location.href='{% url "checkapplication" application.id %}';"><i class="fa fa-stethoscope fa-fw"></i></button> 
                     Application: <a href="{% url 'admin:organization_application_change' application.id %}">{{application}}</a> - {{application.desc}}  {% if not application.active %}(not active){% endif %}
                 </h4>
-                <h5>Business-Units:
+                <h5>Business-Units-Types:
                     {% if application.business_unit_1 %}
                     {{application.business_unit_1}}
                     {% endif %}
@@ -143,8 +142,6 @@
                     , {{application.business_unit_5}}
                     {% endif %}
                 </h5>
-                <h5>Scopes: {{application.scope_set.all|length}}</h5>
-
                 {% for area in application.area_set.all %}
                 {% if area.active %}
                 <h5>Area: <a href="{% url 'admin:organization_area_change' area.id %}">{{area}}</a> - {{area.desc}}  {% if not area.active %}(not active){% endif %}</h5>
@@ -154,6 +151,7 @@
                 <li>Filestorage: <a
                     href="{% url 'admin:organization_container_change' area.filestorage.id %}">{{area.filestorage}}</a>
                      - {{area.filestorage.desc}}</li>
+                <li>Number of Areascopes: {{area.areascope_set.all|length}}</li>
                 {% endif %}
                 {% endfor %}
 

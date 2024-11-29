@@ -23,6 +23,7 @@ class ScopeForm(forms.ModelForm):
         fields = ['application',  'business_unit_1', 'business_unit_2',
                   'business_unit_3', 'business_unit_4', 'business_unit_5', 'desc', 'team', 'type', 'org_scope', 'app_scope']
 
+"""
     def __init__(self, application, **kwargs):
         super().__init__(**kwargs)
         self.fields['application'].widget = forms.HiddenInput()
@@ -51,3 +52,4 @@ class ScopeForm(forms.ModelForm):
             self.fields['business_unit_5'].help_text = application.regex_5
         else:
             self.fields['business_unit_5'].widget = forms.HiddenInput()
+"""

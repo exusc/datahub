@@ -295,8 +295,9 @@ class User(AbstractUser):
     owner = models.ForeignKey(
         to=Owner, on_delete=models.PROTECT, null=True, blank=True,)
     scopes = models.ManyToManyField('Scope', blank=True)
-    use_scope = models.ForeignKey(
-        'Scope', on_delete=models.PROTECT, null=True, blank=True, related_name='+',)
+    areascopes = models.ManyToManyField('Areascope', blank=True)
+    use_areascope = models.ForeignKey(
+        'Areascope', on_delete=models.PROTECT, null=True, blank=True, related_name='+',)
     language = models.CharField(_('language'), max_length=5, choices=LANGUAGES, default='en',
                                 help_text=_("Language used for DATA-Hub UI"))
 
@@ -323,15 +324,33 @@ class User(AbstractUser):
                     application=scope.application)
         return result
 
+    def get_areascopes(self, detailed=False, separate_application=True):
+        """ Returns a dict of all active Areascopes the user can choose
+            * areascope is replaced by all possible Areascopes
+            separate_application -> separate dict per application; else one dict for all areascopes
+        TODO: Test cases needed
+        """
+        result = {}
+        all_areascopes = self.areascopes.all().filter(active=True).order_by(
+            'key').filter(area__application__active=True)
+        if not separate_application:
+            return all_areascopes
+        for areascope in all_areascopes:
+            application = result.get(areascope.area.application)
+            if application == None:
+                result[areascope.area.application] = all_areascopes.filter(
+                    area__application=areascope.area.application)
+        return result
+
     def hub_owner(self):
         """ Return the list of owner the user is allowed to maintain in the Hub """
         ownerlist = []
-        for scope in self.scopes.filter(application=Application.hub()).filter(active=True):
-            if scope.business_unit_1 == '*':
+        for areascope in self.areascopes.filter(area__application=Application.hub()).filter(active=True):
+            if areascope.bu1_value == '*':
                 ownerlist = ['*']
                 break
             try:
-                owner = Owner.objects.get(key=scope.business_unit_1)
+                owner = Owner.objects.get(key=areascope.bu1_value)
                 ownerlist.append(owner.key)
             except:
                 pass
@@ -355,7 +374,7 @@ class Group(Group):
 
 
 class Application(AbstractDatahubModel):
-    """ Business units are defined on application level - in this prototype its just a simple definition
+    """ Business Unit Types are defined on application level - in this prototype its just a simple definition
         For real implementation this mut be a separate object with information about allowed values ...
     """
     class Meta:
@@ -367,16 +386,27 @@ class Application(AbstractDatahubModel):
 
     owner = models.ForeignKey(to=Owner, on_delete=models.PROTECT)
     key = models.CharField(_('key'), max_length=20, unique=True,)
-    business_unit_1 = models.CharField(
-        _('business_unit_1'), max_length=80, null=True, blank=True)
-    business_unit_2 = models.CharField(
-        _('business_unit_2'), max_length=80, null=True, blank=True)
-    business_unit_3 = models.CharField(
-        _('business_unit_3'), max_length=80, null=True, blank=True)
-    business_unit_4 = models.CharField(
-        _('business_unit_4'), max_length=80, null=True, blank=True)
-    business_unit_5 = models.CharField(
-        _('business_unit_5'), max_length=80, null=True, blank=True)
+    bu1_type = models.CharField(
+        _('Business_Unit_Type_1'), max_length=80, null=True, blank=True)
+    bu2_type = models.CharField(
+        _('Business_Unit_Type_2'), max_length=80, null=True, blank=True)
+    bu3_type = models.CharField(
+        _('Business_Unit_Type_3'), max_length=80, null=True, blank=True)
+    bu4_type = models.CharField(
+        _('Business_Unit_Type_4'), max_length=80, null=True, blank=True)
+    bu5_type = models.CharField(
+        _('Business_Unit_Type_5'), max_length=80, null=True, blank=True)
+
+    bu1_field = models.CharField(
+        _('fieldname_1'), max_length=80, null=True, blank=True)
+    bu2_field = models.CharField(
+        _('fieldname_2'), max_length=80, null=True, blank=True)
+    bu3_field = models.CharField(
+        _('fieldname_3'), max_length=80, null=True, blank=True)
+    bu4_field = models.CharField(
+        _('fieldname_4'), max_length=80, null=True, blank=True)
+    bu5_field = models.CharField(
+        _('fieldname_5'), max_length=80, null=True, blank=True)
 
     regex_1 = models.CharField(
         _('regex_1'), max_length=80, null=True, blank=True)

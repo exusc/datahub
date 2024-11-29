@@ -37,7 +37,7 @@ def load(request):
                 if registered_class == Area:
                     txt = AreaLoader().load(request)
                 if registered_class == Scope:
-                    txt = ScopeLoader().load(request)
+                    txt = AreascopeLoader().load(request)
                 if registered_class == Owner:
                     txt = OwnerLoader().load(request)
                 if registered_class == Group:
@@ -54,7 +54,7 @@ def load(request):
                 if registered_class == Owner:
                     txt = OwnerLoader().delete(request)
                 if registered_class == Scope:
-                    txt = ScopeLoader().delete(request)
+                    txt = AreascopeLoader().delete(request)
                 info(request, txt)
 
     context = default_context(request)
@@ -149,32 +149,34 @@ def checkapplication(request, application_id):
     context = default_context(request)
     application = Application.objects.get(id=application_id)
 
-    # Check of databases 
+    # Check of databases
     databases = {}
     for area in application.area_set.all():
         if not area.database in databases:
-            db_health = {'connected' : False, 'error': '', 'schema_login_hook' : False, 'schema_app_rd' : False}
+            db_health = {'connected': False, 'error': '',
+                         'schema_login_hook': False, 'schema_app_rd': False}
             try:
                 schemas = area.database.schemas()  # Test Access to db
-                db_health.update({'connected' : True})
+                db_health.update({'connected': True})
                 if 'login_hook' in schemas:
-                    db_health.update({'schema_login_hook' : True})
+                    db_health.update({'schema_login_hook': True})
                 if f'{application.key}_rd' in schemas:
-                    db_health.update({'schema_app_rd' : True})
+                    db_health.update({'schema_app_rd': True})
 
             except OperationalError as error:
-                db_health.update({'error' : error})
-            databases.update({area.database:db_health})
+                db_health.update({'error': error})
+            databases.update({area.database: db_health})
 
     # Check of areas
     areas = {}
     for area in application.area_set.all():
+        areas.update({area: {}})
         try:
             schemas = area.database.schemas()  # Test Access to db
             views = area.schema_views() in schemas
             tables = area.schema_tables() in schemas
-            areas.update({area:{'views':views, 'tables':tables}})
-        except :
+            areas.update({area: {'views': views, 'tables': tables}})
+        except:
             pass
 
     context['application'] = application
@@ -196,6 +198,8 @@ def default_context(request):
     result['all_users'] = User.objects.all().order_by(
         'first_name').filter(is_active=True)
     result['all_scopes'] = request.user.get_scopes(separate_application=False)
+    result['all_areascopes'] = request.user.get_areascopes(
+        separate_application=False)
     result['all_containers'] = Container.objects.all().order_by(
         'containersystem', 'key')
     return result
@@ -229,7 +233,6 @@ def setscope(request, scope_id=None):
     if scope_id:
         try:
             scope = Scope.objects.get(id=scope_id)
-            request.user.use_scope = scope
             request.user.save()
             info(request, f'Scope is set to {scope} ({scope.desc})')
         except:
@@ -237,6 +240,22 @@ def setscope(request, scope_id=None):
     context = default_context(request)
     context['applications'] = request.user.get_scopes()
     return render(request, 'setscope.html', context)
+
+
+@login_required(login_url="index")
+def setareascope(request, areascope_id=None):
+    """ selection and setting of the areascope for the user """
+    if areascope_id:
+        try:
+            areascope = Areascope.objects.get(id=areascope_id)
+            request.user.use_areascope = areascope
+            request.user.save()
+            info(request, f'Scope is set to {areascope} ({areascope.desc})')
+        except:
+            pass
+    context = default_context(request)
+    context['applications'] = request.user.get_areascopes()
+    return render(request, 'setareascope.html', context)
 
 
 def index(request):
@@ -277,9 +296,9 @@ def switch_user(request, user_id):
         from django.conf import settings
         response.set_cookie(settings.LANGUAGE_COOKIE_NAME, user.language,)
 
-        # if user-scope is inactive
-        if user.use_scope and not user.use_scope.active:
-            user.use_scope = None
+        # if user-areascope is inactive
+        if user.use_areascope and not user.use_areascope.active:
+            user.use_areascope = None
             request.user.save()
 
     return response

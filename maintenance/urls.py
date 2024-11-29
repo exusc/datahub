@@ -12,6 +12,9 @@ urlpatterns = [
     
     path('setscope', views.setscope, name='setscope'),
     path('setscope/<str:scope_id>', views.setscope, name='setscope'),
+
+    path('setareascope', views.setareascope, name='setareascope'),
+    path('setareascope/<str:areascope_id>', views.setareascope, name='setareascope'),
     
     path('load', views.load, name='load'),
 

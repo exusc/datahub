@@ -92,6 +92,7 @@ class OwnerLoader():
         create('IGS', 'IGS gmbh',)
         create('SVA-SG', 'SVA Sankt Gallen',)
         create('SVA-ZH', 'SVA Zürich',)
+        return _(f'4 Owners successfully loaded')
 
         abx = Owner.objects.get(key='ABX')
         filename = path.join(AW_DATA_DIR, AW_FILE_CLIENT)
@@ -140,10 +141,10 @@ class ApplicationLoader():
             obj = Application(key=key,
                               owner=Owner.objects.get(key=owner_key),
                               desc=desc,
-                              business_unit_1=l1,
-                              business_unit_2=l2,
-                              business_unit_3=l3,
-                              business_unit_4=l4,
+                              bu1_type=l1,
+                              bu2_type=l2,
+                              bu3_type=l3,
+                              bu4_type=l4,
                               ctime=timezone.now(),
                               cuser=request.user,
                               active=active
@@ -199,6 +200,7 @@ class AreaLoader():
             except:
                 pass
 
+        create('HUB', 'Control', 'Security des DATA-Hubs', db_key='ADABAS', fs_key='MinIO')
         create('FD', 'rd', 'Raw Data', db_key='ADABAS', fs_key='MinIO')
         create('SN', 'rd', 'Raw Data', db_key='ADABAS', fs_key='FS-ABX')
         create('dmo', 'rd' , 'Raw Data for Demo', db_key='dat', fs_key='MinIO')
@@ -216,18 +218,21 @@ class AreaLoader():
         return _('Areas successfully loaded')
 
 
-class ScopeLoader():
+class AreascopeLoader():
     def load(self, request) -> str:
         """ Laden der Sample Scopes """
-        def create(app_key, l1, l2=None, l3=None, team=None, desc=None, org_scope=None, app_scope=None, type='S'):
-            application = Application.objects.get(key=app_key)
-            obj = Scope(owner=application.owner,
+        def create(area_key, l1, l2=None, l3=None, team=None, desc=None, org_scope=None, app_scope=None, type='S'):
+
+            print(area_key)
+            area = Area.objects.get(key=area_key)
+            
+            obj = Areascope(owner=area.owner,
                         type=type,
-                        business_unit_1=l1,
-                        business_unit_2=l2,
-                        business_unit_3=l3,
+                        bu1_value=l1,
+                        bu2_value=l2,
+                        bu3_value=l3,
                         team=team,
-                        application=application,
+                        area=area,
                         desc=desc,
                         org_scope=org_scope,
                         app_scope=app_scope,
@@ -242,22 +247,22 @@ class ScopeLoader():
             return obj
         # create('FD', 'KT', 'FD', '302')
         
-        create('HUB', '*', desc='Berechtigung für alle Owner im DATA-Hub')
-        create('HUB', 'ABX')
-        create('HUB', 'IGS')
-        create('HUB', 'SVA-SG')
-        create('HUB', 'SVA-ZH')
+        create('Control', '*', desc='Berechtigung für alle Owner im DATA-Hub')
+        create('Control', 'ABX')
+        create('Control', 'IGS')
+        create('Control', 'SVA-SG')
+        create('Control', 'SVA-ZH')
 
-        app_scope = create('taxa', '*', team='STD',
+        app_scope = create('poc_dv', '*', team='STD',
                            desc='Standard Templates / Abraxas', type='A')
-        create('taxa', 'GEMEINDE_STEURION', 
+        create('poc_dv', 'GEMEINDE_STEURION', 
                desc='Steurion', app_scope=app_scope)
-        create('taxa', 'GEMEINDE_STEURION', team='test', 
+        create('poc_dv', 'GEMEINDE_STEURION', team='test', 
                desc='Steurion', app_scope=app_scope)
-        create('taxa', 'GEMEINDE_ABRAXIEN', 
+        create('poc_dv', 'GEMEINDE_ABRAXIEN', 
                desc='Abraxien', app_scope=app_scope)
 
-
+        """
         app_scope = create('igs', '*', team='PROD',
                            desc='Standard Templates for all SVAs', type='A')
         org_scope = create('igs', '*', team='PROD',
@@ -279,6 +284,7 @@ class ScopeLoader():
         create('sva-zh-bz', '*', desc='All Tenants', app_scope=app_scope)
         create('sva-zh-bz', 'T001', desc='Tenant 001', app_scope=app_scope)
         create('sva-zh-bz', 'T002', desc='Tenant 002', app_scope=app_scope)
+        """
 
         txt = _('Scopes successfully loaded')
         txt = self.load_aw()
@@ -393,16 +399,16 @@ class UserLoader():
         if user:
             user.groups.add(Group.objects.get(name='Report Ordering'))
             user.groups.add(Group.objects.get(name='Report Creator'))
-            user.scopes.add(Scope.objects.get(key='TAXA_GEMEINDE_ABRAXIEN'))
-            user.scopes.add(Scope.objects.get(key='TAXA_GEMEINDE_STEURION'))
-            user.scopes.add(Scope.objects.get(key='TAXA_GEMEINDE_STEURION/TEST'))
+            #user.scopes.add(Scope.objects.get(key='TAXA_GEMEINDE_ABRAXIEN'))
+            #user.scopes.add(Scope.objects.get(key='TAXA_GEMEINDE_STEURION'))
+            #user.scopes.add(Scope.objects.get(key='TAXA_GEMEINDE_STEURION/TEST'))
 
         user = create('IGS', 'IGMSC', 'Matthias', 'Schneider',  is_staff=True)
         if user:
             user.groups.add(Group.objects.get(name='User Admin'))
-            user.scopes.add(Scope.objects.get(key='HUB_IGS'))
-            user.scopes.add(Scope.objects.get(key='HUB_SVA-SG'))
-            user.scopes.add(Scope.objects.get(key='HUB_SVA-ZH'))
+            #user.scopes.add(Scope.objects.get(key='HUB_IGS'))
+            #user.scopes.add(Scope.objects.get(key='HUB_SVA-SG'))
+            #user.scopes.add(Scope.objects.get(key='HUB_SVA-ZH'))
 
         user = create('SVA-SG', 'SGMSC', 'Marcel', 'Scheiwiller', )
         if user:
@@ -430,7 +436,7 @@ class UserLoader():
             user.groups.add(Group.objects.get(name='Application Admin'))
             user.groups.add(Group.objects.get(name='DB Admin'))
             user.groups.add(Group.objects.get(name='User Admin'))
-            user.scopes.add(Scope.objects.get(key='HUB_SVA-ZH'))
+            user.scopes.add(Areascope.objects.get(key='HUB_Control/SVA-ZH'))
 
         sys = User.objects.get(username='sys')
         sys.first_name = 'Super'

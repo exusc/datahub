@@ -1,6 +1,5 @@
-Version 1.1.0.1 of Prototype for Concept Discussions
-  ContainerSystem in use, test cases including Taxa PoC complete
-  Work on AreaScopes started
+Version 1.2. of Prototype for Concept Discussions
+  Introduced Areascopes 
 
 Supports base functionality for 
 - Standard administration of DATA-Hub objects
@@ -14,23 +13,19 @@ Open Stories
 - Support of MinIo
 
 Next Tasks
-- Switch to AreaScopes 
-- Health-Check auf Applikationsebene 
-  - Informationen zu Applikation (Business-Units, Anzahl Scopes) siehe DashBoard
-  - keine Gesamtübersicht: Applikations-DBs alle Datenbanken / Login-Hook
-  - Areas mit ihren Checks
+- Delete Scopes
+
+Next Stories
+- Health-Check weitermachen
 - MyDataHUB (Index) verkürzen - Liste der Applikationen -> Health-Check
 - FileStorage im Filesystem fertigmachen:
   Scripttype einbauen 
   scope_delete if not empty
   scope_exists, scope is_empty()
 - Alle Scopes anlegen als Funktion auf den Containern
-
-Next Stories
 - Implement health checks
 - Execution of container actions in db and filestorage
-- Active References - Container->Area->Application
-- Usage of *-functionality with scopes
+- Usage of *-functionality with Areascopes
 - Scopes with from to for Schutzstufen 
 - UI for scope adding
 - Multi-language-support
