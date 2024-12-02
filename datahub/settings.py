@@ -98,7 +98,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'datahub-sample.sqlite3',
-#        'ENGINE': 'django.db.backends.postgresql',
+#        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+#        'OPTIONS': {'options': '-c search_path=hub_control'},
 #        'NAME': 'usc_control',
         'HOST': 'sta.db.dat.abraxas-apis.ch',
         'PORT': '5432',

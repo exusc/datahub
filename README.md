@@ -1,4 +1,4 @@
-Version 1.2. of Prototype for Concept Discussions
+Version 1.2.1 of Prototype for Concept Discussions
   Introduced Areascopes 
 
 Supports base functionality for 
@@ -13,9 +13,13 @@ Open Stories
 - Support of MinIo
 
 Next Tasks
-- Delete Scopes
+- Load objects from json file verbessern (Fremdschlüssel bei Areascope bringen Fehler)
 
 Next Stories
+- Delete Scope from models
+- Load nur noch AW, Rest aus JSON
+- Eigene PostGres DB aufbauen
+- RLS für den Hub selbst definieren per Applikation Test in eigener DB
 - Health-Check weitermachen
 - MyDataHUB (Index) verkürzen - Liste der Applikationen -> Health-Check
 - FileStorage im Filesystem fertigmachen:

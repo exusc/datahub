@@ -1,5 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
+from django.core import serializers
 from django.db import models, connections
 from django.contrib.auth.models import AbstractUser, Group
 from datahub.settings import LANGUAGES, HUB_OWNER_KEY, HUB_APPLICATION_KEY, DATABASES
@@ -35,6 +36,33 @@ class AbstractDatahubModel(models.Model):
     cuser = models.CharField(_('Create User'), max_length=8, null=True, blank=True,)
     utime = models.DateTimeField(_('Update Time'), null=True, blank=True, )
     uuser = models.CharField(_('Update User'), max_length=8, null=True, blank=True, )
+
+    @classmethod
+    def serialize(cls, objects):
+        """
+        Das Serialisieren wird für Migrationen bzw. Unload verwendet. 
+        Wird in einen 'Umschlag' mit Signator und QuellenAngaben gepackt.
+        https://docs.djangoproject.com/en/5.0/topics/serialization/#serializing-django-objects
+
+        Zu beachten: Performance 
+        https://www.django-rest-framework.org/api-guide/relations/
+        """
+        return serializers.serialize("jsonl", objects)
+
+    @classmethod
+    def deserialize(cls, data):
+        """
+        Das Deserialisieren wird für Migrationen bzw. Load verwendet. 
+        https://docs.djangoproject.com/en/5.0/topics/serialization/#deserialization-of-natural-keys
+        Zu beachten: Fremdschlüssel-Handling
+        """
+        serie = serializers.deserialize("jsonl", data)
+        count = 0
+        for deserialized_object in serie:
+            deserialized_object.save()
+            count += 1
+        return count
+
 
     def __str__(self):
         """ Field 'Key' has to be defined in derived class
@@ -746,20 +774,20 @@ def receive_save_area(sender, instance: Area, created, **kwargs):
             instance.filestorage.add_scope(instance, scope.key)
 
 
-@receiver(post_save, sender=Scope)
-def receive_save_scope(sender, instance: Scope, created, **kwargs):
+@receiver(post_save, sender=Areascope)
+def receive_save_areascope(sender, instance: Areascope, created, **kwargs):
     """ Changes of business units are relevant 
         Triggers actions: deletion of old scope and adding new scope
     """
 
-    def info_all_areas(scope: Scope, scope_key, delete=False):
-        for area in scope.application.area_set.all():
-            if delete:
-                area.database.delete_scope(area, scope_key)
-                area.filestorage.delete_scope(area, scope_key)
-            else:
-                area.database.add_scope(area, scope_key)
-                area.filestorage.add_scope(area, scope_key)
+    def info_all_areas(areascope: Areascope, areascope_key, delete=False):
+        area = areascope.area
+        if delete:
+            area.database.delete_scope(area, areascope_key)
+            area.filestorage.delete_scope(area, areascope_key)
+        else:
+            area.database.add_scope(area, areascope_key)
+            area.filestorage.add_scope(area, areascope_key)
 
     # Only changes of key are relevant
     if (instance.key != instance.cached_key):

@@ -49,6 +49,7 @@ class EnvironmentLoader():
                 natproc=natproc, awlib=awlib,
                 ctime=timezone.now(), cuser=request.user,
             )
+            obj.save()
             try:
                 obj.save()
             except:

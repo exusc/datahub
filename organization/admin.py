@@ -4,7 +4,9 @@ from django.contrib import admin
 from django.utils import timezone
 from .models import *
 from django.utils.translation import gettext as _
+from django.utils.translation import ngettext
 from datahub.settings import HUB_ALLOWED_OWNER_KEYS
+from django.contrib import messages
 
 
 def allowed(request, set):
@@ -58,6 +60,7 @@ class DatahubModelAdmin(admin.ModelAdmin):
     empty_value_display = '---'
     readonly_fields = ["ctime", "cuser", "utime", "uuser", ]
 
+
     def save_model(self, request, obj, form, change):
         if not change:
             obj.cuser = request.user.username
@@ -86,6 +89,44 @@ class DatahubModelAdmin(admin.ModelAdmin):
 
 class DataHubUserAdmin(UserAdmin):
     """ User must not give other users more rights then they have themselves """
+
+    def json_filename(self):
+        """ Used to save and load Json data"""
+        # return  f'../{self.__class__.__name__}-data.json'
+        return  f'../all-data.json'
+
+    @admin.action(description=_("Unload all data as JSON"))
+    def unload(self, request, queryset):
+        with open(self.json_filename(),'w') as file:
+            file.write(AbstractDatahubModel.serialize(Owner.objects.all()))
+            file.write(AbstractDatahubModel.serialize(ContainerSystem.objects.all()))
+            file.write(AbstractDatahubModel.serialize(Container.objects.all()))
+            file.write(AbstractDatahubModel.serialize(Environment.objects.all()))
+            file.write(AbstractDatahubModel.serialize(Application.objects.all()))
+            file.write(AbstractDatahubModel.serialize(Area.objects.all()))
+            file.write(AbstractDatahubModel.serialize(Areascope.objects.all()))
+            file.write(AbstractDatahubModel.serialize(Group.objects.all()))
+            """ Don´t unload sys user """
+            from django.db.models import Q
+            file.write(AbstractDatahubModel.serialize(User.objects.filter(~Q(username='sys'))))
+
+        msg = ngettext(_(f"{len(queryset)} object was successfully unloaded."),
+                       _(f"{len(queryset)} objects were successfully unloaded."),
+                       len(queryset),)
+        self.message_user(request, msg, messages.SUCCESS,)
+
+    @admin.action(description=_("Load all data from JSON"))
+    def load(self, request, queryset):
+        with open(self.json_filename(),'r') as file:
+            data = file.read()
+        count = AbstractDatahubModel.deserialize(data)
+        msg = ngettext(_(f"{count} object was successfully loaded."),
+                       _(f"{count} objects were successfully loaded."),
+                       count,)
+        self.message_user(request, msg, messages.SUCCESS,)
+
+    actions = ['unload','load']
+
 
     list_filter = ['groups', 'is_superuser', 'is_staff', 'is_active']
     list_display = ['username', 'first_name', 'last_name', 'language',
@@ -188,45 +229,6 @@ class ApplicationAdmin(DatahubModelAdmin):
     ]
 
 
-class ScopeAdmin(DatahubModelAdmin):
-
-    def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        """ Reduce list of owner dependent from superuser status """
-        if db_field.name == "application":
-            if request.user.is_superuser:
-                kwargs["queryset"] = Application.objects.all()
-            else:
-                kwargs["queryset"] = Application.objects.filter(
-                    owner=request.user.owner)
-        """ Reduce list of selectable scopes to according type """
-        if db_field.name == "org_scope":
-            scopes = Scope.objects.filter(type='O')
-            if not request.user.is_superuser:
-                scopes = scopes.filter(application__owner=request.user.owner)
-            kwargs["queryset"] = scopes
-        if db_field.name == "app_scope":
-            scopes = Scope.objects.filter(type='A')
-            if not request.user.is_superuser:
-                scopes = scopes.filter(application__owner=request.user.owner)
-            kwargs["queryset"] = scopes
-        return super().formfield_for_foreignkey(db_field, request, **kwargs)
-
-    save_as = True
-    search_fields = ['key', 'application__key', 'desc', 'hex', 'cuser']
-    ordering = ['application__key', 'key',]
-    list_filter = ['application', 'type', 'active']
-    date_hierarchy = 'ctime'
-    list_display = ['key', 'application',
-                    'type', 'desc', 'org_scope', 'app_scope', 'hex', 'ctime', 'cuser', 'owner', 'active']
-    fieldsets = [
-        ('Combination', {'fields': [('application', 'type', 'hex', ),  'business_unit_1', 'business_unit_2',
-         'business_unit_3', 'business_unit_4', 'business_unit_5', 'team', 'active'], }),
-        ('Documentation', {'fields': ['desc'], }),
-        ('Central Scopes', {'fields': ['org_scope', 'app_scope'], }),
-        ('History', {'fields': [('ctime', 'cuser'), ('utime', 'uuser')], },),
-    ]
-
-
 class AreascopeAdmin(DatahubModelAdmin):
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
@@ -324,6 +326,7 @@ class ContainerSystemAdmin(DatahubModelAdmin):
 
 
 class EnvironmentAdmin(DatahubModelAdmin):
+
     ordering = ['key',]
     search_fields = ['key', 'title', 'desc', 'natproc', ]
     list_display = ['key', 'title', 'desc', 'hostname',
@@ -336,7 +339,6 @@ class EnvironmentAdmin(DatahubModelAdmin):
         ('AW', {'fields': ['ace_connect', ('natproc', 'awlib'), ], }),
         ('History', {'fields': [('ctime', 'cuser'), ('utime', 'uuser')], },),
     ]
-
 
 class LogEntryAdmin(admin.ModelAdmin):
     # https://docs.djangoproject.com/en/5.0/ref/contrib/admin/#django.contrib.admin.models.LogEntry.action_flag
@@ -356,6 +358,5 @@ datahub_admin_site.register(Application, ApplicationAdmin)
 datahub_admin_site.register(Area, AreaAdmin)
 datahub_admin_site.register(Container, ContainerAdmin)
 datahub_admin_site.register(ContainerSystem, ContainerSystemAdmin)
-datahub_admin_site.register(Scope, ScopeAdmin)
 datahub_admin_site.register(Areascope, AreascopeAdmin)
 datahub_admin_site.register(LogEntry, LogEntryAdmin)
