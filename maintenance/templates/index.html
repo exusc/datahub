@@ -70,11 +70,11 @@
                 <!--div class="w3-left"><i class="fa fa-warehouse w3-xxxlarge"></i></div-->
                 <div class="w3-clear"></div>
                 <h4>Application: {{application}} - {{application.desc}}</h4>
-                <br>Business-Unit-Types: {{application.business_unit_1}}
-                {% if application.business_unit_2 %}, {{application.business_unit_2}}{% endif %}
-                {% if application.business_unit_3 %}, {{application.business_unit_3}}{% endif %}
-                {% if application.business_unit_4 %}, {{application.business_unit_3}}{% endif %}
-                {% if application.business_unit_5 %}, {{application.business_unit_5}}{% endif %}
+                <br>Business-Unit-Types: {{application.bu1_type}}
+                {% if application.bu2_type %}, {{application.bu2_type}}{% endif %}
+                {% if application.bu3_type %}, {{application.bu3_type}}{% endif %}
+                {% if application.bu4_type %}, {{application.bu4_type}}{% endif %}
+                {% if application.bu5_type %}, {{application.bu5_type}}{% endif %}
 
                 {% for area in application.area_set.all %}
                     {% if area.active %}
@@ -126,20 +126,20 @@
                     Application: <a href="{% url 'admin:organization_application_change' application.id %}">{{application}}</a> - {{application.desc}}  {% if not application.active %}(not active){% endif %}
                 </h4>
                 <h5>Business-Units-Types:
-                    {% if application.business_unit_1 %}
-                    {{application.business_unit_1}}
+                    {% if application.bu1_type %}
+                    {{application.bu1_type}}
                     {% endif %}
-                    {% if application.business_unit_2 %}
-                    , {{application.business_unit_2}}
+                    {% if application.bu2_type %}
+                    , {{application.bu2_type}}
                     {% endif %}
-                    {% if application.business_unit_3 %}
-                    , {{application.business_unit_3}}
+                    {% if application.bu3_type %}
+                    , {{application.bu3_type}}
                     {% endif %}
-                    {% if application.business_unit_4 %}
-                    , {{application.business_unit_3}}
+                    {% if application.bu4_type %}
+                    , {{application.bu4_type}}
                     {% endif %}
-                    {% if application.business_unit_5 %}
-                    , {{application.business_unit_5}}
+                    {% if application.bu5_type %}
+                    , {{application.bu5_type}}
                     {% endif %}
                 </h5>
                 {% for area in application.area_set.all %}

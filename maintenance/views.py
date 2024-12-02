@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 from django.core import validators
 from django.shortcuts import render, redirect
 from django.urls import reverse
-from organization.models import Owner, User, Application, Area, Container, Scope
+from organization.models import Owner, User, Application, Area, Container, Areascope
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.admin.models import LogEntry
@@ -14,15 +14,13 @@ from django.views import View
 from datahub.settings import HUB_ALLOWED_OWNER_KEYS
 from django.db.utils import OperationalError
 from organization.models import *
-from . forms import ScopeForm
 from . load import *
-from . forms import SampleForm
 
 
 @login_required(login_url="index")
 def load(request):
     registered_classes = [Owner, ContainerSystem, Container,
-                          Environment, Application, Area, Scope,  Group, User, ]
+                          Environment, Application, Area, Areascope,  Group, User, ]
 
     if request.POST:
         for registered_class in registered_classes:
@@ -36,7 +34,7 @@ def load(request):
                     txt = ApplicationLoader().load(request)
                 if registered_class == Area:
                     txt = AreaLoader().load(request)
-                if registered_class == Scope:
+                if registered_class == Areascope:
                     txt = AreascopeLoader().load(request)
                 if registered_class == Owner:
                     txt = OwnerLoader().load(request)
@@ -197,7 +195,6 @@ def default_context(request):
     result['all_owners'] = Owner.objects.filter(active=True).order_by('key')
     result['all_users'] = User.objects.all().order_by(
         'first_name').filter(is_active=True)
-    result['all_scopes'] = request.user.get_scopes(separate_application=False)
     result['all_areascopes'] = request.user.get_areascopes(
         separate_application=False)
     result['all_containers'] = Container.objects.all().order_by(
@@ -223,23 +220,8 @@ def dashboard(request, owner_id=None):
     context['number_areas'] = len(
         Area.objects.filter(owner=owner).filter(active=True))
     context['number_scopes'] = len(
-        Scope.objects.filter(owner=owner).filter(active=True))
+        Areascope.objects.filter(owner=owner).filter(active=True))
     return render(request, 'dashboard.html', context)
-
-
-@login_required(login_url="index")
-def setscope(request, scope_id=None):
-    """ selection and setting of the scope for the user """
-    if scope_id:
-        try:
-            scope = Scope.objects.get(id=scope_id)
-            request.user.save()
-            info(request, f'Scope is set to {scope} ({scope.desc})')
-        except:
-            pass
-    context = default_context(request)
-    context['applications'] = request.user.get_scopes()
-    return render(request, 'setscope.html', context)
 
 
 @login_required(login_url="index")
@@ -306,7 +288,7 @@ def switch_user(request, user_id):
 
 # --------------------------------------------------------------------------------
 
-
+"""
 class AddScopesView(View):
 
     def get(self, request, application_key):
@@ -328,3 +310,4 @@ class AddScopesView(View):
             return render(request, 'form/form.html', context)
         form.save()
         return self.get(request, appkey)
+"""

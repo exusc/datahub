@@ -8,11 +8,8 @@ urlpatterns = [
     path('dashboard', views.dashboard, name='dashboard'),
     path('dashboard/<str:owner_id>', views.dashboard, name='dashboard'),
 
-    path('addscopes/<str:application_key>', views.AddScopesView.as_view(), name='addscopes'),
+#    path('addscopes/<str:application_key>', views.AddScopesView.as_view(), name='addscopes'),
     
-    path('setscope', views.setscope, name='setscope'),
-    path('setscope/<str:scope_id>', views.setscope, name='setscope'),
-
     path('setareascope', views.setareascope, name='setareascope'),
     path('setareascope/<str:areascope_id>', views.setareascope, name='setareascope'),
     

@@ -3,6 +3,7 @@ from django.contrib.admin.models import LogEntry
 from django.contrib import admin
 from django.utils import timezone
 from .models import *
+from .models import Group as HubGroup
 from django.utils.translation import gettext as _
 from django.utils.translation import ngettext
 from datahub.settings import HUB_ALLOWED_OWNER_KEYS
@@ -97,22 +98,27 @@ class DataHubUserAdmin(UserAdmin):
 
     @admin.action(description=_("Unload all data as JSON"))
     def unload(self, request, queryset):
+        def unld(file, data):
+            file.write(AbstractDatahubModel.serialize(data))
+            return len(data)
+        count = 0
         with open(self.json_filename(),'w') as file:
-            file.write(AbstractDatahubModel.serialize(Owner.objects.all()))
-            file.write(AbstractDatahubModel.serialize(ContainerSystem.objects.all()))
-            file.write(AbstractDatahubModel.serialize(Container.objects.all()))
-            file.write(AbstractDatahubModel.serialize(Environment.objects.all()))
-            file.write(AbstractDatahubModel.serialize(Application.objects.all()))
-            file.write(AbstractDatahubModel.serialize(Area.objects.all()))
-            file.write(AbstractDatahubModel.serialize(Areascope.objects.all()))
-            file.write(AbstractDatahubModel.serialize(Group.objects.all()))
+            count += unld(file, Owner.objects.all())
+            count += unld(file, ContainerSystem.objects.all())
+            count += unld(file, Container.objects.all())
+            count += unld(file, Environment.objects.all())
+            count += unld(file, Application.objects.all())
+            count += unld(file, Area.objects.all())
+            count += unld(file, Areascope.objects.all())
+            # Die Group wird nicht richtig serialisiert, daher lassen wir sie aus
+            # count += unld(file, HubGroup.objects.all())
             """ Don´t unload sys user """
-            from django.db.models import Q
-            file.write(AbstractDatahubModel.serialize(User.objects.filter(~Q(username='sys'))))
-
-        msg = ngettext(_(f"{len(queryset)} object was successfully unloaded."),
-                       _(f"{len(queryset)} objects were successfully unloaded."),
-                       len(queryset),)
+            # from django.db.models import Q
+            # count += unld(file, User.objects.filter(~Q(username='sys')))
+            count += unld(file, User.objects.all())
+        msg = ngettext(_(f"{count} object was successfully unloaded."),
+                       _(f"{count} objects were successfully unloaded."),
+                       count,)
         self.message_user(request, msg, messages.SUCCESS,)
 
     @admin.action(description=_("Load all data from JSON"))

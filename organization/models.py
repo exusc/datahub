@@ -2,7 +2,8 @@ from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.core import serializers
 from django.db import models, connections
-from django.contrib.auth.models import AbstractUser, Group
+from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import Group as AbstractGroup
 from datahub.settings import LANGUAGES, HUB_OWNER_KEY, HUB_APPLICATION_KEY, DATABASES
 from django.utils.translation import gettext as _
 from django.db.models.signals import post_save, post_delete, m2m_changed
@@ -59,8 +60,11 @@ class AbstractDatahubModel(models.Model):
         serie = serializers.deserialize("jsonl", data)
         count = 0
         for deserialized_object in serie:
-            deserialized_object.save()
-            count += 1
+            try:
+                deserialized_object.save()
+                count += 1
+            except:
+                print(deserialized_object) 
         return count
 
 
@@ -322,7 +326,6 @@ class User(AbstractUser):
 
     owner = models.ForeignKey(
         to=Owner, on_delete=models.PROTECT, null=True, blank=True,)
-    scopes = models.ManyToManyField('Scope', blank=True)
     areascopes = models.ManyToManyField('Areascope', blank=True)
     use_areascope = models.ForeignKey(
         'Areascope', on_delete=models.PROTECT, null=True, blank=True, related_name='+',)
@@ -333,24 +336,6 @@ class User(AbstractUser):
 #        """ Used to cache permissions to detect changes of permissions """
 #        super().__init__(*args, **kwargs)
 #        self.cached_permission_direct_access = self.has_permission(PERMISSION_DIRECT_ACCESS) if len(args) > 0 else False
-
-    def get_scopes(self, detailed=False, separate_application=True):
-        """ Returns a dict of all active Scopes the user can choose
-            * scope is replaced by all possible Scopes
-            separate_application -> separate dict per application; else one dict for all scopes
-        TODO: Test cases needed
-        """
-        result = {}
-        all_scopes = self.scopes.all().filter(active=True).order_by(
-            'key').filter(application__active=True)
-        if not separate_application:
-            return all_scopes
-        for scope in all_scopes:
-            application = result.get(scope.application)
-            if application == None:
-                result[scope.application] = all_scopes.filter(
-                    application=scope.application)
-        return result
 
     def get_areascopes(self, detailed=False, separate_application=True):
         """ Returns a dict of all active Areascopes the user can choose
@@ -392,7 +377,7 @@ class User(AbstractUser):
         return False
 
 
-class Group(Group):
+class Group(AbstractGroup):
     class Meta:
         verbose_name = _("Role")
         verbose_name_plural = _("Roles")
@@ -612,118 +597,6 @@ class Areascope(AbstractDatahubModel):
             )
 
 
-class Scope(AbstractDatahubModel):
-    """ Scopes are linked to application and used from all areas within these application
-        BUs will be checked by validator
-        https://docs.djangoproject.com/en/5.0/ref/validators/
-    """
-    class Meta:
-        verbose_name = _("Scope")
-        verbose_name_plural = _("Scopes")
-
-    TYPE = {
-        "S": _("Standard"),
-        "O": _("Org scope"),
-        "A": _("App scope"),
-        "T": _("Test scope"),
-    }
-
-    owner = models.ForeignKey(
-        to=Owner, on_delete=models.PROTECT, related_name='+',)
-    key = models.CharField(_('key'), max_length=80, unique=True, default="tbd")
-    hex = models.CharField(_('hex'), max_length=8, null=True,
-                           blank=True, help_text=_("Hex value for AW data"))
-    type = models.CharField(_('type'), max_length=1, choices=TYPE, default='S',
-                            help_text=_("Defines how scope can be used"))
-    application = models.ForeignKey(to=Application, on_delete=models.PROTECT)
-    business_unit_1 = models.CharField(
-        _('business_unit_1'), max_length=80, null=True, blank=True,)
-    business_unit_2 = models.CharField(
-        _('business_unit_2'), max_length=80, null=True, blank=True)
-    business_unit_3 = models.CharField(
-        _('business_unit_3'), max_length=80, null=True, blank=True)
-    business_unit_4 = models.CharField(
-        _('business_unit_4'), max_length=80, null=True, blank=True)
-    business_unit_5 = models.CharField(
-        _('business_unit_5'), max_length=80, null=True, blank=True)
-    team = models.CharField(_('team'), max_length=80, null=True, blank=True)
-    org_scope = models.ForeignKey('Scope', on_delete=models.PROTECT, null=True, blank=True, related_name='+',
-                                  help_text=_("Here are the standard templates created by the client"))
-    app_scope = models.ForeignKey('Scope', on_delete=models.PROTECT, null=True, blank=True, related_name='+',
-                                  help_text=_("Here are the standard templates created by Abraxas or other provider"))
-
-    def __init__(self, *args, **kwargs) -> None:
-        """ Used to cache original key to detect changes within signal method. Set to blank if object is new """
-        super().__init__(*args, **kwargs)
-        self.cached_key = self.key if len(args) > 0 else ''
-
-    def full_clean(self, exclude=None, validate_unique=True, validate_constraints=True):
-        """ Before the data is cleaned a validator for Business-Units will be added / replaced
-            https://docs.djangoproject.com/en/5.0/ref/forms/validation/
-        """
-        for f in self._meta.fields:
-            if f.name == 'business_unit_1' and self.application.regex_1:
-                for vali in f.validators:
-                    if type(vali) == RegexValidator:
-                        f.validators.remove(vali)
-                f.validators.append(RegexValidator(
-                    regex=self.application.regex_1))
-            if f.name == 'business_unit_2' and self.application.regex_2:
-                for vali in f.validators:
-                    if type(vali) == RegexValidator:
-                        f.validators.remove(vali)
-                f.validators.append(RegexValidator(
-                    regex=self.application.regex_2))
-            if f.name == 'business_unit_3' and self.application.regex_3:
-                for vali in f.validators:
-                    if type(vali) == RegexValidator:
-                        f.validators.remove(vali)
-                f.validators.append(RegexValidator(
-                    regex=self.application.regex_3))
-            if f.name == 'business_unit_4' and self.application.regex_4:
-                for vali in f.validators:
-                    if type(vali) == RegexValidator:
-                        f.validators.remove(vali)
-                f.validators.append(RegexValidator(
-                    regex=self.application.regex_4))
-            if f.name == 'business_unit_5' and self.application.regex_5:
-                for vali in f.validators:
-                    if type(vali) == RegexValidator:
-                        f.validators.remove(vali)
-                f.validators.append(RegexValidator(
-                    regex=self.application.regex_5))
-        super().full_clean(exclude=exclude, validate_unique=validate_unique,
-                           validate_constraints=validate_constraints)
-
-    def clean(self):
-
-        self.owner = self.application.owner
-        """ Creates the key based on the BUs
-        """
-
-        self.key = f'{self.application.key.upper()}'
-        if self.business_unit_1:
-            self.key += f'_{self.business_unit_1.upper()}'
-        if self.business_unit_2:
-            self.key += f'_{self.business_unit_2.upper()}'
-        if self.business_unit_3:
-            self.key += f'_{self.business_unit_3.upper()}'
-        if self.business_unit_4:
-            self.key += f'_{self.business_unit_4.upper()}'
-        if self.business_unit_5:
-            self.key += f'_{self.business_unit_5.upper()}'
-        if self.team:
-            self.key += f'/{self.team.upper()}'
-
-        """ Check if scope already exists """
-        if self._state.adding and Scope.objects.filter(key=self.key):
-            raise ValidationError(
-                _("Scope: %(value)s already exists."),
-                code="invalid",
-                params={"value": self.key},
-            )
-
-
 class Environment(AbstractDatahubModel):
     class Meta:
         verbose_name = _("Environment")
@@ -796,12 +669,12 @@ def receive_save_areascope(sender, instance: Areascope, created, **kwargs):
         info_all_areas(instance, instance.key)
 
 
-@receiver(post_delete, sender=Scope)
-def receive_delete_scope(sender, instance: Scope, **kwargs):
+@receiver(post_delete, sender=Areascope)
+def receive_delete_scope(sender, instance: Areascope, **kwargs):
     """ Deletion of scopes will be executed in containers """
-    for area in instance.application.area_set.all():
-        area.database.delete_scope(area, instance.key)
-        area.filestorage.delete_scope(area, instance.key)
+    area = instance.area
+    area.database.delete_scope(area, instance.key)
+    area.filestorage.delete_scope(area, instance.key)
 
 
 @receiver(signal=m2m_changed, sender=User.groups.through)

@@ -1,11 +1,11 @@
-Version 1.2.1 of Prototype for Concept Discussions
-  Introduced Areascopes 
+Version 1.3 of Prototype for Concept Discussions
 
 Supports base functionality for 
 - Standard administration of DATA-Hub objects
 - Self service with restriction to owned objects
 - db actions logged but not executed
 - Initial health checks implemented
+- Defines Areascopes instead of scopes
 
 Open Stories
 - Connection to secure connect
@@ -13,15 +13,16 @@ Open Stories
 - Support of MinIo
 
 Next Tasks
-- Load objects from json file verbessern (Fremdschlüssel bei Areascope bringen Fehler)
+- Warum wird beim Deserialisieren die Area geprintet
+- Auf ABX-Rechner: Anpassung per Migration nicht per Load, da Scope gelöscht wurde
+- Container für den Hub definieren, in den Settings und als Container für Anwendung HUB
 
 Next Stories
-- Delete Scope from models
 - Load nur noch AW, Rest aus JSON
-- Eigene PostGres DB aufbauen
-- RLS für den Hub selbst definieren per Applikation Test in eigener DB
+- RLS für den Hub selbst definieren - per Applikation Test in eigener DB
 - Health-Check weitermachen
-- MyDataHUB (Index) verkürzen - Liste der Applikationen -> Health-Check
+- UnLoad und load der Group einbauen. 
+- MyDataHUB (Index.html) verkürzen - Liste der Applikationen -> Health-Check
 - FileStorage im Filesystem fertigmachen:
   Scripttype einbauen 
   scope_delete if not empty
