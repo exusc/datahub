@@ -1,11 +1,14 @@
-Version 1.4 of Prototype for Concept Discussions
+Version 1.5 of Prototype for Concept Discussions
 
 Supports base functionality for 
 - Standard administration of DATA-Hub objects
 - Self service with restriction to owned objects
 - db actions logged but not executed
 - Initial health checks implemented
+- Unload aund load of complete hub control
+Changes to original concept
 - Defines Areascopes instead of scopes
+- Groups are not owner specific
 
 Open Stories
 - Connection to secure connect
@@ -13,14 +16,12 @@ Open Stories
 - Support of MinIo
 
 Next Tasks
-- Warum wird beim Deserialisieren die Area geprintet?
 - Applikation TEST aufbauen mit den Testfällen aus Confluence -
   RLS für den Hub selbst definieren - per Applikation Test in eigener DB
 
 Next Stories
 - Load nur noch AW, Rest aus JSON
 - Health-Check weitermachen
-- UnLoad und load der Group einbauen. 
 - MyDataHUB (Index.html) verkürzen - Liste der Applikationen -> Health-Check
 - FileStorage im Filesystem fertigmachen:
   Scripttype einbauen 

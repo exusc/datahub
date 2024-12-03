@@ -30,6 +30,10 @@ def load(request):
                 txt = f'{name} not loaded'
                 if registered_class == Environment:
                     txt = EnvironmentLoader.load(request)
+                if registered_class == ContainerSystem:
+                    txt = ContainerSystemLoader().load(request)
+                if registered_class == Container:
+                    txt = ContainerLoader().load(request)
                 if registered_class == Application:
                     txt = ApplicationLoader().load(request)
                 if registered_class == Area:
@@ -42,10 +46,6 @@ def load(request):
                     txt = RoleLoader().load(request)
                 if registered_class == User:
                     txt = UserLoader().load(request)
-                if registered_class == ContainerSystem:
-                    txt = ContainerSystemLoader().load(request)
-                if registered_class == Container:
-                    txt = ContainerLoader().load(request)
                 info(request, txt)
             if action == 'Delete':
                 txt = f'{name} not deleted'

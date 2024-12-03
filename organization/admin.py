@@ -3,7 +3,7 @@ from django.contrib.admin.models import LogEntry
 from django.contrib import admin
 from django.utils import timezone
 from .models import *
-from .models import Group as HubGroup
+from django.contrib.auth.models import Group
 from django.utils.translation import gettext as _
 from django.utils.translation import ngettext
 from datahub.settings import HUB_ALLOWED_OWNER_KEYS
@@ -61,7 +61,6 @@ class DatahubModelAdmin(admin.ModelAdmin):
     empty_value_display = '---'
     readonly_fields = ["ctime", "cuser", "utime", "uuser", ]
 
-
     def save_model(self, request, obj, form, change):
         if not change:
             obj.cuser = request.user.username
@@ -94,7 +93,7 @@ class DataHubUserAdmin(UserAdmin):
     def json_filename(self):
         """ Used to save and load Json data"""
         # return  f'../{self.__class__.__name__}-data.json'
-        return  f'../all-data.json'
+        return f'../all-data.json'
 
     @admin.action(description=_("Unload all data as JSON"))
     def unload(self, request, queryset):
@@ -102,7 +101,7 @@ class DataHubUserAdmin(UserAdmin):
             file.write(AbstractDatahubModel.serialize(data))
             return len(data)
         count = 0
-        with open(self.json_filename(),'w') as file:
+        with open(self.json_filename(), 'w') as file:
             count += unld(file, Owner.objects.all())
             count += unld(file, ContainerSystem.objects.all())
             count += unld(file, Container.objects.all())
@@ -110,8 +109,7 @@ class DataHubUserAdmin(UserAdmin):
             count += unld(file, Application.objects.all())
             count += unld(file, Area.objects.all())
             count += unld(file, Areascope.objects.all())
-            # Die Group wird nicht richtig serialisiert, daher lassen wir sie aus
-            # count += unld(file, HubGroup.objects.all())
+            count += unld(file, Group.objects.all())
             """ Don´t unload sys user """
             # from django.db.models import Q
             # count += unld(file, User.objects.filter(~Q(username='sys')))
@@ -123,7 +121,7 @@ class DataHubUserAdmin(UserAdmin):
 
     @admin.action(description=_("Load all data from JSON"))
     def load(self, request, queryset):
-        with open(self.json_filename(),'r') as file:
+        with open(self.json_filename(), 'r') as file:
             data = file.read()
         count = AbstractDatahubModel.deserialize(data)
         msg = ngettext(_(f"{count} object was successfully loaded."),
@@ -131,8 +129,7 @@ class DataHubUserAdmin(UserAdmin):
                        count,)
         self.message_user(request, msg, messages.SUCCESS,)
 
-    actions = ['unload','load']
-
+    actions = ['unload', 'load']
 
     list_filter = ['groups', 'is_superuser', 'is_staff', 'is_active']
     list_display = ['username', 'first_name', 'last_name', 'language',
@@ -189,11 +186,12 @@ class DataHubUserAdmin(UserAdmin):
 
 class DataHubGroupAdmin(GroupAdmin):
 
-    list_display = ['name', 'owner', ]
+    list_display = ['name',]
     fieldsets = [
-        (None, {'fields': [('name', 'owner',), 'permissions', ], }),
+        (None, {'fields': [('name', ), 'permissions', ], }),
         # ('History', {'fields': [('ctime', 'cuser'), ('utime', 'uuser')], },),
     ]
+    filter_horizontal = ['permissions']
 
     def get_list_display(self, request):
         return DatahubModelAdmin.get_list_display(self, request)
@@ -230,7 +228,7 @@ class ApplicationAdmin(DatahubModelAdmin):
                                             ('bu3_type', 'bu3_field', 'regex_3',),
                                             ('bu4_type', 'bu4_field', 'regex_4',),
                                             ('bu5_type', 'bu5_field', 'regex_5',),
-                                             ],}),
+                                            ], }),
         ('History', {'fields': [('ctime', 'cuser'), ('utime', 'uuser')], },),
     ]
 
@@ -263,13 +261,15 @@ class AreascopeAdmin(DatahubModelAdmin):
     ordering = ['area__key', 'key',]
     list_filter = ['area', 'type', 'active']
     date_hierarchy = 'ctime'
-    list_display = ['key', 'type', 'desc', 'org_scope', 'app_scope', 'owner', 'active']
+    list_display = ['key', 'type', 'desc',
+                    'org_scope', 'app_scope', 'owner', 'active']
     fieldsets = [
         ('Base Information', {'fields': [
          ('area', 'type', ), 'desc', 'active'], }),
         ('Business Units', {'fields': [('bu1_value', 'bu1_title'), ('bu2_value', 'bu2_title'), (
             'bu3_value', 'bu3_title'), ('bu4_value', 'bu4_title'), ('bu5_value', 'bu5_title'), ]}),
-        ('Reporting Options', {'fields': ['team', 'org_scope', 'app_scope'], }),
+        ('Reporting Options', {'fields': [
+         'team', 'org_scope', 'app_scope'], }),
         ('History', {'fields': [('ctime', 'cuser'), ('utime', 'uuser')], },),
     ]
 
@@ -345,6 +345,7 @@ class EnvironmentAdmin(DatahubModelAdmin):
         ('AW', {'fields': ['ace_connect', ('natproc', 'awlib'), ], }),
         ('History', {'fields': [('ctime', 'cuser'), ('utime', 'uuser')], },),
     ]
+
 
 class LogEntryAdmin(admin.ModelAdmin):
     # https://docs.djangoproject.com/en/5.0/ref/contrib/admin/#django.contrib.admin.models.LogEntry.action_flag

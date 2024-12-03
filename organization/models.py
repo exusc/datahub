@@ -2,8 +2,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.core import serializers
 from django.db import models, connections
-from django.contrib.auth.models import AbstractUser
-from django.contrib.auth.models import Group as AbstractGroup
+from django.contrib.auth.models import AbstractUser, Group
 from datahub.settings import LANGUAGES, HUB_OWNER_KEY, HUB_APPLICATION_KEY, DATABASES
 from django.utils.translation import gettext as _
 from django.db.models.signals import post_save, post_delete, m2m_changed
@@ -63,8 +62,8 @@ class AbstractDatahubModel(models.Model):
             try:
                 deserialized_object.save()
                 count += 1
-            except:
-                print(deserialized_object) 
+            except Exception as e:
+                print(deserialized_object, e) 
         return count
 
 
@@ -377,15 +376,6 @@ class User(AbstractUser):
         return False
 
 
-class Group(AbstractGroup):
-    class Meta:
-        verbose_name = _("Role")
-        verbose_name_plural = _("Roles")
-
-    owner = models.ForeignKey(
-        to=Owner, on_delete=models.PROTECT, null=True, blank=True,)
-
-
 class Application(AbstractDatahubModel):
     """ Business Unit Types are defined on application level - in this prototype its just a simple definition
         For real implementation this mut be a separate object with information about allowed values ...
@@ -642,9 +632,9 @@ def receive_save_area(sender, instance: Area, created, **kwargs):
         instance.database.add_area(instance, instance.schema_views())
 
     if created:
-        for scope in instance.application.scope_set.all():
-            instance.database.add_scope(instance, scope.key)
-            instance.filestorage.add_scope(instance, scope.key)
+        for areascope in instance.areascope_set.all():
+            instance.database.add_scope(instance, areascope.key)
+            instance.filestorage.add_scope(instance, areascope.key)
 
 
 @receiver(post_save, sender=Areascope)
