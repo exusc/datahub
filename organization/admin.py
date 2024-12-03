@@ -15,11 +15,10 @@ def allowed(request, set):
         Normal users are restricted to their ALLOWED_OWNER
         TODO: Move to Model??
     """
-    if request.user.is_superuser:
+    if request.user.is_superuser or '*' in request.session[HUB_ALLOWED_OWNER_KEYS]:
         return set
-    if not '*' in request.session[HUB_ALLOWED_OWNER_KEYS]:
-        return set.filter(
-            owner__key__in=request.session[HUB_ALLOWED_OWNER_KEYS])
+    return set.filter(
+        owner__key__in=request.session[HUB_ALLOWED_OWNER_KEYS])
 
 
 class DatahubAdminSite(admin.AdminSite):
@@ -77,7 +76,8 @@ class DatahubModelAdmin(admin.ModelAdmin):
         list_display = list(self.list_display)
         if request.user.is_superuser or '*' in request.session[HUB_ALLOWED_OWNER_KEYS] or len(request.session[HUB_ALLOWED_OWNER_KEYS]) > 1:
             return list_display
-        list_display.remove("owner")
+        if "owner" in list_display:
+            list_display.remove("owner")
         return list_display
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
@@ -128,7 +128,7 @@ class DataHubUserAdmin(UserAdmin):
                        _(f"{count} objects were successfully loaded."),
                        count,)
         self.message_user(request, msg, messages.SUCCESS,)
-
+    
     actions = ['unload', 'load']
 
     list_filter = ['groups', 'is_superuser', 'is_staff', 'is_active']
@@ -158,6 +158,10 @@ class DataHubUserAdmin(UserAdmin):
         obj.save()
 
     def get_queryset(self, request):
+        if request.user.is_superuser:
+            self.actions = ['unload', 'load']
+        else:
+            self.actions = []
         return allowed(request, super().get_queryset(request))
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
@@ -169,10 +173,8 @@ class DataHubUserAdmin(UserAdmin):
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
         """ Reduce list of selectable scopes """
-        if db_field.name == "scopes":
-            kwargs["queryset"] = allowed(
-                request, Scope.objects.all().order_by('key'))
         if db_field.name == "areascopes":
+            # TODO: Auch Scopes anzeigen, die der User selbst hat
             kwargs["queryset"] = allowed(
                 request, Areascope.objects.all().order_by('key'))
         """ Reduce list of selectable groups """
