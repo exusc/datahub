@@ -1,11 +1,11 @@
-Version 2.0 of Prototype for Concept Discussions
+Version 2.0.1 of Prototype for Concept Discussions
 
 Supports base functionality for 
 - Standard administration of DATA-Hub objects
 - Self service with restriction to owned objects
 - db actions logged but not executed
 - Initial health checks implemented
-- Unload aund load of complete hub control
+- Unload and load of complete hub control
 Changes to version 1 of teh concept:
 - Scopes are linked to areas instead of applications
 - Groups are not owner specific
@@ -15,9 +15,13 @@ Open Stories
 - UI should use Abraxas Base Components
 - Support of MinIo
 
+
 Next Tasks
-- Create application Test based on definition in Confluence
 - See TODO in User admin: selection of areasscopes must include own scopes
+  Beispiel besser machen
+- Passwort auslagern?
+- Scopes with from to for Schutzstufen 
+- Create application Test based on definition in Confluence
 
 Next Stories
 - Define RLS for the hub itself
@@ -25,7 +29,6 @@ Next Stories
 - Reduce load function to AW - others are loaded by Json
 - Execution of container actions in db and filestorage
 - Usage of *-functionality with Areascopes
-- Scopes with from to for Schutzstufen 
 - UI for scope adding
 - Multi-language-support
 

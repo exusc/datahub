@@ -108,7 +108,10 @@ class DataHubUserAdmin(UserAdmin):
             count += unld(file, Environment.objects.all())
             count += unld(file, Application.objects.all())
             count += unld(file, Area.objects.all())
-            count += unld(file, Areascope.objects.all())
+            count += unld(file, Areascope.objects.filter(type='A'))
+            count += unld(file, Areascope.objects.filter(type='O'))
+            count += unld(file, Areascope.objects.filter(type='T'))
+            count += unld(file, Areascope.objects.filter(type='S'))
             count += unld(file, Group.objects.all())
             """ Don´t unload sys user """
             # from django.db.models import Q

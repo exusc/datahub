@@ -579,7 +579,7 @@ class Areascope(AbstractDatahubModel):
             self.key += f'/{self.team}'
 
         """ Check if scope already exists """
-        if self._state.adding and Scope.objects.filter(key=self.key):
+        if self._state.adding and Areascope.objects.filter(key=self.key):
             raise ValidationError(
                 _("Scope: %(value)s already exists."),
                 code="invalid",
