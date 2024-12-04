@@ -27,14 +27,16 @@
 
 <h3>Areas - Schemas</h3>
 <table  class="w3-table-all">
-<tr><th>Application</th><th>Description (-> Check)</th><th>Area</th><th>Description</th><th>Database</th><th>Table Schema</th><th>View Schema</th></tr>
+<tr><th>Application</th><th>Description (-> Check)</th><th>Area</th><th>RLS-Scipt</th><th>Description</th><th>Database</th><th>Table Schema</th><th>View Schema</th></tr>
 {% for area, x in health_areas.items%}
 {% if area.application.active %}
 {% if area.active %}
     <tr>
         <td><a href="{% url 'admin:organization_application_change' area.application.id %}">{{area.application}}</a></td>
         <td><a href="{% url 'checkapplication' area.application.id %}">{{area.application.desc}}</a></td>
-        <td><a href="{% url 'admin:organization_area_change' area.id %}">{{area}}</a></td><td>{{area.desc}}</td>
+        <td><a href="{% url 'admin:organization_area_change' area.id %}">{{area}}</a></td>
+        <td><a href="{% url 'area_rls' area.id %}">download</a></td>
+        <td>{{area.desc}}</td>
         <td><a href="{% url 'admin:organization_container_change' area.database.id %}">{{area.database}}</a></td>
         {% if x.ok %}
             <td>{% autoescape off %}{{x.badge_t}}{% endautoescape %} - {{x.msg_t}}</td>

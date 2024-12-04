@@ -131,7 +131,9 @@ class DataHubUserAdmin(UserAdmin):
                        _(f"{count} objects were successfully loaded."),
                        count,)
         self.message_user(request, msg, messages.SUCCESS,)
-    
+
+
+
     actions = ['unload', 'load']
 
     list_filter = ['groups', 'is_superuser', 'is_staff', 'is_active']
@@ -178,11 +180,13 @@ class DataHubUserAdmin(UserAdmin):
         """ Reduce list of selectable scopes """
         if db_field.name == "areascopes":
             # TODO: Auch Scopes anzeigen, die der User selbst hat
-            kwargs["queryset"] = allowed(
-                request, Areascope.objects.all().order_by('key'))
+            if request.user.is_superuser:
+                kwargs["queryset"] = Areascope.objects.all()
+            else:
+                kwargs["queryset"] = request.user.get_areascopes(separate_application=False)
         """ Reduce list of selectable groups """
         if db_field.name == "groups":
-            if request.user.is_superuser or '*' in request.session[HUB_ALLOWED_OWNER_KEYS]:
+            if request.user.is_superuser:
                 kwargs["queryset"] = Group.objects.all()
             else:
                 kwargs["queryset"] = request.user.groups

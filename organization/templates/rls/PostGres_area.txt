@@ -1,0 +1,44 @@
+-- RLS Script   : PostGres_area 
+-- generated at : {{time}} 
+-- Application  : '{{area.application}}' ({{area.application.desc}})
+-- Area         : '{{area.key}}' ({{area.desc}})
+-- Database     : name={{db_name}} 
+--                host={{db_host}}
+--                schema={{area.schematables}}
+--
+-- RLS is controlled by following Business Unit Types via environment variables (envvar) in database:
+{% if area.application.bu1_type %}-- 1. {{area.application.bu1_type}} (columns={{area.application.bu1_field}}) (envvar={{area.application}}.{{area.application.bu1_field}}){% endif %}
+{% if area.application.bu2_type %}-- 2. {{area.application.bu2_type}} (columns={{area.application.bu2_field}}) (envvar={{area.application}}.{{area.application.bu2_field}}){% endif %}
+{% if area.application.bu3_type %}-- 3. {{area.application.bu3_type}} (columns={{area.application.bu3_field}}) (envvar={{area.application}}.{{area.application.bu3_field}}){% endif %}
+--
+-- ======================================================================================
+-- Needed for RLS on application level: Schema '{{area.application}}'
+-- Within this schema:
+-- - Table 'user2scope' Who is allowed to set which scope?
+-- - for each scope a setscope function
+{% for scope in area.areascope_set.all %} 
+--   {{scope.key}}  {{area.application}}.{{area.application.bu1_field}}={{scope.bu1_value}}       {% endfor %}
+--
+-- ======================================================================================
+-- Needed for RLS on area level: Schema '{{area.schematables}}
+{% if area.application.bu1_type %}
+-- for each table containing a column {{area.application.bu1_field}} a RLS.Policy
+{% endif %}
+{% if area.application.bu2_type %}
+-- for each table containing a column {{area.application.bu2_field}} a RLS.Policy
+{% endif %}
+
+-- Needed for Direct Access
+-- 1. Installed Login Hook
+-- 2. Information about last used scope of user 
+-- 3. Login Hook must set scope
+
+
+
+To check
+- Does it work with distributed tables within citus?
+- What happens if column in rule dosn't exist
+- If we have two rules does it work like expected?
+- Min and max values are needed
+- What happens if a envvar is not defined
+- Type is needed

@@ -14,7 +14,7 @@ from pathlib import Path
 from django.utils.translation import gettext_lazy as _
 from django.conf.locale.en import formats as en_formats
 from datetime import datetime
-
+from os import environ
 
 
 
@@ -27,8 +27,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-*jewy(+r67@$v7u7q)s#she6hxiwmri-#*qp3%_l)1hab#rvn8'
-DB_USER = 'postgres'
-DB_PASSWORD = '.Paraolimpia1235'
+DB_USER =  environ.get("DATAHUB_DB_USER", 'dbu')
+DB_PASSWORD =  environ.get("DATAHUB_DB_PASSWORD", 'dbp')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True

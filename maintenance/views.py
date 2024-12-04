@@ -1,7 +1,7 @@
-from django.core.paginator import Paginator
 from django.utils import timezone
 from django import forms
 from django.core.exceptions import ValidationError
+from django.core.paginator import Paginator
 from django.core import validators
 from django.shortcuts import render, redirect
 from django.urls import reverse
@@ -15,6 +15,7 @@ from datahub.settings import HUB_ALLOWED_OWNER_KEYS
 from django.db.utils import OperationalError
 from organization.models import *
 from . load import *
+from django.http import HttpResponse
 
 
 @login_required(login_url="index")
@@ -250,6 +251,14 @@ def index(request):
         0:5]
     return render(request, 'index.html', context)
 
+
+from organization.rls import area_script
+def area_rls(request, area_id):
+    area = Area.objects.get(id=area_id)
+    data = area_script(area)
+    response = HttpResponse(data, content_type='text/txt')
+    response['Content-Disposition'] = f'attachment; filename="{area}-rls-script.txt"'
+    return response
 
 """
 class UserView(View):

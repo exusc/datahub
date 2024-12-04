@@ -19,5 +19,7 @@ urlpatterns = [
     path('checkowner/<str:owner_id>', views.checkowner, name='checkowner'),
     path('checkapplication/<str:application_id>', views.checkapplication, name='checkapplication'),
 
+    path('area-rls/<str:area_id>', views.area_rls, name='area_rls'),
+
     path('switch_user/<int:user_id>', views.switch_user, name='switch_user'),
 ]
