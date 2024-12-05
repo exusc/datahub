@@ -9,10 +9,12 @@ import datetime
 
 def area_script(area:Area):
     context = {'area' : area, 'time' : datetime.datetime.now() }
+
     # Connection = Defaults from ContainerSystem updated by specific Container
     connection = area.database.containersystem.connection
     connection.update(area.database.connection)
+    
     context.update({'db_name': connection.get('NAME')})
     context.update({'db_host': connection.get('HOST')})
-    data = render_to_string("rls/PostGres_area.txt", context)
-    return data
+    
+    return render_to_string("rls/PostGres_area.txt", context)

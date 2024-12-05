@@ -34,7 +34,7 @@
     <tr>
         <td><a href="{% url 'admin:organization_application_change' area.application.id %}">{{area.application}}</a></td>
         <td><a href="{% url 'checkapplication' area.application.id %}">{{area.application.desc}}</a></td>
-        <td><a href="{% url 'admin:organization_area_change' area.id %}">{{area}}</a></td>
+        <td><a href="{% url 'admin:organization_area_change' area.id %}">{{area.key}}</a></td>
         <td><a href="{% url 'area_rls' area.id %}">download</a></td>
         <td>{{area.desc}}</td>
         <td><a href="{% url 'admin:organization_container_change' area.database.id %}">{{area.database}}</a></td>

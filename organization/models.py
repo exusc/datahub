@@ -557,6 +557,10 @@ class Areascope(AbstractDatahubModel):
         super().full_clean(exclude=exclude, validate_unique=validate_unique,
                            validate_constraints=validate_constraints)
 
+    def script_name(self):
+        """ Name of scope used in db scripts """
+        return self.key.lower().replace(' ','_').replace('/','_')
+
     def clean(self):
 
         def append(delimiter,value, title):

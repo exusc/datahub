@@ -1,4 +1,4 @@
-Version 2.0.3 of Prototype for Concept Discussions
+Version 2.0.4 of Prototype for Concept Discussions
 - first rls template created
 
 Supports base functionality for 
@@ -18,7 +18,7 @@ Open Stories
 
 
 Next Tasks
-- Work on RLS Script
+- Test the rls scripts 
 - BUT with type (TEXT, Integer, Boolean)
 - Scopes with min max for Schutzstufen 
 
