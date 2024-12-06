@@ -300,7 +300,7 @@ class AreaAdmin(DatahubModelAdmin):
 
     search_fields = ['key', 'application__key', 'desc']
     list_display = ['application', 'key', 'desc',
-                    'database', 'schematables', 'schemaviews', 'filestorage', 'owner', 'active']
+                    'database', 'schematables', 'filestorage', 'propagation_type', 'owner', 'active']
     list_display_links = ['key']
     ordering = ['application__key', 'key',]
     list_filter = ['application', 'active']
@@ -308,7 +308,7 @@ class AreaAdmin(DatahubModelAdmin):
         (None, {'fields': [('application', 'key', ),
          'active', 'desc', 'text', ], }),
         ('Container', {'fields': [
-         ('database', 'schematables', 'schemaviews', ), 'filestorage'], }),
+         ('database', 'schematables', 'schemaviews', ), 'filestorage', 'propagation_type'], }),
         ('History', {'fields': [('ctime', 'cuser'), ('utime', 'uuser')], },),
     ]
 

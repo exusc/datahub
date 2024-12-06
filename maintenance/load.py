@@ -79,21 +79,6 @@ class EnvironmentLoader():
 class OwnerLoader():
 
     def load(self, request) -> str:
-        def create(key, desc, text=None):
-            obj = Owner(key=key, desc=desc, text=text,
-                        ctime=timezone.now(), cuser=request.user,)
-            obj.owner = obj
-            try:
-                obj.save()
-            except:
-                pass
-
-        create('ABX', 'Abraxas',
-               'Abraxas can take ownership of internal objects (databases, test applications etc.)')
-        create('IGS', 'IGS gmbh',)
-        create('SVA-SG', 'SVA Sankt Gallen',)
-        create('SVA-ZH', 'SVA Zürich',)
-        return _(f'4 Owners successfully loaded')
 
         abx = Owner.objects.get(key='ABX')
         filename = path.join(AW_DATA_DIR, AW_FILE_CLIENT)
@@ -221,81 +206,15 @@ class AreaLoader():
 
 class AreascopeLoader():
     def load(self, request) -> str:
-        """ Laden der Sample Scopes """
-        def create(area_key, l1, l2=None, l3=None, team=None, desc=None, org_scope=None, app_scope=None, type='S'):
-
-            print(area_key)
-            area = Area.objects.get(key=area_key)
-            
-            obj = Areascope(owner=area.owner,
-                        type=type,
-                        bu1_value=l1,
-                        bu2_value=l2,
-                        bu3_value=l3,
-                        team=team,
-                        area=area,
-                        desc=desc,
-                        org_scope=org_scope,
-                        app_scope=app_scope,
-                        ctime=timezone.now(),
-                        cuser=request.user,
-                        )
-            try:
-                obj.clean()
-                obj.save()
-            except:
-                pass
-            return obj
-        # create('FD', 'KT', 'FD', '302')
-        
-        create('Control', '*', desc='Berechtigung für alle Owner im DATA-Hub')
-        create('Control', 'ABX')
-        create('Control', 'IGS')
-        create('Control', 'SVA-SG')
-        create('Control', 'SVA-ZH')
-
-        app_scope = create('poc_dv', '*', team='STD',
-                           desc='Standard Templates / Abraxas', type='A')
-        create('poc_dv', 'GEMEINDE_STEURION', 
-               desc='Steurion', app_scope=app_scope)
-        create('poc_dv', 'GEMEINDE_STEURION', team='test', 
-               desc='Steurion', app_scope=app_scope)
-        create('poc_dv', 'GEMEINDE_ABRAXIEN', 
-               desc='Abraxien', app_scope=app_scope)
-
-        """
-        app_scope = create('igs', '*', team='PROD',
-                           desc='Standard Templates for all SVAs', type='A')
-        org_scope = create('igs', '*', team='PROD',
-                           desc='Productive Templates for all Departments', type='O')
-        create('sva-zh-lz', '*', team='TEST',
-               desc='Used to test Reports', app_scope=app_scope)
-        create('sva-zh-lz', '*', team='PROD',
-               desc='Productive Reports', app_scope=app_scope)
-        create('sva-zh-lz', '*', desc='Access to all Data',
-               org_scope=org_scope, app_scope=app_scope)
-        create('sva-zh-lz', 'EK', desc='Team Einkauf',
-               org_scope=org_scope, app_scope=app_scope)
-        org_scope = create('sva-zh-lz', 'MKT', '*', team='TEMPLATES',
-                           desc='Templates for all marketing groups', type='O')
-        create('sva-zh-lz', 'MKT', 'GP1', desc='Team Marketing - Group 1',
-               org_scope=org_scope, app_scope=app_scope)
-        create('sva-zh-lz', 'MKT', 'GP2', desc='Team Marketing - Group 2',
-               org_scope=org_scope, app_scope=app_scope)
-        create('sva-zh-bz', '*', desc='All Tenants', app_scope=app_scope)
-        create('sva-zh-bz', 'T001', desc='Tenant 001', app_scope=app_scope)
-        create('sva-zh-bz', 'T002', desc='Tenant 002', app_scope=app_scope)
-        """
-
         txt = _('Scopes successfully loaded')
         txt = self.load_aw()
         return txt
 
     def load_aw(self):
-        return 'nix'
-        applications = {}
-        for application in Application.objects.all():
-            applications[application.key] = application
+        areas = {}
+        for area in Area.objects.all():
+            if area.database.containersystem.key == 'ACE_TE':
+                areas[area.application.key] = area  # 'FD', ...
 
         filename = path.join(AW_DATA_DIR, AW_FILE070)
         scopes = {}
@@ -303,50 +222,54 @@ class AreascopeLoader():
         with open(filename, 'r') as file:
             reader = csv.DictReader(file, delimiter=";")
             for row in reader:
+
                 if (row['SATZART'] == 'O') and (len(row['NAME']) > 1):
                     level = row['NAME'].split('_')
                     application_key = level[0]
-                    application = applications[application_key]
-
-                    scope = Scope(application=application,
-                                  owner=application.owner,
-                                  key=row['NAME'],
-                                  hex=row['OWNER_KEY'],
-                                  desc=decode(row['OWNER_BESCHREIBUNG']),
-                                  type='S',
-                                  # client=row['OWNER_KUNDENNUMMER'],
-                                  utime=datetime.strptime(
-                                      row['MUTATIONSDATUMZEIT'], AW_CSV_TIMESTR).replace(tzinfo=timezone2.utc),
-                                  uuser=row['MUTATION_USER_ID'],
-                                  ctime=datetime.strptime(
-                                      row['MUTATIONSDATUMZEIT'], AW_CSV_TIMESTR).replace(tzinfo=timezone2.utc),
-                                  cuser=row['MUTATION_USER_ID'],
-                                  business_unit_1=level[1],
-                                  )
-                    if len(level) > 2:
-                        scope.business_unit_2 = level[2]
-                    if len(level) > 3:
-                        scope.business_unit_3 = level[3]
-                    if len(level) > 4:
-                        scope.business_unit_4 = level[4]
-                    if row['GLOBAL_OWNER_KZ'] == 'O':
-                        scope.type = 'O'
-                    if row['GLOBAL_OWNER_KZ'] == 'F':
-                        scope.type = 'A'
-                    if row['GLOBAL_OWNER_KZ'] == 'T':
-                        scope.type = 'T'
-                    scope.global_app_owner_key = row['GLOBAL_APPL_OWNER_KEY']
-                    scope.global_org_owner_key = row['GLOBAL_ORG_OWNER_KEY']
-                    scopes[scope.hex] = scope
-                    filtered += 1
+                    area = areas.get(application_key)
+                    if area:
+                        scope = Areascope(area=area,
+                                    owner=area.owner,
+                                    key=row['NAME'],
+                                    hex=row['OWNER_KEY'],
+                                    desc=decode(row['OWNER_BESCHREIBUNG']),
+                                    type='S',
+                                    # client=row['OWNER_KUNDENNUMMER'],
+                                    utime=datetime.strptime(
+                                        row['MUTATIONSDATUMZEIT'], AW_CSV_TIMESTR).replace(tzinfo=timezone2.utc),
+                                    uuser=row['MUTATION_USER_ID'],
+                                    ctime=datetime.strptime(
+                                        row['MUTATIONSDATUMZEIT'], AW_CSV_TIMESTR).replace(tzinfo=timezone2.utc),
+                                    cuser=row['MUTATION_USER_ID'],
+                                    bu1_value=level[1],
+                                    )
+                        if len(level) > 2:
+                            scope.bu2_value = level[2]
+                        if len(level) > 3:
+                            if level[3] == 'ALLEFAKTURASTELLEN':
+                                scope.bu3_value = '*'
+                                scope.bu3_title = 'AlleFakturastellen'
+                            else:
+                                scope.bu3_value = level[3]
+                        if len(level) > 4:
+                            scope.bu4_value = level[4]
+                        if row['GLOBAL_OWNER_KZ'] == 'O':
+                            scope.type = 'O'
+                        if row['GLOBAL_OWNER_KZ'] == 'F':
+                            scope.type = 'A'
+                        if row['GLOBAL_OWNER_KZ'] == 'T':
+                            scope.type = 'T'
+                        scope.global_app_owner_key = row['GLOBAL_APPL_OWNER_KEY']
+                        scope.global_org_owner_key = row['GLOBAL_ORG_OWNER_KEY']
+                        scopes[scope.hex] = scope
+                        filtered += 1
 
         # Scopes, die keine 'eigenen' Scopes sind speichern
         scope_list1 = []
         for scope in scopes.values():
             if not scope.type == 'S':
                 scope_list1.append(scope)
-        Scope.objects.bulk_create(scope_list1)
-
+        Areascope.objects.bulk_create(scope_list1)
         # Scope, die 'eigene' Scopes sind, um die Template-Owner ergänzen und dann speichern
         scope_list2 = []
         for scope in scopes.values():
@@ -357,21 +280,21 @@ class AreascopeLoader():
                 if len(scope_list2) >= 100:
                     pass
                     # break
-        Scope.objects.bulk_create(scope_list2)
+        Areascope.objects.bulk_create(scope_list2)
 
-        return _(f'{len(scope_list1) + len(scope_list2)} Scopes loaded')
+        return _(f'{len(scope_list1) + len(scope_list2)} Areascopes loaded')
 
     def delete(self, request) -> str:
         """ Delete only imported scopes from AW """
         count = 0
-        for scope in Scope.objects.all().filter(type='S'):
+        for scope in Areascope.objects.all().filter(type='S'):
             if scope.hex:
                 try:
                     scope.delete()
                     count += 1
                 except:
                     pass
-        for scope in Scope.objects.all():
+        for scope in Areascope.objects.all():
             if scope.hex:
                 try:
                     scope.delete()

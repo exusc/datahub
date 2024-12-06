@@ -198,7 +198,8 @@ if not os.path.exists(scope_path):
 
     def add_scope(self, area, scope_key):
         parms = {'app': area.application.key, 'area': area.key, 'scope': scope_key,}
-        parms.update(self.connection)
+        if self.connection:
+            parms.update(self.connection)
         db_logger.info (
             f"{str(self):10} - Action:'{self.containersystem}.scope_add' - Parms: {parms}")
         if self.containersystem.type == ContainerSystem.FILESTORAGE:
@@ -207,7 +208,8 @@ if not os.path.exists(scope_path):
     def delete_scope(self, area, scope_key):
         parms = {'app': area.application.key,
                  'area': area.key, 'scope': scope_key}
-        parms.update(self.connection)
+        if self.connection:
+            parms.update(self.connection)
         db_logger.info(
             f"{str(self):10} - Action:'{self.containersystem}.scope_delete' - Parms: {parms}")
         code = """
@@ -440,6 +442,19 @@ class Area(AbstractDatahubModel):
         verbose_name_plural = _("Areas")
         unique_together = ['application', 'key']
 
+    NONE = 'no'
+    SYNCHRON = 'sy'
+    ASYNCHRON = 'as'
+    KAFKA = 'kafka'
+
+    PROPAGATION_TYPE = {
+        NONE: _("None"),
+        SYNCHRON: _("Synchron"),
+        ASYNCHRON: _("Asynchron"),
+        KAFKA: _("Kafka"),
+    }
+
+
     owner = models.ForeignKey(
         to=Owner, on_delete=models.PROTECT, related_name='+',)
     key = models.CharField(_('key'), max_length=20)
@@ -452,7 +467,9 @@ class Area(AbstractDatahubModel):
                                     blank=True, help_text='Overwrite default (app.key_area.key_base)')
     schemaviews = models.CharField(_('schemaviews'), max_length=40, null=True,
                                    blank=True, help_text='Overwrite default (app.key_area.key)')
-
+    propagation_type = models.CharField(_('propagation_type'), max_length=10, choices=PROPAGATION_TYPE, default=NONE)
+    
+    
     def __init__(self, *args, **kwargs) -> None:
         """ Used to cache original schema values to detect changes within signal method. Set to blank if object is new """
         super().__init__(*args, **kwargs)
@@ -618,14 +635,13 @@ class Environment(AbstractDatahubModel):
         _('awlib'), max_length=8, null=True, blank=True, help_text=_(
             'Used in batch job.'))
 
-
-"""
-   Methods save_* are triggered by changes of DATA-Hub objects and will implement actions on db
-"""
-
+# -------------------------------------------------------------------------------------
+# Events trigger actions in Container - (None, Synchron, Asynchron or via Kafka Stream)
+# Django Kafka: https://pypi.org/project/django-kafka/
+# -------------------------------------------------------------------------------------
 
 @receiver(post_save, sender=Area)
-def receive_save_area(sender, instance: Area, created, **kwargs):
+def event_save_area(sender, instance: Area, created, **kwargs):
     """ Only changes of schema names are relevant 
         Trigger actions: add new schema to database, no actions in filestorage
     """
@@ -642,7 +658,7 @@ def receive_save_area(sender, instance: Area, created, **kwargs):
 
 
 @receiver(post_save, sender=Areascope)
-def receive_save_areascope(sender, instance: Areascope, created, **kwargs):
+def event_save_areascope(sender, instance: Areascope, created, **kwargs):
     """ Changes of business units are relevant 
         Triggers actions: deletion of old scope and adding new scope
     """
@@ -664,7 +680,7 @@ def receive_save_areascope(sender, instance: Areascope, created, **kwargs):
 
 
 @receiver(post_delete, sender=Areascope)
-def receive_delete_scope(sender, instance: Areascope, **kwargs):
+def event_delete_scope(sender, instance: Areascope, **kwargs):
     """ Deletion of scopes will be executed in containers """
     area = instance.area
     area.database.delete_scope(area, instance.key)
@@ -672,7 +688,7 @@ def receive_delete_scope(sender, instance: Areascope, **kwargs):
 
 
 @receiver(signal=m2m_changed, sender=User.groups.through)
-def receive_group_assignments(instance: User, action, reverse, model, pk_set, using, *args, **kwargs):
+def event_group_assignments(instance: User, action, reverse, model, pk_set, using, *args, **kwargs):
     """ Falls beim User Gruppen hinzugefügt oder geändert wurden, ist zu prüfen:
         Remove von Gruppen:
         1. hat eine der Gruppen direct access?

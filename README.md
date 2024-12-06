@@ -1,5 +1,5 @@
-Version 2.0.4 of Prototype for Concept Discussions
-- first rls template created
+Version 2.0.6 of Prototype for Concept Discussions
+- first version of rls template for areas 
 
 Supports base functionality for 
 - Standard administration of DATA-Hub objects
@@ -16,13 +16,14 @@ Open Stories
 - UI should use Abraxas Base Components
 - Support of MinIo
 
-
-Next Tasks
+In Progress
 - Test the rls scripts 
+- Using PK if value depends on table ... ?
+
+Backlog
+- PropagationProcess
 - BUT with type (TEXT, Integer, Boolean)
 - Scopes with min max for Schutzstufen 
-
-Next Stories
 - Create application Test based on definition in Confluence
 - Extend Health-Check 
 - Reduce load function to AW - others are loaded by Json

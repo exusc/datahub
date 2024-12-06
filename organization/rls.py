@@ -12,9 +12,10 @@ def area_script(area:Area):
 
     # Connection = Defaults from ContainerSystem updated by specific Container
     connection = area.database.containersystem.connection
-    connection.update(area.database.connection)
+    if area.database.connection:
+        connection.update(area.database.connection)
     
     context.update({'db_name': connection.get('NAME')})
     context.update({'db_host': connection.get('HOST')})
     
-    return render_to_string("rls/PostGres_area.txt", context)
+    return render_to_string("rls/PostGres/area.txt", context)

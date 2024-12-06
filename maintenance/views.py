@@ -20,8 +20,7 @@ from django.http import HttpResponse
 
 @login_required(login_url="index")
 def load(request):
-    registered_classes = [Owner, ContainerSystem, Container,
-                          Environment, Application, Area, Areascope,  Group, User, ]
+    registered_classes = [Owner, Areascope ]
 
     if request.POST:
         for registered_class in registered_classes:
