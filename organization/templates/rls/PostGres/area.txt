@@ -8,6 +8,7 @@
 -- Database     : name   = '{{db_name}}'
 --                host   = '{{db_host}}'
 --                schema = '{{area.schematables}}'
+--                role   = '{{role}}'
 --
 -- https://www.postgresql.org/docs/current/sql-commands.html
 -- ======================================================================================
@@ -25,36 +26,41 @@
 -- ======================================================================================
 -- R1. Create role for read access - used by report generator and direct access users
 -- --------------------------------------------------------------------------------------
-CREATE ROLE _{{area|lower}}_read_only;
+CREATE ROLE {{role}};
 -- ======================================================================================
 -- R2. RLS-Policies for each BUT and each table
 -- --------------------------------------------------------------------------------------
 --    List of Policies:{% if app.bu1_type %}
---    For each table within schema '{{area.schematables}}' containing a column {{app.bu1_field}}:
+--    For each table within schema '{{area.schematables}}' containing a column '{{app.bu1_field|lower}}':
 -- --------------------------------------------------------------------------------------
-CREATE POLICY _hub_{{app.bu1_field|lower}} ON {table} 
+{% for table in bu1_tables %}
+CREATE POLICY _hub_{{app.bu1_field|lower}} ON {{area.schematables}}.{{table}} 
     AS PERMISSIVE FOR SELECT 
-    TO _{{area|lower}}_read_only 
+    TO {{role}} 
     USING (
       (current_setting('{{app|lower}}.{{app.bu1_field}}', false)::text = '*')
       or
       ({{app.bu1_field}}::text = current_setting('{{app|lower}}.{{app.bu1_field}}', false)::text)
-);{% endif %}{% if app.bu2_type %}
+);
+{% endfor %}{% endif %}
+{% if app.bu2_type %}-- --------------------------------------------------------------------------------------
+--    For each table within schema '{{area.schematables}}' containing a column '{{app.bu2_field|lower}}':
 -- --------------------------------------------------------------------------------------
---    For each table within schema '{{area.schematables}}' containing a column {{app.bu2_field}}:
--- --------------------------------------------------------------------------------------
-CREATE POLICY _{{app.bu2_field|lower}} ON {table} 
+{% for table in bu2_tables %}
+CREATE POLICY _hub_{{app.bu2_field|lower}} ON {{area.schematables}}.{{table}} 
     AS PERMISSIVE FOR SELECT 
-    TO _{{area|lower}}_read_only 
-    USING
+    TO {{role}}
+    USING (
       (current_setting('{{app|lower}}.{{app.bu2_field}}', false)::text = '*')
       or
       ({{app.bu2_field}}::text = current_setting('{{app|lower}}.{{app.bu2_field}}', false)::text)
-);{% endif %}
+);
+{% endfor %}{% endif %}
 -- ======================================================================================
 -- R3. Enable RLS for each table which got a policy:
 -- --------------------------------------------------------------------------------------
-ALTER TABLE {table} ENABLE ROW LEVEL SECURITY;
+{% for table in rls_tables %}ALTER TABLE {{area.schematables}}.{{table}} ENABLE ROW LEVEL SECURITY;
+{% endfor %}
 -- ======================================================================================
 -- R4. Functions to set values for the BUTs matching the scopes:
 --     There are {{area.areascope_set.all|length}} scopes defined in area '{{area}}' of application '{{app}}'

@@ -98,12 +98,12 @@ DATABASES = {
     'default': {
 
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'datahub-sample.sqlite3',
+        'NAME': BASE_DIR / 'datahub.sqlite3',
 
 #        'ENGINE': 'django.db.backends.postgresql_psycopg2',
 #        'OPTIONS': {'options': '-c search_path=hub_control'},  # Schemu must exist in new DB!
+#        'NAME': 'sta_axusc03',
 
-        'NAME': 'sta_axusc03',
         'HOST': 'sta.db.dat.abraxas-apis.ch',
         'PORT': '5432',
         'USER': DB_USER,
